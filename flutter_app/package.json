@@ -1,0 +1,12 @@
+{
+  "name": "eduscan",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "flutter run",
+    "build": "flutter build web",
+    "clean": "flutter clean",
+    "pub-get": "flutter pub get"
+  }
+}
