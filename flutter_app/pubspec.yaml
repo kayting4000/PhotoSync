@@ -15,7 +15,7 @@ dependencies:
   provider: ^6.0.0
   
   # Supabase integration
-  supabase_flutter: ^1.10.0
+  supabase_flutter: ^2.3.0
   
   # Image handling
   image_picker: ^1.0.0
@@ -51,15 +51,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  # Ensure these are indented by exactly 2 spaces
   assets:
     - assets/images/
     - assets/icons/
 
-  fonts:
-    - family: Geist
-      fonts:
-        - asset: assets/fonts/Geist-Regular.ttf
-        - asset: assets/fonts/Geist-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Geist-Medium.ttf
-          weight: 500

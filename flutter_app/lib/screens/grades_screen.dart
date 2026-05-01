@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../theme/app_theme.dart';
 
 class GradesScreen extends StatefulWidget {
-  const GradesScreen({Key? key}) : super(key: key);
+  const GradesScreen({super.key});
 
   @override
   State<GradesScreen> createState() => _GradesScreenState();
@@ -24,12 +25,11 @@ class _GradesScreenState extends State<GradesScreen> {
     try {
       final results = await supabase.from('exam_results').select();
       final grades = results as List<dynamic>;
-
-      double totalWeightedGrade = 0;
-      double totalUnits = 0;
+      double totalPercentage = 0;
 
       for (var grade in grades) {
         final percentage = (grade['percentage'] ?? 0.0).toDouble();
+        totalPercentage += percentage;
         if (percentage >= 90) grade['grade'] = 'A+';
         else if (percentage >= 85) grade['grade'] = 'A';
         else if (percentage >= 80) grade['grade'] = 'B+';
@@ -40,171 +40,197 @@ class _GradesScreenState extends State<GradesScreen> {
         else grade['grade'] = 'F';
       }
 
-      double calculatedGpa = 4.0 - (totalWeightedGrade / totalUnits);
+      final avg = grades.isEmpty ? 0.0 : totalPercentage / grades.length;
+      final gpa = (avg / 100 * 3.0 + 1.0).clamp(1.0, 4.0);
 
       if (mounted) {
         setState(() {
           _examResults = grades;
-          _gpa = calculatedGpa.clamp(1.0, 4.0);
+          _gpa = gpa;
           _isLoading = false;
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-      debugPrint('Error fetching grades: $e');
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  String _getGradeColor(String? grade) {
+  List<Color> _gradeColors(String? grade) {
     switch (grade) {
-      case 'A+':
-      case 'A':
-        return '#10b981';
-      case 'B+':
-      case 'B':
-        return '#3b82f6';
-      case 'C+':
-      case 'C':
-        return '#f59e0b';
-      case 'D':
-        return '#ef4444';
-      default:
-        return '#6b7280';
+      case 'A+': case 'A': return [const Color(0xFF43E97B), const Color(0xFF38F9D7)];
+      case 'B+': case 'B': return [kAccent1, kAccent2];
+      case 'C+': case 'C': return [const Color(0xFFF7971E), const Color(0xFFFFD200)];
+      default: return [kAccent3, const Color(0xFFFF8FA3)];
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Grades & GPA'),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
+      body: AppBackground(
+        child: SafeArea(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator(color: kAccent1))
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          Text(
-                            'Current GPA',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            _gpa.toStringAsFixed(2),
-                            style: Theme.of(context)
-                                .textTheme
-                                .displaySmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color:
-                                      Theme.of(context).colorScheme.primary,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          LinearProgressIndicator(
-                            value: _gpa / 4.0,
-                            minHeight: 8,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Text(
-                    'Exam Results',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 16),
-                  if (_examResults.isEmpty)
-                    Center(
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.assignment_outlined,
-                            size: 48,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                          const SizedBox(height: 12),
-                          const Text('No exam results yet'),
-                        ],
-                      ),
-                    )
-                  else
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _examResults.length,
-                      itemBuilder: (context, index) {
-                        final result = _examResults[index];
-                        final percentage =
-                            (result['percentage'] ?? 0.0).toDouble();
-                        final grade = result['grade'] ?? 'N/A';
-
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 60,
-                                  height: 60,
-                                  decoration: BoxDecoration(
-                                    color: Color(int.parse(
-                                        '0xff${_getGradeColor(grade).substring(1)}')),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      grade,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Exam ${index + 1}',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${percentage.toStringAsFixed(1)}%',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: GlassCard(
+                              padding: const EdgeInsets.all(10),
+                              borderRadius: 12,
+                              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                                  color: kTextPrimary, size: 18),
                             ),
                           ),
-                        );
-                      },
-                    ),
-                ],
-              ),
-            ),
+                          const SizedBox(width: 16),
+                          const Text('Grades & GPA',
+                              style: TextStyle(
+                                  color: kTextPrimary,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // GPA Card
+                      GlassCard(
+                        child: Column(
+                          children: [
+                            const Text('Current GPA',
+                                style: TextStyle(
+                                    color: kTextSecondary, fontSize: 13)),
+                            const SizedBox(height: 12),
+                            ShaderMask(
+                              shaderCallback: (bounds) =>
+                                  const LinearGradient(
+                                      colors: [kAccent1, kAccent2])
+                                      .createShader(bounds),
+                              child: Text(
+                                _gpa.toStringAsFixed(2),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 56,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text('out of 4.00',
+                                style: TextStyle(
+                                    color: kTextSecondary, fontSize: 12)),
+                            const SizedBox(height: 16),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: LinearProgressIndicator(
+                                value: _gpa / 4.0,
+                                minHeight: 8,
+                                backgroundColor: kGlass,
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                    kAccent1),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+
+                      const Text('Exam Results',
+                          style: TextStyle(
+                              color: kTextPrimary,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 14),
+
+                      if (_examResults.isEmpty)
+                        GlassCard(
+                          padding: const EdgeInsets.all(40),
+                          child: Column(
+                            children: const [
+                              Icon(Icons.assignment_outlined,
+                                  size: 48, color: kTextSecondary),
+                              SizedBox(height: 12),
+                              Text('No exam results yet',
+                                  style: TextStyle(color: kTextSecondary)),
+                            ],
+                          ),
+                        )
+                      else
+                        ...List.generate(_examResults.length, (index) {
+                          final result = _examResults[index];
+                          final percentage =
+                              (result['percentage'] ?? 0.0).toDouble();
+                          final grade = result['grade'] ?? 'N/A';
+                          final colors = _gradeColors(grade);
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: GlassCard(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 56,
+                                    height: 56,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(colors: colors),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Center(
+                                      child: Text(grade,
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16)),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text('Exam ${index + 1}',
+                                            style: const TextStyle(
+                                                color: kTextPrimary,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 15)),
+                                        const SizedBox(height: 6),
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                          child: LinearProgressIndicator(
+                                            value: percentage / 100,
+                                            minHeight: 6,
+                                            backgroundColor: kGlass,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    colors.first),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                            '${percentage.toStringAsFixed(1)}%',
+                                            style: const TextStyle(
+                                                color: kTextSecondary,
+                                                fontSize: 12)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
+                    ],
+                  ),
+                ),
+        ),
+      ),
     );
   }
 }

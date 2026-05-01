@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
-import '../../providers/student_provider.dart';
+import '../providers/student_provider.dart';
+import '../theme/app_theme.dart';
 
 class EmailScreen extends StatefulWidget {
-  const EmailScreen({Key? key}) : super(key: key);
+  const EmailScreen({super.key});
 
   @override
   State<EmailScreen> createState() => _EmailScreenState();
@@ -25,6 +26,12 @@ class _EmailScreenState extends State<EmailScreen> {
     _fetchSubjects();
   }
 
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetchSubjects() async {
     try {
       final subjects = await supabase.from('subjects').select();
@@ -35,165 +42,242 @@ class _EmailScreenState extends State<EmailScreen> {
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-      debugPrint('Error fetching subjects: $e');
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _sendEmails() async {
     if (_selectedSubject == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a subject')),
+        const SnackBar(
+            content: Text('Please select a subject'),
+            backgroundColor: kAccent3),
       );
       return;
     }
-
     setState(() => _isSending = true);
-
     try {
       final students = context.read<StudentProvider>().students;
-
       for (final student in students) {
         if (student.email != null && student.email!.isNotEmpty) {
-          await supabase.functions.invoke(
-            'send-email',
-            body: {
-              'to': student.email,
-              'subject':
-                  'Grade Report - $_selectedSubjectName',
-              'message': _messageController.text,
-            },
-          );
+          await supabase.functions.invoke('send-email', body: {
+            'to': student.email,
+            'subject': 'Grade Report - $_selectedSubjectName',
+            'message': _messageController.text,
+          });
         }
       }
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Emails sent successfully')),
+          const SnackBar(
+              content: Text('Emails sent successfully!'),
+              backgroundColor: kAccent1),
         );
         _messageController.clear();
-        setState(() => _isSending = false);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error sending emails: $e')),
+          SnackBar(
+              content: Text('Error: $e'), backgroundColor: kAccent3),
         );
-        setState(() => _isSending = false);
       }
+    } finally {
+      if (mounted) setState(() => _isSending = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Send Grade Reports'),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Send Email Reports',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 24),
-                  const Text('Select Subject'),
-                  const SizedBox(height: 8),
-                  DropdownButton<String>(
-                    isExpanded: true,
-                    value: _selectedSubject,
-                    hint: const Text('Choose a subject'),
-                    items: _subjects
-                        .map((subject) => DropdownMenuItem(
-                              value: subject['id'],
-                              child: Text(subject['name']),
-                              onTap: () {
-                                setState(() {
-                                  _selectedSubjectName = subject['name'];
-                                });
-                              },
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() => _selectedSubject = value);
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  const Text('Message (Optional)'),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _messageController,
-                    decoration: InputDecoration(
-                      hintText:
-                          'Add a custom message to include in the email',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+      body: AppBackground(
+        child: SafeArea(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator(color: kAccent1))
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: GlassCard(
+                              padding: const EdgeInsets.all(10),
+                              borderRadius: 12,
+                              child: const Icon(
+                                  Icons.arrow_back_ios_new_rounded,
+                                  color: kTextPrimary,
+                                  size: 18),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          const Text('Send Grade Reports',
+                              style: TextStyle(
+                                  color: kTextPrimary,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold)),
+                        ],
                       ),
-                    ),
-                    maxLines: 4,
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isSending ? null : _sendEmails,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: _isSending
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text('Send Emails'),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Email Preview',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Subject: Grade Report - $_selectedSubjectName',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'This email will be sent to all students with email addresses on file.',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-    );
-  }
+                      const SizedBox(height: 24),
 
-  @override
-  void dispose() {
-    _messageController.dispose();
-    super.dispose();
+                      GlassCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Select Subject',
+                                style: TextStyle(
+                                    color: kTextSecondary, fontSize: 13)),
+                            const SizedBox(height: 10),
+                            Container(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                color: kGlass,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: kGlassBorder),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: _selectedSubject,
+                                  isExpanded: true,
+                                  dropdownColor: const Color(0xFF1A1A3E),
+                                  style:
+                                      const TextStyle(color: kTextPrimary),
+                                  hint: const Text('Choose a subject',
+                                      style:
+                                          TextStyle(color: kTextSecondary)),
+                                  items: _subjects
+                                      .map((s) => DropdownMenuItem(
+                                            value: s['id'] as String,
+                                            child: Text(s['name']),
+                                          ))
+                                      .toList(),
+                                  onChanged: (value) {
+                                    final subject = _subjects
+                                        .firstWhere((s) => s['id'] == value);
+                                    setState(() {
+                                      _selectedSubject = value;
+                                      _selectedSubjectName = subject['name'];
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            const Text('Message (Optional)',
+                                style: TextStyle(
+                                    color: kTextSecondary, fontSize: 13)),
+                            const SizedBox(height: 10),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(14),
+                              child: TextField(
+                                controller: _messageController,
+                                maxLines: 4,
+                                style:
+                                    const TextStyle(color: kTextPrimary),
+                                decoration: InputDecoration(
+                                  hintText: 'Add a custom message...',
+                                  hintStyle: const TextStyle(
+                                      color: kTextSecondary),
+                                  filled: true,
+                                  fillColor: kGlass,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: const BorderSide(
+                                        color: kGlassBorder),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: const BorderSide(
+                                        color: kGlassBorder),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: const BorderSide(
+                                        color: kAccent1, width: 1.5),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: double.infinity,
+                              child: GradientButton(
+                                onPressed: _isSending ? null : _sendEmails,
+                                colors: const [
+                                  Color(0xFFF7971E),
+                                  Color(0xFFFFD200)
+                                ],
+                                child: _isSending
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white),
+                                      )
+                                    : const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                              Icons.mark_email_read_rounded,
+                                              color: Colors.white,
+                                              size: 18),
+                                          SizedBox(width: 8),
+                                          Text('Send Emails',
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16)),
+                                        ],
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Preview card
+                      GlassCard(
+                        color: const Color(0x0D6C63FF),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: const [
+                                Icon(Icons.preview_rounded,
+                                    color: kAccent1, size: 18),
+                                SizedBox(width: 8),
+                                Text('Email Preview',
+                                    style: TextStyle(
+                                        color: kTextPrimary,
+                                        fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Subject: Grade Report - ${_selectedSubjectName ?? 'Not selected'}',
+                              style: const TextStyle(
+                                  color: kTextSecondary, fontSize: 13),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Will be sent to all students with email addresses on file.',
+                              style: TextStyle(
+                                  color: kTextSecondary, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
+      ),
+    );
   }
 }
