@@ -218,7 +218,8 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
     if (q.contains('scan') || q.contains('paper')) return 'Use the Scanner to upload and analyze test papers.';
     if (q.contains('grade') || q.contains('gpa')) return 'Check the Grades screen to view GPA and results.';
     if (q.contains('email')) return 'Use Send Email Reports to notify students.';
-    if (q.contains('creator') || q.contains('who made')) return 'EduScan was created by Habibun-najal K. Kayting. Email: kayting4k@gmail.com';
+    if (q.contains('creator') || q.contains('who made') || q.contains('team') || q.contains('developer'))
+      return 'EduScan was built by:\n• Habibun-najal Kayting (Lead Developer)\n• Hareeja Montenegro (Sub-dev & QA)\n• Mohd Shaffiqh (Sub-dev & Documentation)';
     return 'Hi! I can help you navigate EduScan. Ask me about students, subjects, scanning, grades, or emails.';
   }
 

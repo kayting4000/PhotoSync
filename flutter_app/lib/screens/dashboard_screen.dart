@@ -204,43 +204,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Creator info
+                // Team info
                 FadeSlideIn(
                   delay: const Duration(milliseconds: 600),
                   child: GlassCard(
                     padding: const EdgeInsets.all(16),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                                colors: [kAccent1, kAccent3]),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(Icons.person_rounded,
-                              color: Colors.white, size: 20),
+                        const Row(
+                          children: [
+                            Icon(Icons.groups_rounded, color: kAccent2, size: 18),
+                            SizedBox(width: 8),
+                            Text('Development Team',
+                                style: TextStyle(
+                                    color: kTextPrimary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14)),
+                          ],
                         ),
-                        const SizedBox(width: 14),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Habibun-najal K. Kayting',
-                                  style: TextStyle(
-                                      color: kTextPrimary,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13)),
-                              SizedBox(height: 2),
-                              Text('kayting4k@gmail.com',
-                                  style: TextStyle(
-                                      color: kTextSecondary, fontSize: 11)),
-                              SizedBox(height: 2),
-                              Text('Creator of EduScan',
-                                  style: TextStyle(
-                                      color: kAccent2, fontSize: 11)),
-                            ],
-                          ),
+                        const SizedBox(height: 16),
+                        _TeamMember(
+                          name: 'Habibun-najal Kayting',
+                          role: 'Lead Developer',
+                          email: 'kayting4k@gmail.com',
+                          colors: [kAccent1, kAccent2],
+                          icon: Icons.code_rounded,
+                        ),
+                        const SizedBox(height: 10),
+                        _TeamMember(
+                          name: 'Hareeja Montenegro',
+                          role: 'Sub-developer & Quality Assurance',
+                          colors: [kAccent3, kAccent1],
+                          icon: Icons.verified_rounded,
+                        ),
+                        const SizedBox(height: 10),
+                        _TeamMember(
+                          name: 'Mohd Shaffiqh Anang',
+                          role: 'Sub-developer & Documentation',
+                          colors: [const Color(0xFF43E97B), const Color(0xFF38F9D7)],
+                          icon: Icons.description_rounded,
                         ),
                       ],
                     ),
@@ -308,7 +311,57 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _ActionTile extends StatelessWidget {
+class _TeamMember extends StatelessWidget {
+  final String name;
+  final String role;
+  final String? email;
+  final List<Color> colors;
+  final IconData icon;
+
+  const _TeamMember({
+    required this.name,
+    required this.role,
+    this.email,
+    required this.colors,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: colors),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: Colors.white, size: 16),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(name,
+                  style: const TextStyle(
+                      color: kTextPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13)),
+              Text(role,
+                  style: const TextStyle(
+                      color: kTextSecondary, fontSize: 11)),
+              if (email != null)
+                Text(email!,
+                    style: const TextStyle(
+                        color: kAccent2, fontSize: 11)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
   final String label;
   final String subtitle;
   final IconData icon;
