@@ -283,7 +283,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: kAccent2.withOpacity(0.5),
+                color: kAccent2.withValues(alpha: 0.5),
                 blurRadius: 20,
                 offset: const Offset(0, 8)),
           ],

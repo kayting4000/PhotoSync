@@ -362,6 +362,7 @@ class _TeamMember extends StatelessWidget {
     );
   }
 }
+class _ActionTile extends StatelessWidget {
   final String label;
   final String subtitle;
   final IconData icon;

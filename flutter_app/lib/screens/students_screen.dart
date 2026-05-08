@@ -295,7 +295,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: kAccent1.withOpacity(0.5),
+                color: kAccent1.withValues(alpha: 0.5),
                 blurRadius: 20,
                 offset: const Offset(0, 8)),
           ],
