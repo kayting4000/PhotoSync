@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/fade_slide_in.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -60,126 +61,200 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'EduScan',
-                          style: TextStyle(
-                            color: kTextPrimary,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1,
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 100),
+                  beginOffset: const Offset(0, -0.05),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            'EduScan',
+                            style: TextStyle(
+                              color: kTextPrimary,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1,
+                            ),
                           ),
-                        ),
-                        const Text(
-                          'Welcome back! 👋',
-                          style: TextStyle(color: kTextSecondary, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                    GestureDetector(
-                      onTap: _logout,
-                      child: GlassCard(
-                        padding: const EdgeInsets.all(12),
-                        borderRadius: 14,
-                        child: const Icon(Icons.logout_rounded,
-                            color: kTextPrimary, size: 20),
+                          Text(
+                            'Welcome back! 👋',
+                            style: TextStyle(color: kTextSecondary, fontSize: 14),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                      GestureDetector(
+                        onTap: _logout,
+                        child: GlassCard(
+                          padding: const EdgeInsets.all(12),
+                          borderRadius: 14,
+                          child: const Icon(Icons.logout_rounded,
+                              color: kTextPrimary, size: 20),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 28),
 
                 // Stats grid
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 14,
-                  crossAxisSpacing: 14,
-                  childAspectRatio: 1.3,
-                  children: [
-                    _StatCard(
-                      title: 'Students',
-                      value: '$_totalStudents',
-                      icon: Icons.people_rounded,
-                      colors: [const Color(0xFF6C63FF), const Color(0xFF9B8FFF)],
-                    ),
-                    _StatCard(
-                      title: 'Subjects',
-                      value: '$_totalSubjects',
-                      icon: Icons.menu_book_rounded,
-                      colors: [const Color(0xFF48CAE4), const Color(0xFF0096C7)],
-                    ),
-                    _StatCard(
-                      title: 'Exams',
-                      value: '$_totalExams',
-                      icon: Icons.assignment_rounded,
-                      colors: [const Color(0xFFFF6584), const Color(0xFFFF8FA3)],
-                    ),
-                    _StatCard(
-                      title: 'Results',
-                      value: '$_totalResults',
-                      icon: Icons.bar_chart_rounded,
-                      colors: [const Color(0xFF43E97B), const Color(0xFF38F9D7)],
-                    ),
-                  ],
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 200),
+                  child: GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 14,
+                    crossAxisSpacing: 14,
+                    childAspectRatio: 1.3,
+                    children: [
+                      _StatCard(
+                        title: 'Students',
+                        value: '$_totalStudents',
+                        icon: Icons.people_rounded,
+                        colors: [const Color(0xFF6C63FF), const Color(0xFF9B8FFF)],
+                      ),
+                      _StatCard(
+                        title: 'Subjects',
+                        value: '$_totalSubjects',
+                        icon: Icons.menu_book_rounded,
+                        colors: [const Color(0xFF48CAE4), const Color(0xFF0096C7)],
+                      ),
+                      _StatCard(
+                        title: 'Exams',
+                        value: '$_totalExams',
+                        icon: Icons.assignment_rounded,
+                        colors: [const Color(0xFFFF6584), const Color(0xFFFF8FA3)],
+                      ),
+                      _StatCard(
+                        title: 'Results',
+                        value: '$_totalResults',
+                        icon: Icons.bar_chart_rounded,
+                        colors: [const Color(0xFF43E97B), const Color(0xFF38F9D7)],
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 28),
 
-                const Text(
-                  'Quick Actions',
-                  style: TextStyle(
-                    color: kTextPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 300),
+                  child: const Text(
+                    'Quick Actions',
+                    style: TextStyle(
+                      color: kTextPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 14),
 
-                _ActionTile(
-                  label: 'Manage Students',
-                  subtitle: 'Add, edit & view students',
-                  icon: Icons.people_rounded,
-                  gradient: const [Color(0xFF6C63FF), Color(0xFF9B8FFF)],
-                  onTap: () => context.go('/students'),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 350),
+                  child: _ActionTile(
+                    label: 'Manage Students',
+                    subtitle: 'Add, edit & view students',
+                    icon: Icons.people_rounded,
+                    gradient: const [Color(0xFF6C63FF), Color(0xFF9B8FFF)],
+                    onTap: () => context.go('/students'),
+                  ),
                 ),
-                _ActionTile(
-                  label: 'Manage Subjects',
-                  subtitle: 'Configure courses & units',
-                  icon: Icons.menu_book_rounded,
-                  gradient: const [Color(0xFF48CAE4), Color(0xFF0096C7)],
-                  onTap: () => context.go('/subjects'),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 400),
+                  child: _ActionTile(
+                    label: 'Manage Subjects',
+                    subtitle: 'Configure courses & units',
+                    icon: Icons.menu_book_rounded,
+                    gradient: const [Color(0xFF48CAE4), Color(0xFF0096C7)],
+                    onTap: () => context.go('/subjects'),
+                  ),
                 ),
-                _ActionTile(
-                  label: 'Scan Test Papers',
-                  subtitle: 'Upload & analyze papers',
-                  icon: Icons.document_scanner_rounded,
-                  gradient: const [Color(0xFFFF6584), Color(0xFFFF8FA3)],
-                  onTap: () => context.go('/scanner'),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 450),
+                  child: _ActionTile(
+                    label: 'Scan Test Papers',
+                    subtitle: 'Upload & analyze papers',
+                    icon: Icons.document_scanner_rounded,
+                    gradient: const [Color(0xFFFF6584), Color(0xFFFF8FA3)],
+                    onTap: () => context.go('/scanner'),
+                  ),
                 ),
-                _ActionTile(
-                  label: 'View Grades',
-                  subtitle: 'Track GPA & results',
-                  icon: Icons.bar_chart_rounded,
-                  gradient: const [Color(0xFF43E97B), Color(0xFF38F9D7)],
-                  onTap: () => context.go('/grades'),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 500),
+                  child: _ActionTile(
+                    label: 'View Grades',
+                    subtitle: 'Track GPA & results',
+                    icon: Icons.bar_chart_rounded,
+                    gradient: const [Color(0xFF43E97B), Color(0xFF38F9D7)],
+                    onTap: () => context.go('/grades'),
+                  ),
                 ),
-                _ActionTile(
-                  label: 'Send Email Reports',
-                  subtitle: 'Notify students via email',
-                  icon: Icons.mark_email_read_rounded,
-                  gradient: const [Color(0xFFF7971E), Color(0xFFFFD200)],
-                  onTap: () => context.go('/email'),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 550),
+                  child: _ActionTile(
+                    label: 'Send Email Reports',
+                    subtitle: 'Notify students via email',
+                    icon: Icons.mark_email_read_rounded,
+                    gradient: const [Color(0xFFF7971E), Color(0xFFFFD200)],
+                    onTap: () => context.go('/email'),
+                  ),
                 ),
+                const SizedBox(height: 32),
+
+                // Creator info
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 600),
+                  child: GlassCard(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                                colors: [kAccent1, kAccent3]),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.person_rounded,
+                              color: Colors.white, size: 20),
+                        ),
+                        const SizedBox(width: 14),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Habibun-najal K. Kayting',
+                                  style: TextStyle(
+                                      color: kTextPrimary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13)),
+                              SizedBox(height: 2),
+                              Text('kayting4k@gmail.com',
+                                  style: TextStyle(
+                                      color: kTextSecondary, fontSize: 11)),
+                              SizedBox(height: 2),
+                              Text('Creator of EduScan',
+                                  style: TextStyle(
+                                      color: kAccent2, fontSize: 11)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 80),
               ],
             ),
           ),
         ),
+      ),
+      floatingActionButton: const Padding(
+        padding: EdgeInsets.only(bottom: 8, right: 4),
+        child: AIAssistantBubble(),
       ),
     );
   }
@@ -217,14 +292,12 @@ class _StatCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  color: kTextPrimary,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              Text(value,
+                  style: const TextStyle(
+                    color: kTextPrimary,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  )),
               Text(title,
                   style: const TextStyle(color: kTextSecondary, fontSize: 12)),
             ],

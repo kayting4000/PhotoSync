@@ -17,32 +17,39 @@ class AppBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [kBg1, kBg2, Color(0xFF1A0533)],
-          stops: [0.0, 0.5, 1.0],
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: -80, left: -60,
-            child: _Blob(color: kAccent1.withOpacity(0.3), size: 260),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [kBg1, kBg2, Color(0xFF1A0533)],
+              stops: [0.0, 0.5, 1.0],
+            ),
           ),
-          Positioned(
-            bottom: -100, right: -80,
-            child: _Blob(color: kAccent2.withOpacity(0.2), size: 300),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned(
+                top: -80, left: -60,
+                child: _Blob(color: kAccent1.withOpacity(0.3), size: constraints.maxWidth * 0.65),
+              ),
+              Positioned(
+                bottom: -100, right: -80,
+                child: _Blob(color: kAccent2.withOpacity(0.2), size: constraints.maxWidth * 0.75),
+              ),
+              Positioned(
+                top: constraints.maxHeight * 0.3, right: -40,
+                child: _Blob(color: kAccent3.withOpacity(0.15), size: constraints.maxWidth * 0.45),
+              ),
+              child,
+            ],
           ),
-          Positioned(
-            top: 200, right: -40,
-            child: _Blob(color: kAccent3.withOpacity(0.15), size: 180),
-          ),
-          child,
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -198,6 +205,261 @@ class GradientButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ── AI Assistant Bubble ──────────────────────────────────────────────────────
+class AIAssistantBubble extends StatefulWidget {
+  const AIAssistantBubble({super.key});
+
+  @override
+  State<AIAssistantBubble> createState() => _AIAssistantBubbleState();
+}
+
+class _AIAssistantBubbleState extends State<AIAssistantBubble>
+    with SingleTickerProviderStateMixin {
+  bool _isOpen = false;
+  final _controller = TextEditingController();
+  final List<Map<String, String>> _messages = [];
+  late AnimationController _animController;
+  late Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    );
+    _scaleAnim = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOutBack,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _animController.dispose();
+    super.dispose();
+  }
+
+  void _toggle() {
+    setState(() => _isOpen = !_isOpen);
+    if (_isOpen) {
+      _animController.forward();
+    } else {
+      _animController.reverse();
+    }
+  }
+
+  void _sendMessage() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    setState(() {
+      _messages.add({'role': 'user', 'text': text});
+      _messages.add({
+        'role': 'ai',
+        'text': _getAutoReply(text),
+      });
+    });
+    _controller.clear();
+  }
+
+  String _getAutoReply(String input) {
+    final q = input.toLowerCase();
+    if (q.contains('student')) return 'Go to Manage Students to add or view students.';
+    if (q.contains('subject')) return 'Go to Manage Subjects to create subjects.';
+    if (q.contains('scan') || q.contains('paper')) return 'Use the Scanner to upload and analyze test papers.';
+    if (q.contains('grade') || q.contains('gpa')) return 'Check the Grades screen to view GPA and results.';
+    if (q.contains('email')) return 'Use Send Email Reports to notify students.';
+    if (q.contains('creator') || q.contains('who made')) return 'EduScan was created by Habibun-najal K. Kayting. Email: kayting4k@gmail.com';
+    return 'Hi! I can help you navigate EduScan. Ask me about students, subjects, scanning, grades, or emails.';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.bottomRight,
+      children: [
+        if (_isOpen)
+          ScaleTransition(
+            scale: _scaleAnim,
+            alignment: Alignment.bottomRight,
+            child: Container(
+              width: 300,
+              height: 380,
+              margin: const EdgeInsets.only(bottom: 72, right: 4),
+              child: GlassCard(
+                padding: const EdgeInsets.all(0),
+                child: Column(
+                  children: [
+                    // Header
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                            colors: [kAccent1, kAccent2]),
+                        borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(20)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.auto_awesome_rounded,
+                              color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text('EduScan AI',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold)),
+                          ),
+                          GestureDetector(
+                            onTap: _toggle,
+                            child: const Icon(Icons.close_rounded,
+                                color: Colors.white, size: 18),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Messages
+                    Expanded(
+                      child: _messages.isEmpty
+                          ? const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Text(
+                                  'Hi! Ask me anything about EduScan 👋',
+                                  style: TextStyle(
+                                      color: kTextSecondary, fontSize: 13),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(12),
+                              itemCount: _messages.length,
+                              itemBuilder: (context, i) {
+                                final msg = _messages[i];
+                                final isUser = msg['role'] == 'user';
+                                return Align(
+                                  alignment: isUser
+                                      ? Alignment.centerRight
+                                      : Alignment.centerLeft,
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
+                                    constraints: const BoxConstraints(
+                                        maxWidth: 220),
+                                    decoration: BoxDecoration(
+                                      gradient: isUser
+                                          ? const LinearGradient(
+                                              colors: [kAccent1, kAccent2])
+                                          : null,
+                                      color: isUser ? null : kGlass,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: isUser
+                                          ? null
+                                          : Border.all(
+                                              color: kGlassBorder),
+                                    ),
+                                    child: Text(
+                                      msg['text']!,
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 12),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                    // Input
+                    Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _controller,
+                              style: const TextStyle(
+                                  color: kTextPrimary, fontSize: 13),
+                              decoration: InputDecoration(
+                                hintText: 'Ask something...',
+                                hintStyle: const TextStyle(
+                                    color: kTextSecondary, fontSize: 12),
+                                filled: true,
+                                fillColor: kGlass,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide:
+                                      const BorderSide(color: kGlassBorder),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide:
+                                      const BorderSide(color: kGlassBorder),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: kAccent1, width: 1.5),
+                                ),
+                              ),
+                              onSubmitted: (_) => _sendMessage(),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: _sendMessage,
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                    colors: [kAccent1, kAccent2]),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(Icons.send_rounded,
+                                  color: Colors.white, size: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        // Bubble button
+        GestureDetector(
+          onTap: _toggle,
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: kAccent1.withOpacity(0.5),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.auto_awesome_rounded,
+              color: Colors.white,
+              size: 26,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

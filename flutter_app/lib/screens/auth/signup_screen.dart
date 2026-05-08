@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/fade_slide_in.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -57,146 +58,162 @@ class _SignupScreenState extends State<SignupScreen> {
     return Scaffold(
       body: AppBackground(
         child: SafeArea(
+          bottom: false,
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 24),
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                        colors: [kAccent3, kAccent1]),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: kAccent1.withOpacity(0.5),
-                        blurRadius: 24,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 100),
+                  beginOffset: const Offset(0, -0.1),
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [kAccent3, kAccent1]),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: kAccent1.withOpacity(0.5),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.person_add_rounded,
+                        color: Colors.white, size: 40),
                   ),
-                  child: const Icon(Icons.person_add_rounded,
-                      color: Colors.white, size: 40),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'EduScan',
-                  style: TextStyle(
-                    color: kTextPrimary,
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 200),
+                  child: const Text(
+                    'EduScan',
+                    style: TextStyle(
+                      color: kTextPrimary,
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Create your account',
-                  style: TextStyle(color: kTextSecondary, fontSize: 13),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 300),
+                  child: const Text(
+                    'Create your account',
+                    style: TextStyle(color: kTextSecondary, fontSize: 13),
+                  ),
                 ),
                 const SizedBox(height: 40),
-                GlassCard(
-                  child: Column(
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 400),
+                  child: GlassCard(
+                    child: Column(
+                      children: [
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Get started',
+                            style: TextStyle(
+                              color: kTextPrimary,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Fill in your details below',
+                            style: TextStyle(color: kTextSecondary, fontSize: 13),
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        GlassTextField(
+                          controller: _emailController,
+                          label: 'Email',
+                          prefixIcon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+                        const SizedBox(height: 16),
+                        GlassTextField(
+                          controller: _passwordController,
+                          label: 'Password',
+                          prefixIcon: Icons.lock_outlined,
+                          obscureText: !_isPasswordVisible,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: kTextSecondary,
+                            ),
+                            onPressed: () => setState(
+                                () => _isPasswordVisible = !_isPasswordVisible),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        GlassTextField(
+                          controller: _confirmPasswordController,
+                          label: 'Confirm Password',
+                          prefixIcon: Icons.lock_outlined,
+                          obscureText: true,
+                        ),
+                        const SizedBox(height: 28),
+                        Consumer<AuthProvider>(
+                          builder: (context, auth, _) => SizedBox(
+                            width: double.infinity,
+                            child: GradientButton(
+                              onPressed: auth.isLoading ? null : _handleSignup,
+                              colors: const [kAccent3, kAccent1],
+                              child: auth.isLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Create Account',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 500),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Get started',
+                      const Text('Already have an account? ',
+                          style: TextStyle(color: kTextSecondary)),
+                      GestureDetector(
+                        onTap: () => context.go('/login'),
+                        child: const Text(
+                          'Sign in',
                           style: TextStyle(
-                            color: kTextPrimary,
-                            fontSize: 22,
+                            color: kAccent2,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Fill in your details below',
-                          style: TextStyle(color: kTextSecondary, fontSize: 13),
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-                      GlassTextField(
-                        controller: _emailController,
-                        label: 'Email',
-                        prefixIcon: Icons.email_outlined,
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      const SizedBox(height: 16),
-                      GlassTextField(
-                        controller: _passwordController,
-                        label: 'Password',
-                        prefixIcon: Icons.lock_outlined,
-                        obscureText: !_isPasswordVisible,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _isPasswordVisible
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            color: kTextSecondary,
-                          ),
-                          onPressed: () => setState(
-                              () => _isPasswordVisible = !_isPasswordVisible),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      GlassTextField(
-                        controller: _confirmPasswordController,
-                        label: 'Confirm Password',
-                        prefixIcon: Icons.lock_outlined,
-                        obscureText: true,
-                      ),
-                      const SizedBox(height: 28),
-                      Consumer<AuthProvider>(
-                        builder: (context, auth, _) => SizedBox(
-                          width: double.infinity,
-                          child: GradientButton(
-                            onPressed: auth.isLoading ? null : _handleSignup,
-                            colors: const [kAccent3, kAccent1],
-                            child: auth.isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Text(
-                                    'Create Account',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Already have an account? ',
-                        style: TextStyle(color: kTextSecondary)),
-                    GestureDetector(
-                      onTap: () => context.go('/login'),
-                      child: const Text(
-                        'Sign in',
-                        style: TextStyle(
-                          color: kAccent2,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
