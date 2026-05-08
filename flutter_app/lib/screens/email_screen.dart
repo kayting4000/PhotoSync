@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
@@ -102,7 +103,7 @@ class _EmailScreenState extends State<EmailScreen> {
                       Row(
                         children: [
                           GestureDetector(
-                            onTap: () => Navigator.pop(context),
+                            onTap: () => context.go('/dashboard'),
                             child: GlassCard(
                               padding: const EdgeInsets.all(10),
                               borderRadius: 12,

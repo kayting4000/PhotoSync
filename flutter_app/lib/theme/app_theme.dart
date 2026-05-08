@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 const kBg1 = Color(0xFF0A0E27);
 const kBg2 = Color(0xFF0D1B4B);
@@ -20,16 +21,25 @@ class AppBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [kBg1, kBg2, Color(0xFF1A0533)],
-          stops: [0.0, 0.5, 1.0],
-        ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
       ),
-      child: child,
+      child: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [kBg1, kBg2, Color(0xFF1A0533)],
+            stops: [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: child,
+      ),
     );
   }
 }

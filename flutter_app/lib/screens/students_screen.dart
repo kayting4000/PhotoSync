@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/student_provider.dart';
@@ -163,7 +164,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 child: Row(
                   children: [
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () => context.go('/dashboard'),
                       child: GlassCard(
                         padding: const EdgeInsets.all(10),
                         borderRadius: 12,

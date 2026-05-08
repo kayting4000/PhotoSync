@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -158,7 +159,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   child: Row(
                     children: [
                       GestureDetector(
-                        onTap: () => Navigator.pop(context),
+                        onTap: () => context.go('/dashboard'),
                         child: GlassCard(
                           padding: const EdgeInsets.all(10),
                           borderRadius: 12,

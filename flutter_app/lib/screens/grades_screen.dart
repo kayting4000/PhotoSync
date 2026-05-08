@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
@@ -79,7 +80,7 @@ class _GradesScreenState extends State<GradesScreen> {
                       Row(
                         children: [
                           GestureDetector(
-                            onTap: () => Navigator.pop(context),
+                            onTap: () => context.go('/dashboard'),
                             child: GlassCard(
                               padding: const EdgeInsets.all(10),
                               borderRadius: 12,
