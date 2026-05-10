@@ -1,6 +1,7 @@
 # EduScan Backend API
 
 FastAPI backend for EduScan — Test Paper Scanner & Grade Management System.
+Built for **Mindanao State University - Tawi-Tawi (MSU-Tawi-Tawi)**.
 
 ---
 
@@ -63,7 +64,7 @@ cd EduScan/backend
 python -m venv venv
 ```
 
-Then activate it:
+Activate it:
 
 **Windows:**
 ```bash
@@ -74,8 +75,6 @@ venv\Scripts\activate
 ```bash
 source venv/bin/activate
 ```
-
-> You should see `(venv)` appear at the start of your terminal line.
 
 ---
 
@@ -89,14 +88,14 @@ pip install -r requirements.txt
 
 ### Step 4 — Create the `.env` file
 
-Create a file named `.env` inside the `backend/` folder with your Supabase credentials:
+Create a file named `.env` inside the `backend/` folder:
 
 ```
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-anon-key
 ```
 
-> 📌 Get these from your Supabase dashboard → **Project Settings → API**
+> Get these from your Supabase dashboard → **Project Settings → API**
 
 ---
 
@@ -106,71 +105,25 @@ SUPABASE_KEY=your-anon-key
 python -m uvicorn main:app --reload
 ```
 
-You should see:
-
-```
-INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process using WatchFiles
-```
-
 ---
 
 ### Step 6 — Open the API docs
 
 | Interface | URL |
 |-----------|-----|
-| 📄 Swagger UI (interactive) | http://localhost:8000/docs |
-| 📘 ReDoc | http://localhost:8000/redoc |
-| ❤️ Health check | http://localhost:8000/ |
+| Swagger UI (interactive) | http://localhost:8000/docs |
+| ReDoc | http://localhost:8000/redoc |
+| Health check | http://localhost:8000/ |
 
 ---
 
 ## 🧪 Running Tests
 
-Make sure the server is **already running**, then open a **second terminal** and run:
+Make sure the server is **already running**, then in a second terminal:
 
 ```bash
 cd EduScan/backend
 python test_api.py
-```
-
-Expected output:
-
-```
-=== EduScan API Tests ===
-
-[Health]
-  ✓ GET / [200]
-
-[Students]
-  ✓ POST /students/ [200]
-  ✓ GET  /students/ [200]
-  ✓ PUT  /students/{id} [200]
-
-[Subjects]
-  ✓ POST /subjects/ [200]
-  ✓ GET  /subjects/ [200]
-  ✓ PUT  /subjects/{id} [200]
-
-[Exams]
-  ✓ POST /exams/ [200]
-  ✓ GET  /exams/ [200]
-
-[Results]
-  ✓ POST /results/ [200]
-  ✓ GET  /results/ [200]
-
-[Dashboard & GPA]
-  ✓ GET /dashboard/ [200]
-  ✓ GET /gpa/ [200]
-
-[Cleanup]
-  ✓ DELETE /results/{id} [200]
-  ✓ DELETE /exams/{id} [200]
-  ✓ DELETE /subjects/{id} [200]
-  ✓ DELETE /students/{id} [200]
-
-=== Done ===
 ```
 
 ---
@@ -213,12 +166,63 @@ Expected output:
 | `POST` | `/results/` | Submit an exam result |
 | `DELETE` | `/results/{id}` | Delete a result |
 
-### Dashboard & Grades
+### Dashboard & GPA
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/dashboard/` | Total counts overview |
-| `GET` | `/gpa/` | GPA calculation (filter: `?student_id=`) |
+| `GET` | `/gpa/` | Weighted GPA (filter: `?student_id=`) |
 | `GET` | `/` | Health check |
+
+---
+
+## 🎓 MSU-Tawi-Tawi Grading Scale
+
+Grades are automatically assigned from the exam percentage score using the official MSU grading scale.
+
+| Percentage Range | Grade | Grade Point | Description |
+|-----------------|-------|-------------|-------------|
+| 96 – 100 | 1.0 | 1.0 | Excellent |
+| 92 – 95 | 1.25 | 1.25 | Excellent |
+| 88 – 91 | 1.5 | 1.5 | Very Good |
+| 84 – 87 | 1.75 | 1.75 | Very Good |
+| 80 – 83 | 2.0 | 2.0 | Good |
+| 76 – 79 | 2.25 | 2.25 | Good |
+| 72 – 75 | 2.5 | 2.5 | Satisfactory |
+| 68 – 71 | 2.75 | 2.75 | Satisfactory |
+| 60 – 67 | 3.0 | 3.0 | Passing |
+| Below 60 | 5.0 | 5.0 | Failed |
+
+### GPA Computation
+
+GPA is computed using the **weighted average** formula:
+
+```
+GPA = Σ(Grade Point × Units) / Σ(Units)
+```
+
+**Example:**
+
+| Subject | Units | Grade Point | Weighted |
+|---------|-------|-------------|----------|
+| Math | 3 | 1.5 | 4.5 |
+| English | 3 | 2.0 | 6.0 |
+| PE | 2 | 1.25 | 2.5 |
+| **Total** | **8** | — | **13.0** |
+
+```
+GPA = 13.0 / 8 = 1.625
+```
+
+### GPA Interpretation
+
+| GPA Range | Interpretation |
+|-----------|---------------|
+| 1.0 – 1.25 | Excellent |
+| 1.26 – 1.75 | Very Good |
+| 1.76 – 2.25 | Good |
+| 2.26 – 2.75 | Satisfactory |
+| 2.76 – 3.0 | Passing |
+| Above 3.0 | Failed |
 
 ---
 
@@ -239,7 +243,7 @@ Expected output:
 
 | Problem | Fix |
 |---------|-----|
-| `'uvicorn' is not recognized` | Use `python -m uvicorn main:app --reload` instead |
-| `ModuleNotFoundError` | Make sure venv is activated and you ran `pip install -r requirements.txt` |
-| `401 Unauthorized` | Check your `.env` — make sure `SUPABASE_KEY` is correct |
-| `.env` not loading | Make sure the `.env` file is inside the `backend/` folder, not the root |
+| `'uvicorn' is not recognized` | Use `python -m uvicorn main:app --reload` |
+| `ModuleNotFoundError` | Activate venv and run `pip install -r requirements.txt` |
+| `401 Unauthorized` | Check `.env` — verify `SUPABASE_KEY` is correct |
+| `.env` not loading | Make sure `.env` is inside `backend/`, not the project root |

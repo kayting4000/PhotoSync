@@ -8,15 +8,19 @@ from models.exam_result import TABLE
 router = APIRouter(prefix="/results", tags=["Results"])
 
 
-def _assign_grade(percentage: float) -> str:
-    if percentage >= 90: return "A+"
-    if percentage >= 85: return "A"
-    if percentage >= 80: return "B+"
-    if percentage >= 75: return "B"
-    if percentage >= 70: return "C+"
-    if percentage >= 65: return "C"
-    if percentage >= 60: return "D"
-    return "F"
+# MSU Grading Scale
+def _assign_grade(percentage: float) -> tuple[str, float, str]:
+    """Returns (grade_letter, grade_point, remarks) using MSU scale."""
+    if percentage >= 96: return "1.0", 1.0, "Passed"
+    if percentage >= 92: return "1.25", 1.25, "Passed"
+    if percentage >= 88: return "1.5", 1.5, "Passed"
+    if percentage >= 84: return "1.75", 1.75, "Passed"
+    if percentage >= 80: return "2.0", 2.0, "Passed"
+    if percentage >= 76: return "2.25", 2.25, "Passed"
+    if percentage >= 72: return "2.5", 2.5, "Passed"
+    if percentage >= 68: return "2.75", 2.75, "Passed"
+    if percentage >= 60: return "3.0", 3.0, "Passed"
+    return "5.0", 5.0, "Failed"
 
 
 @router.get("/")
@@ -37,8 +41,11 @@ async def get_results(student_id: Optional[str] = Query(None),
 @router.post("/")
 async def create_result(body: ExamResultCreate):
     data = body.model_dump()
-    if data.get("percentage") and not data.get("grade"):
-        data["grade"] = _assign_grade(data["percentage"])
+    if data.get("percentage") is not None and not data.get("grade"):
+        grade, gp, remarks = _assign_grade(data["percentage"])
+        data["grade"] = grade
+        data["grade_point"] = gp
+        data.setdefault("remarks", remarks)
     async with httpx.AsyncClient() as client:
         res = await client.post(rest_url(TABLE), headers=get_headers(), json=data)
     if res.status_code not in (200, 201):
