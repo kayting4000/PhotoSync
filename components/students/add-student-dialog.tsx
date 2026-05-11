@@ -48,17 +48,22 @@ export function AddStudentDialog() {
     setError(null)
 
     const formData = new FormData(e.currentTarget)
-    const data = {
-      student_id: formData.get("student_id") as string,
-      first_name: formData.get("first_name") as string,
-      last_name: formData.get("last_name") as string,
-      email: formData.get("email") as string || null,
-      course: formData.get("course") as string,
-      year_level: parseInt(formData.get("year_level") as string),
-    }
 
     try {
       const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error("Not authenticated")
+
+      const data = {
+        user_id: user.id,
+        student_id: formData.get("student_id") as string,
+        first_name: formData.get("first_name") as string,
+        last_name: formData.get("last_name") as string,
+        email: formData.get("email") as string || null,
+        course: formData.get("course") as string,
+        year_level: parseInt(formData.get("year_level") as string),
+      }
+
       const { error } = await supabase.from("students").insert(data)
       if (error) throw error
       setOpen(false)

@@ -256,7 +256,11 @@ export function TestScanner({ students, exams }: TestScannerProps) {
 
     try {
       const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error("Not authenticated")
+
       const { error } = await supabase.from("exam_results").upsert({
+        user_id: user.id,
         student_id: selectedStudent,
         exam_id: selectedExam,
         correct_answers: scanResult.checkMarks,

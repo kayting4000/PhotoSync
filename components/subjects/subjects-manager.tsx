@@ -63,15 +63,18 @@ export function SubjectsManager({ subjects, exams }: SubjectsManagerProps) {
     e.preventDefault()
     setIsLoading(true)
     const formData = new FormData(e.currentTarget)
-    const data = {
-      code: formData.get("code") as string,
-      name: formData.get("name") as string,
-      units: parseInt(formData.get("units") as string),
-    }
 
     try {
       const supabase = createClient()
-      await supabase.from("subjects").insert(data)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error("Not authenticated")
+
+      await supabase.from("subjects").insert({
+        user_id: user.id,
+        code: formData.get("code") as string,
+        name: formData.get("name") as string,
+        units: parseInt(formData.get("units") as string),
+      })
       setSubjectDialogOpen(false)
       router.refresh()
     } finally {
@@ -83,18 +86,21 @@ export function SubjectsManager({ subjects, exams }: SubjectsManagerProps) {
     e.preventDefault()
     setIsLoading(true)
     const formData = new FormData(e.currentTarget)
-    const data = {
-      subject_id: formData.get("subject_id") as string,
-      name: formData.get("name") as string,
-      exam_type: formData.get("exam_type") as string,
-      total_items: parseInt(formData.get("total_items") as string),
-      points_per_item: parseFloat(formData.get("points_per_item") as string),
-      passing_score: parseFloat(formData.get("passing_score") as string) || null,
-    }
 
     try {
       const supabase = createClient()
-      await supabase.from("exams").insert(data)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error("Not authenticated")
+
+      await supabase.from("exams").insert({
+        user_id: user.id,
+        subject_id: formData.get("subject_id") as string,
+        name: formData.get("name") as string,
+        exam_type: formData.get("exam_type") as string,
+        total_items: parseInt(formData.get("total_items") as string),
+        points_per_item: parseFloat(formData.get("points_per_item") as string),
+        passing_score: parseFloat(formData.get("passing_score") as string) || null,
+      })
       setExamDialogOpen(false)
       router.refresh()
     } finally {
