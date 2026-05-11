@@ -20,25 +20,21 @@ dependencies:
   # Image handling
   image_picker: ^1.0.0
   image: ^4.1.0
-  
-  # Camera for mobile scanning
-  camera: ^0.10.5+5
-  
+
   # HTTP and serialization
   http: ^1.1.0
   dio: ^5.3.0
-  
+
   # Date/time handling
   intl: ^0.19.0
-  
+
   # UI components
   cupertino_icons: ^1.0.2
   flutter_svg: ^2.0.7
-  smooth_page_indicator: ^1.0.1
-  
+
   # Navigation
   go_router: ^12.0.0
-  
+
   # Notifications
   fluttertoast: ^8.2.0
 

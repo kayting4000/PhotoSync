@@ -35,7 +35,9 @@ class SubjectProvider extends ChangeNotifier {
 
   Future<bool> addSubject(Subject subject) async {
     try {
-      await supabase.from('subjects').insert(subject.toJson());
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) return false;
+      await supabase.from('subjects').insert(subject.toJson(userId: userId));
       await fetchSubjects();
       return true;
     } catch (e) {

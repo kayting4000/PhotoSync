@@ -103,12 +103,13 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                             name: nameController.text,
                             units: units,
                           );
-                          final success = await context
-                              .read<SubjectProvider>()
-                              .addSubject(subject);
+                          final provider = context.read<SubjectProvider>();
+                          final messenger = ScaffoldMessenger.of(context);
+                          final nav = Navigator.of(context);
+                          final success = await provider.addSubject(subject);
                           if (success && mounted) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            nav.pop();
+                            messenger.showSnackBar(
                               const SnackBar(
                                   content: Text('Subject added!'),
                                   backgroundColor: kAccent2),

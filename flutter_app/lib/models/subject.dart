@@ -25,7 +25,8 @@ class Subject {
     );
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson({String? userId}) => {
+        if (userId != null) 'user_id': userId,
         'code': code,
         'name': name,
         'units': units,

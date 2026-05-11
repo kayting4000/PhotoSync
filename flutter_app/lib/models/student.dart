@@ -34,7 +34,8 @@ class Student {
     );
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson({String? userId}) => {
+        if (userId != null) 'user_id': userId,
         'student_id': studentId,
         'first_name': firstName,
         'last_name': lastName,

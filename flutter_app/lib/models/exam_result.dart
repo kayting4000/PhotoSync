@@ -40,7 +40,8 @@ class ExamResult {
     );
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson({String? userId}) => {
+        if (userId != null) 'user_id': userId,
         'student_id': studentId,
         'exam_id': examId,
         'correct_answers': correctAnswers,

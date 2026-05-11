@@ -40,7 +40,9 @@ class ExamProvider extends ChangeNotifier {
 
   Future<bool> addExam(Exam exam) async {
     try {
-      await supabase.from('exams').insert(exam.toJson());
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) return false;
+      await supabase.from('exams').insert(exam.toJson(userId: userId));
       await fetchExams();
       return true;
     } catch (e) {

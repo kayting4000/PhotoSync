@@ -34,7 +34,8 @@ class Exam {
     );
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson({String? userId}) => {
+        if (userId != null) 'user_id': userId,
         'subject_id': subjectId,
         'name': name,
         'exam_type': examType,

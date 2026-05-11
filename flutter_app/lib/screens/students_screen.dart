@@ -124,12 +124,13 @@ class _StudentsScreenState extends State<StudentsScreen> {
                             course: courseController.text,
                             yearLevel: yearLevel,
                           );
-                          final success = await context
-                              .read<StudentProvider>()
-                              .addStudent(student);
+                          final provider = context.read<StudentProvider>();
+                          final messenger = ScaffoldMessenger.of(context);
+                          final nav = Navigator.of(context);
+                          final success = await provider.addStudent(student);
                           if (success && mounted) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            nav.pop();
+                            messenger.showSnackBar(
                               const SnackBar(
                                   content: Text('Student added!'),
                                   backgroundColor: kAccent1),

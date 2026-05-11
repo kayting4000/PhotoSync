@@ -35,7 +35,9 @@ class StudentProvider extends ChangeNotifier {
 
   Future<bool> addStudent(Student student) async {
     try {
-      await supabase.from('students').insert(student.toJson());
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) return false;
+      await supabase.from('students').insert(student.toJson(userId: userId));
       await fetchStudents();
       return true;
     } catch (e) {
