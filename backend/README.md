@@ -157,6 +157,7 @@ python test_api.py
 |--------|----------|-------------|
 | `GET` | `/exams/` | List all exams (filter: `?subject_id=`) |
 | `POST` | `/exams/` | Create an exam |
+| `PUT` | `/exams/{id}` | Update an exam |
 | `DELETE` | `/exams/{id}` | Delete an exam |
 
 ### Results
@@ -164,6 +165,7 @@ python test_api.py
 |--------|----------|-------------|
 | `GET` | `/results/` | List results (filter: `?student_id=` or `?exam_id=`) |
 | `POST` | `/results/` | Submit an exam result |
+| `PUT` | `/results/{id}` | Update an exam result |
 | `DELETE` | `/results/{id}` | Delete a result |
 
 ### Dashboard & GPA

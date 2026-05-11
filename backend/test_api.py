@@ -61,6 +61,8 @@ def run():
         if check("POST /exams/", r, 200):
             _created["exam_id"] = r.json()["id"]
             check("GET  /exams/", httpx.get(f"{BASE}/exams/"), 200)
+            check("PUT  /exams/{id}", httpx.put(f"{BASE}/exams/{_created['exam_id']}",
+                  json={"name": "Final Exam", "total_items": 60}), 200)
 
     # Results CRUD
     print("\n[Results]")
@@ -72,6 +74,8 @@ def run():
         if check("POST /results/", r, 200):
             _created["result_id"] = r.json()["id"]
             check("GET  /results/", httpx.get(f"{BASE}/results/"), 200)
+            check("PUT  /results/{id}", httpx.put(f"{BASE}/results/{_created['result_id']}",
+                  json={"correct_answers": 45, "total_score": 90.0, "percentage": 90.0}), 200)
 
     # Dashboard & GPA
     print("\n[Dashboard & GPA]")

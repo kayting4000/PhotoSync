@@ -2,7 +2,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
 from database import rest_url, get_headers
-from schemas import ExamResultCreate
+from schemas import ExamResultCreate, ExamResultUpdate
 from models.exam_result import TABLE
 
 router = APIRouter(prefix="/results", tags=["Results"])
@@ -48,6 +48,22 @@ async def create_result(body: ExamResultCreate):
         data.setdefault("remarks", remarks)
     async with httpx.AsyncClient() as client:
         res = await client.post(rest_url(TABLE), headers=get_headers(), json=data)
+    if res.status_code not in (200, 201):
+        raise HTTPException(status_code=res.status_code, detail=res.text)
+    return res.json()[0]
+
+
+@router.put("/{result_id}")
+async def update_result(result_id: str, body: ExamResultUpdate):
+    data = {k: v for k, v in body.model_dump().items() if v is not None}
+    if data.get("percentage") is not None and "grade" not in data:
+        grade, gp, remarks = _assign_grade(data["percentage"])
+        data["grade"] = grade
+        data["grade_point"] = gp
+        data.setdefault("remarks", remarks)
+    async with httpx.AsyncClient() as client:
+        res = await client.patch(rest_url(TABLE), headers=get_headers(),
+                                 json=data, params={"id": f"eq.{result_id}"})
     if res.status_code not in (200, 201):
         raise HTTPException(status_code=res.status_code, detail=res.text)
     return res.json()[0]
