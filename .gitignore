@@ -16,6 +16,9 @@ node_modules
 .DS_Store
 .vercel
 
+# TypeScript
+tsconfig.tsbuildinfo
+
 # Python
 __pycache__/
 *.pyc
