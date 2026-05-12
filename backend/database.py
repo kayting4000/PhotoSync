@@ -1,27 +1,33 @@
-import httpx
+"""
+EduScan — Neon PostgreSQL Database Configuration
+Uses SQLAlchemy ORM with asyncpg (async) or psycopg2 (sync) driver.
+This module uses sync SQLAlchemy for simplicity with FastAPI endpoints.
+"""
 import os
 from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 load_dotenv()
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set in .env")
 
-HEADERS = {
-    "apikey": SUPABASE_KEY,
-    "Authorization": f"Bearer {SUPABASE_KEY}",
-    "Content-Type": "application/json",
-    "Prefer": "return=representation",
-}
+# Neon requires SSL
+engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_size=5, max_overflow=10)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def get_headers(token: str = None):
-    h = HEADERS.copy()
-    if token:
-        h["Authorization"] = f"Bearer {token}"
-    return h
 
-def rest_url(table: str) -> str:
-    return f"{SUPABASE_URL}/rest/v1/{table}"
+class Base(DeclarativeBase):
+    """Shared declarative base for all ORM models."""
+    pass
 
-def auth_url(path: str) -> str:
-    return f"{SUPABASE_URL}/auth/v1/{path}"
+
+def get_db():
+    """FastAPI dependency: yields a DB session and closes it after use."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

@@ -1,60 +1,111 @@
-import httpx
-from fastapi import APIRouter, HTTPException, Query
+"""
+Students controller — CRUD operations via SQLAlchemy ORM (Neon PostgreSQL).
+"""
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional
-from database import rest_url, get_headers
+from sqlalchemy.orm import Session
+from sqlalchemy import or_
+
+from database import get_db
+from controllers.auth import get_current_user
+from models.student import Student
+from models.user import User
 from schemas import StudentCreate, StudentUpdate
-from models.student import TABLE
 
 router = APIRouter(prefix="/students", tags=["Students"])
 
 
+def _serialize(s: Student) -> dict:
+    return {
+        "id": str(s.id),
+        "user_id": str(s.user_id),
+        "student_id": s.student_id,
+        "first_name": s.first_name,
+        "last_name": s.last_name,
+        "email": s.email,
+        "course": s.course,
+        "year_level": s.year_level,
+        "created_at": s.created_at.isoformat() if s.created_at else None,
+        "updated_at": s.updated_at.isoformat() if s.updated_at else None,
+    }
+
+
 @router.get("/")
-async def get_students(
-    course: Optional[str] = Query(None, description="Filter by course"),
-    year_level: Optional[int] = Query(None, description="Filter by year level"),
-    search: Optional[str] = Query(None, description="Search by first or last name"),
+def get_students(
+    course: Optional[str] = Query(None),
+    year_level: Optional[int] = Query(None),
+    search: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    params = {"select": "*", "order": "created_at.desc"}
+    q = db.query(Student).filter(Student.user_id == current_user.id)
     if course:
-        params["course"] = f"eq.{course}"
-    if year_level:
-        params["year_level"] = f"eq.{year_level}"
-    async with httpx.AsyncClient() as client:
-        res = await client.get(rest_url(TABLE), headers=get_headers(), params=params)
-    if res.status_code != 200:
-        raise HTTPException(status_code=res.status_code, detail=res.text)
-    students = res.json()
+        q = q.filter(Student.course == course)
+    if year_level is not None:
+        q = q.filter(Student.year_level == year_level)
     if search:
-        search = search.lower()
-        students = [s for s in students if search in s["first_name"].lower() or search in s["last_name"].lower()]
-    return students
+        q = q.filter(
+            or_(
+                Student.first_name.ilike(f"%{search}%"),
+                Student.last_name.ilike(f"%{search}%"),
+            )
+        )
+    q = q.order_by(Student.created_at.desc())
+    return [_serialize(s) for s in q.all()]
 
 
 @router.post("/")
-async def create_student(body: StudentCreate):
-    async with httpx.AsyncClient() as client:
-        res = await client.post(rest_url(TABLE), headers=get_headers(), json=body.model_dump())
-    if res.status_code not in (200, 201):
-        raise HTTPException(status_code=res.status_code, detail=res.text)
-    return res.json()[0]
+def create_student(
+    body: StudentCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    student = Student(
+        user_id=current_user.id,
+        student_id=body.student_id,
+        first_name=body.first_name,
+        last_name=body.last_name,
+        email=body.email,
+        course=body.course,
+        year_level=body.year_level,
+    )
+    db.add(student)
+    db.commit()
+    db.refresh(student)
+    return _serialize(student)
 
 
 @router.put("/{student_id}")
-async def update_student(student_id: str, body: StudentUpdate):
-    data = {k: v for k, v in body.model_dump().items() if v is not None}
-    async with httpx.AsyncClient() as client:
-        res = await client.patch(rest_url(TABLE), headers=get_headers(),
-                                 json=data, params={"id": f"eq.{student_id}"})
-    if res.status_code not in (200, 201):
-        raise HTTPException(status_code=res.status_code, detail=res.text)
-    return res.json()[0]
+def update_student(
+    student_id: str,
+    body: StudentUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    student = db.query(Student).filter(
+        Student.id == student_id, Student.user_id == current_user.id
+    ).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    update_data = body.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(student, key, value)
+    db.commit()
+    db.refresh(student)
+    return _serialize(student)
 
 
 @router.delete("/{student_id}")
-async def delete_student(student_id: str):
-    async with httpx.AsyncClient() as client:
-        res = await client.delete(rest_url(TABLE), headers=get_headers(),
-                                  params={"id": f"eq.{student_id}"})
-    if res.status_code not in (200, 204):
-        raise HTTPException(status_code=res.status_code, detail=res.text)
+def delete_student(
+    student_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    student = db.query(Student).filter(
+        Student.id == student_id, Student.user_id == current_user.id
+    ).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    db.delete(student)
+    db.commit()
     return {"message": "Student deleted"}

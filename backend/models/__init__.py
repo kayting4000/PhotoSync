@@ -1,4 +1,16 @@
-from .student import TABLE as STUDENTS_TABLE
-from .subject import TABLE as SUBJECTS_TABLE
-from .exam import TABLE as EXAMS_TABLE
-from .exam_result import TABLE as EXAM_RESULTS_TABLE
+from database import Base
+
+# Import all models so Base.metadata knows about every table
+from .user import User
+from .student import Student
+from .subject import Subject
+from .exam import Exam
+from .exam_result import ExamResult
+
+TABLES = {
+    "users": "users",
+    "students": "students",
+    "subjects": "subjects",
+    "exams": "exams",
+    "exam_results": "exam_results",
+}

@@ -1,25 +1,28 @@
-import asyncio
-import httpx
-from fastapi import APIRouter
-from database import rest_url, get_headers
+"""
+Dashboard controller — aggregate counts via SQLAlchemy ORM (Neon PostgreSQL).
+"""
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from database import get_db
+from controllers.auth import get_current_user
+from models.student import Student
+from models.subject import Subject
+from models.exam import Exam
+from models.exam_result import ExamResult
+from models.user import User
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 
 @router.get("/")
-async def get_dashboard_stats():
-    async with httpx.AsyncClient() as client:
-        h = get_headers()
-        h["Prefer"] = "count=exact"
-        students, subjects, exams, results = await asyncio.gather(
-            client.get(rest_url("students"),     headers=h, params={"select": "id"}),
-            client.get(rest_url("subjects"),     headers=h, params={"select": "id"}),
-            client.get(rest_url("exams"),        headers=h, params={"select": "id"}),
-            client.get(rest_url("exam_results"), headers=h, params={"select": "id"}),
-        )
+def get_dashboard_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     return {
-        "total_students": len(students.json()),
-        "total_subjects": len(subjects.json()),
-        "total_exams":    len(exams.json()),
-        "total_results":  len(results.json()),
+        "total_students": db.query(Student).filter(Student.user_id == current_user.id).count(),
+        "total_subjects": db.query(Subject).filter(Subject.user_id == current_user.id).count(),
+        "total_exams": db.query(Exam).filter(Exam.user_id == current_user.id).count(),
+        "total_results": db.query(ExamResult).filter(ExamResult.user_id == current_user.id).count(),
     }

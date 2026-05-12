@@ -1,48 +1,68 @@
-import httpx
-from fastapi import APIRouter, Query, HTTPException
+"""
+Grades / GPA controller — computes GPA using MSU-Tawi-Tawi formula.
+Uses SQLAlchemy joins instead of Supabase PostgREST nested selects.
+"""
+from fastapi import APIRouter, Query, Depends
 from typing import Optional
-from database import rest_url, get_headers
+from sqlalchemy.orm import Session, joinedload
+
+from database import get_db
+from controllers.auth import get_current_user
+from models.exam_result import ExamResult
+from models.exam import Exam
+from models.subject import Subject
+from models.user import User
 
 router = APIRouter(prefix="/gpa", tags=["Grades"])
 
-# MSU-Tawi-Tawi: GPA = sum(units × grade_point) / sum(units)
-# grade 5.0 (Failed) is still included in computation
-# INC / dropped subjects are excluded (no grade_point stored)
+
+def _interpret(gpa: float) -> str:
+    if gpa <= 1.25:
+        return "Excellent"
+    if gpa <= 1.75:
+        return "Very Good"
+    if gpa <= 2.25:
+        return "Good"
+    if gpa <= 2.75:
+        return "Satisfactory"
+    if gpa <= 3.0:
+        return "Passing"
+    return "Failed"
+
 
 @router.get("/")
-async def get_gpa(student_id: Optional[str] = Query(None)):
-    # fetch results joined with exam → subject units
-    params = {
-        "select": "grade_point,percentage,exam_id,exams(subject_id,subjects(units))",
-        "order": "created_at.desc",
-    }
+def get_gpa(
+    student_id: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    q = (
+        db.query(ExamResult)
+        .options(joinedload(ExamResult.exam).joinedload(Exam.subject))
+        .filter(ExamResult.user_id == current_user.id)
+    )
     if student_id:
-        params["student_id"] = f"eq.{student_id}"
+        q = q.filter(ExamResult.student_id == student_id)
+    q = q.order_by(ExamResult.created_at.desc())
 
-    async with httpx.AsyncClient() as client:
-        res = await client.get(rest_url("exam_results"), headers=get_headers(), params=params)
-
-    if res.status_code != 200:
-        raise HTTPException(status_code=res.status_code, detail=res.text)
-
-    results = res.json()
+    results = q.all()
     if not results:
         return {"gpa": None, "total_units": 0, "subjects_counted": 0}
 
     weighted_sum = 0.0
-    total_units  = 0
+    total_units = 0
 
     for r in results:
-        gp = r.get("grade_point")
+        gp = r.grade_point
         if gp is None:
             continue
         try:
-            units = r["exams"]["subjects"]["units"]
-        except (TypeError, KeyError):
-            units = 3   # fallback default
+            units = r.exam.subject.units if r.exam and r.exam.subject else 3
+        except Exception:
+            units = 3
 
         weighted_sum += gp * units
-        total_units  += units
+        total_units += units
 
     if total_units == 0:
         return {"gpa": None, "total_units": 0, "subjects_counted": len(results)}
@@ -54,12 +74,3 @@ async def get_gpa(student_id: Optional[str] = Query(None)):
         "subjects_counted": len(results),
         "interpretation": _interpret(gpa),
     }
-
-
-def _interpret(gpa: float) -> str:
-    if gpa <= 1.25: return "Excellent"
-    if gpa <= 1.75: return "Very Good"
-    if gpa <= 2.25: return "Good"
-    if gpa <= 2.75: return "Satisfactory"
-    if gpa <= 3.0:  return "Passing"
-    return "Failed"
