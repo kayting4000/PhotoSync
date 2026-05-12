@@ -5,3 +5,4 @@ from .exams import router as exams_router
 from .results import router as results_router
 from .dashboard import router as dashboard_router
 from .grades import router as grades_router
+from .scanner import router as scanner_router

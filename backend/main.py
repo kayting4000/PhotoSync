@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from controllers import (
     auth_router, students_router, subjects_router,
     exams_router, results_router, dashboard_router, grades_router,
+    scanner_router,
 )
 
 app = FastAPI(
@@ -27,6 +28,7 @@ app.include_router(exams_router)
 app.include_router(results_router)
 app.include_router(dashboard_router)
 app.include_router(grades_router)
+app.include_router(scanner_router)
 
 
 @app.get("/", tags=["Health"])

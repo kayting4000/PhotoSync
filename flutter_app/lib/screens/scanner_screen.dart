@@ -21,9 +21,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   bool _isAnalyzing = false;
   final ImagePicker _picker = ImagePicker();
 
-  static const _apiKey = 'mYatQOHngAdvI15dZUFk';
-  static const _workspaceName = 'kayting-habibun-najal';
-  static const _workflowId = 'detect-count-and-visualize-2';
+  static const _backendUrl = 'http://10.0.2.2:8000/scanner/scan';
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -54,88 +52,31 @@ class _ScannerScreenState extends State<ScannerScreen> {
       final imageBytes = await File(imagePath).readAsBytes();
       final base64Image = base64Encode(imageBytes);
 
-      final url = Uri.parse(
-        'https://serverless.roboflow.com/$_workspaceName/workflows/$_workflowId',
-      );
-
       final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_apiKey',
-        },
-        body: jsonEncode({
-          'api_key': _apiKey,
-          'inputs': {
-            'image': {
-              'type': 'base64',
-              'value': base64Image,
-            },
-          },
-          'use_cache': true,
-        }),
+        Uri.parse(_backendUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'image_base64': base64Image}),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        _parseResults(data);
+        if (mounted) {
+          setState(() {
+            _detectedCount = data['count'] ?? 0;
+            _visualizedImageUrl = data['visualization_url'];
+          });
+        }
       } else {
-        throw Exception('API error: ${response.statusCode} ${response.body}');
+        throw Exception('Backend error: ${response.statusCode} ${response.body}');
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Analysis failed: $e'),
-            backgroundColor: kAccent3,
-          ),
+          SnackBar(content: Text('Analysis failed: $e'), backgroundColor: kAccent3),
         );
       }
     } finally {
       if (mounted) setState(() => _isAnalyzing = false);
-    }
-  }
-
-  void _parseResults(dynamic data) {
-    try {
-      int count = 0;
-      String? vizUrl;
-
-      // Try to extract count and visualization from workflow output
-      if (data is List && data.isNotEmpty) {
-        final result = data[0];
-        // Count from predictions
-        if (result['predictions'] != null) {
-          final preds = result['predictions'];
-          if (preds['predictions'] != null) {
-            count = (preds['predictions'] as List).length;
-          }
-        }
-        // Visualized image URL
-        if (result['visualization'] != null) {
-          vizUrl = result['visualization']['url'];
-        }
-      } else if (data is Map) {
-        final outputs = data['outputs'] ?? data;
-        if (outputs['count'] != null) {
-          count = outputs['count'] is int
-              ? outputs['count']
-              : int.tryParse(outputs['count'].toString()) ?? 0;
-        }
-        if (outputs['visualization'] != null) {
-          vizUrl = outputs['visualization']['url'] ??
-              outputs['visualization'].toString();
-        }
-      }
-
-      if (mounted) {
-        setState(() {
-          _detectedCount = count;
-          _visualizedImageUrl = vizUrl;
-        });
-      }
-    } catch (e) {
-      debugPrint('Parse error: $e');
     }
   }
 
@@ -160,10 +101,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     children: [
                       GestureDetector(
                         onTap: () => context.go('/dashboard'),
-                        child: GlassCard(
-                          padding: const EdgeInsets.all(10),
+                        child: const GlassCard(
+                          padding: EdgeInsets.all(10),
                           borderRadius: 12,
-                          child: const Icon(Icons.arrow_back_ios_new_rounded,
+                          child: Icon(Icons.arrow_back_ios_new_rounded,
                               color: kTextPrimary, size: 18),
                         ),
                       ),
@@ -177,9 +118,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                FadeSlideIn(
-                  delay: const Duration(milliseconds: 100),
-                  child: const Text(
+                const FadeSlideIn(
+                  delay: Duration(milliseconds: 100),
+                  child: Text(
                     'Powered by Roboflow AI',
                     style: TextStyle(color: kAccent2, fontSize: 12),
                   ),
@@ -219,9 +160,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                   height: 280,
                                   width: double.infinity,
                                   color: const Color(0x1AFFFFFF),
-                                  child: Column(
+                                  child: const Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
+                                    children: [
                                       Icon(Icons.document_scanner_rounded,
                                           size: 64, color: kTextSecondary),
                                       SizedBox(height: 16),
@@ -294,9 +235,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
                 if (_isAnalyzing) ...[
                   const SizedBox(height: 24),
-                  GlassCard(
+                  const GlassCard(
                     child: Column(
-                      children: const [
+                      children: [
                         CircularProgressIndicator(color: kAccent1),
                         SizedBox(height: 16),
                         Text('Analyzing with Roboflow AI...',
@@ -313,8 +254,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: const [
+                          const Row(
+                            children: [
                               Icon(Icons.auto_awesome_rounded,
                                   color: kAccent2, size: 18),
                               SizedBox(width: 8),
