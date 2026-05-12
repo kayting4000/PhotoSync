@@ -31,8 +31,9 @@ class _GradesScreenState extends State<GradesScreen> {
       for (var grade in grades) {
         final percentage = (grade['percentage'] ?? 0.0).toDouble();
         totalPercentage += percentage;
-        if (percentage >= 90) grade['grade'] = 'A+';
-        else if (percentage >= 85) grade['grade'] = 'A';
+        if (percentage >= 90) {
+          grade['grade'] = 'A+';
+        } else if (percentage >= 85) grade['grade'] = 'A';
         else if (percentage >= 80) grade['grade'] = 'B+';
         else if (percentage >= 75) grade['grade'] = 'B';
         else if (percentage >= 70) grade['grade'] = 'C+';
@@ -81,10 +82,10 @@ class _GradesScreenState extends State<GradesScreen> {
                         children: [
                           GestureDetector(
                             onTap: () => context.go('/dashboard'),
-                            child: GlassCard(
-                              padding: const EdgeInsets.all(10),
+                            child: const GlassCard(
+                              padding: EdgeInsets.all(10),
                               borderRadius: 12,
-                              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                              child: Icon(Icons.arrow_back_ios_new_rounded,
                                   color: kTextPrimary, size: 18),
                             ),
                           ),
@@ -148,10 +149,10 @@ class _GradesScreenState extends State<GradesScreen> {
                       const SizedBox(height: 14),
 
                       if (_examResults.isEmpty)
-                        GlassCard(
-                          padding: const EdgeInsets.all(40),
+                        const GlassCard(
+                          padding: EdgeInsets.all(40),
                           child: Column(
-                            children: const [
+                            children: [
                               Icon(Icons.assignment_outlined,
                                   size: 48, color: kTextSecondary),
                               SizedBox(height: 12),

@@ -104,10 +104,10 @@ class _EmailScreenState extends State<EmailScreen> {
                         children: [
                           GestureDetector(
                             onTap: () => context.go('/dashboard'),
-                            child: GlassCard(
-                              padding: const EdgeInsets.all(10),
+                            child: const GlassCard(
+                              padding: EdgeInsets.all(10),
                               borderRadius: 12,
-                              child: const Icon(
+                              child: Icon(
                                   Icons.arrow_back_ios_new_rounded,
                                   color: kTextPrimary,
                                   size: 18),
@@ -248,8 +248,8 @@ class _EmailScreenState extends State<EmailScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: const [
+                            const Row(
+                              children: [
                                 Icon(Icons.preview_rounded,
                                     color: kAccent1, size: 18),
                                 SizedBox(width: 8),

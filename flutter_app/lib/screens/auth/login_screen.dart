@@ -76,9 +76,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                FadeSlideIn(
-                  delay: const Duration(milliseconds: 200),
-                  child: const Text(
+                const FadeSlideIn(
+                  delay: Duration(milliseconds: 200),
+                  child: Text(
                     'EduScan',
                     style: TextStyle(
                       color: kTextPrimary,
@@ -89,9 +89,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                FadeSlideIn(
-                  delay: const Duration(milliseconds: 300),
-                  child: const Text(
+                const FadeSlideIn(
+                  delay: Duration(milliseconds: 300),
+                  child: Text(
                     'Test Paper Scanner & Grade Management',
                     style: TextStyle(color: kTextSecondary, fontSize: 13),
                     textAlign: TextAlign.center,

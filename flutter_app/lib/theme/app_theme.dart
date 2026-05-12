@@ -207,8 +207,11 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
 
   void _toggle() {
     setState(() => _isOpen = !_isOpen);
-    if (_isOpen) _animController.forward();
-    else _animController.reverse();
+    if (_isOpen) {
+      _animController.forward();
+    } else {
+      _animController.reverse();
+    }
   }
 
   void _sendMessage() {
@@ -228,8 +231,9 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
     if (q.contains('scan') || q.contains('paper')) return 'Use the Scanner to upload and analyze test papers.';
     if (q.contains('grade') || q.contains('gpa')) return 'Check the Grades screen to view GPA and results.';
     if (q.contains('email')) return 'Use Send Email Reports to notify students.';
-    if (q.contains('creator') || q.contains('who made') || q.contains('team') || q.contains('developer'))
+    if (q.contains('creator') || q.contains('who made') || q.contains('team') || q.contains('developer')) {
       return 'EduScan was built by:\n• Habibun-najal Kayting (Lead Developer)\n• Hareeja Montenegro (Sub-dev & QA)\n• Mohd Shaffiqh (Sub-dev & Documentation)';
+    }
     return 'Hi! I can help you navigate EduScan. Ask me about students, subjects, scanning, grades, or emails.';
   }
 
@@ -388,7 +392,7 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
 
 ThemeData buildAppTheme() {
   return ThemeData(
-    colorScheme: ColorScheme.dark(
+    colorScheme: const ColorScheme.dark(
       primary: kAccent1,
       secondary: kAccent2,
       surface: kBg1,

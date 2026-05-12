@@ -67,9 +67,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
+                      const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
                             'EduScan',
                             style: TextStyle(
@@ -87,10 +87,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       GestureDetector(
                         onTap: _logout,
-                        child: GlassCard(
-                          padding: const EdgeInsets.all(12),
+                        child: const GlassCard(
+                          padding: EdgeInsets.all(12),
                           borderRadius: 14,
-                          child: const Icon(Icons.logout_rounded,
+                          child: Icon(Icons.logout_rounded,
                               color: kTextPrimary, size: 20),
                         ),
                       ),
@@ -114,34 +114,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         title: 'Students',
                         value: '$_totalStudents',
                         icon: Icons.people_rounded,
-                        colors: [const Color(0xFF6C63FF), const Color(0xFF9B8FFF)],
+                        colors: const [Color(0xFF6C63FF), Color(0xFF9B8FFF)],
                       ),
                       _StatCard(
                         title: 'Subjects',
                         value: '$_totalSubjects',
                         icon: Icons.menu_book_rounded,
-                        colors: [const Color(0xFF48CAE4), const Color(0xFF0096C7)],
+                        colors: const [Color(0xFF48CAE4), Color(0xFF0096C7)],
                       ),
                       _StatCard(
                         title: 'Exams',
                         value: '$_totalExams',
                         icon: Icons.assignment_rounded,
-                        colors: [const Color(0xFFFF6584), const Color(0xFFFF8FA3)],
+                        colors: const [Color(0xFFFF6584), Color(0xFFFF8FA3)],
                       ),
                       _StatCard(
                         title: 'Results',
                         value: '$_totalResults',
                         icon: Icons.bar_chart_rounded,
-                        colors: [const Color(0xFF43E97B), const Color(0xFF38F9D7)],
+                        colors: const [Color(0xFF43E97B), Color(0xFF38F9D7)],
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 28),
 
-                FadeSlideIn(
-                  delay: const Duration(milliseconds: 300),
-                  child: const Text(
+                const FadeSlideIn(
+                  delay: Duration(milliseconds: 300),
+                  child: Text(
                     'Quick Actions',
                     style: TextStyle(
                       color: kTextPrimary,
@@ -205,14 +205,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(height: 32),
 
                 // Team info
-                FadeSlideIn(
-                  delay: const Duration(milliseconds: 600),
+                const FadeSlideIn(
+                  delay: Duration(milliseconds: 600),
                   child: GlassCard(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
+                        Row(
                           children: [
                             Icon(Icons.groups_rounded, color: kAccent2, size: 18),
                             SizedBox(width: 8),
@@ -223,7 +223,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     fontSize: 14)),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
                         _TeamMember(
                           name: 'Habibun-najal Kayting',
                           role: 'Lead Developer',
@@ -231,18 +231,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           colors: [kAccent1, kAccent2],
                           icon: Icons.code_rounded,
                         ),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10),
                         _TeamMember(
                           name: 'Hareeja Montenegro',
                           role: 'Sub-developer & Quality Assurance',
                           colors: [kAccent3, kAccent1],
                           icon: Icons.verified_rounded,
                         ),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10),
                         _TeamMember(
                           name: 'Mohd Shaffiqh Anang',
                           role: 'Sub-developer & Documentation',
-                          colors: [const Color(0xFF43E97B), const Color(0xFF38F9D7)],
+                          colors: [Color(0xFF43E97B), Color(0xFF38F9D7)],
                           icon: Icons.description_rounded,
                         ),
                       ],
