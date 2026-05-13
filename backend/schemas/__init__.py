@@ -3,3 +3,5 @@ from .subject import SubjectCreate, SubjectUpdate
 from .exam import ExamCreate, ExamUpdate
 from .exam_result import ExamResultCreate, ExamResultUpdate
 from .auth import AuthLogin, AuthSignup
+from .student_subject import StudentSubjectCreate, StudentSubjectUpdate
+from .scoring_rule import ScoringRuleCreate, ScoringRuleUpdate

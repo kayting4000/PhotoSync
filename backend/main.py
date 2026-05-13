@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import engine, Base
-from models import User, Student, Subject, Exam, ExamResult  # noqa: F401 — register models
+from models import User, Student, Subject, Exam, ExamResult, StudentSubject, ScoringRule  # noqa: F401 — register models
 
 from controllers import (
     auth_router,
@@ -18,6 +18,8 @@ from controllers import (
     dashboard_router,
     grades_router,
     scanner_router,
+    student_subjects_router,
+    scoring_rules_router,
 )
 
 
@@ -52,6 +54,8 @@ app.include_router(results_router)
 app.include_router(dashboard_router)
 app.include_router(grades_router)
 app.include_router(scanner_router)
+app.include_router(student_subjects_router)
+app.include_router(scoring_rules_router)
 
 
 @app.get("/", tags=["Health"])

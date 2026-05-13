@@ -6,6 +6,8 @@ from .student import Student
 from .subject import Subject
 from .exam import Exam
 from .exam_result import ExamResult
+from .student_subject import StudentSubject
+from .scoring_rule import ScoringRule
 
 TABLES = {
     "users": "users",
@@ -13,4 +15,6 @@ TABLES = {
     "subjects": "subjects",
     "exams": "exams",
     "exam_results": "exam_results",
+    "student_subjects": "student_subjects",
+    "scoring_rules": "scoring_rules",
 }
