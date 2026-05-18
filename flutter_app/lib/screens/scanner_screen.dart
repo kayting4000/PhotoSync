@@ -30,7 +30,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
   // Student & Exam selection
   String? _selectedStudentId;
   String? _selectedExamId;
-  bool _subjectsLoading = true;
   List<dynamic> _subjects = [];
   String? _selectedSubjectId;
 
@@ -51,11 +50,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
       if (mounted) {
         setState(() {
           _subjects = subjects;
-          _subjectsLoading = false;
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _subjectsLoading = false);
+      // silently fail
     }
   }
 

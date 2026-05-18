@@ -10,10 +10,11 @@ class ApiService {
   factory ApiService() => _instance;
   ApiService._internal();
 
-  /// RAILWAY DEPLOYMENT: After deploying to Railway, replace the URL below
-  /// with your Railway app URL (e.g., https://photosync-api.up.railway.app)
-  /// Local dev: use http://192.168.1.76:8000 or http://10.0.2.2:8000 for emulator
-  static const String _baseUrl = 'https://YOUR_APP.up.railway.app';
+  /// Backend API base URL
+  /// Android emulator: http://10.0.2.2:8000
+  /// iOS simulator:    http://localhost:8000
+  /// Physical device:  http://<your-ip>:8000
+  static const String _baseUrl = 'http://10.0.2.2:8000';
 
   String? _jwtToken;
   String? _userId;
@@ -53,10 +54,18 @@ class ApiService {
           )
           .timeout(const Duration(seconds: 15));
       if (res.statusCode == 200) {
-        return jsonDecode(res.body) as Map<String, dynamic>;
+        try {
+          return jsonDecode(res.body) as Map<String, dynamic>;
+        } catch (_) {
+          throw Exception('Backend returned malformed response');
+        }
       }
-      final body = jsonDecode(res.body);
-      throw Exception(body['detail'] ?? 'Login failed');
+      try {
+        final body = jsonDecode(res.body);
+        throw Exception(body['detail'] ?? 'Login failed');
+      } on FormatException {
+        throw Exception('Server error (${res.statusCode}): ${res.body.trim()}');
+      }
     } on SocketException {
       throw Exception(
           'Cannot connect to backend. Make sure the server is running.');
@@ -79,10 +88,18 @@ class ApiService {
           )
           .timeout(const Duration(seconds: 15));
       if (res.statusCode == 200) {
-        return jsonDecode(res.body) as Map<String, dynamic>;
+        try {
+          return jsonDecode(res.body) as Map<String, dynamic>;
+        } catch (_) {
+          throw Exception('Backend returned malformed response');
+        }
       }
-      final body = jsonDecode(res.body);
-      throw Exception(body['detail'] ?? 'Signup failed');
+      try {
+        final body = jsonDecode(res.body);
+        throw Exception(body['detail'] ?? 'Signup failed');
+      } on FormatException {
+        throw Exception('Server error (${res.statusCode}): ${res.body.trim()}');
+      }
     } on SocketException {
       throw Exception(
           'Cannot connect to backend. Make sure the server is running.');
@@ -198,32 +215,4 @@ class ApiService {
     return getMap('/scan-uploads/results/$studentId/$examId');
   }
 
-  // ─── Email with attachments ─────────────────────────────────────────────
-
-  /// Send a grade report to a single student, optionally with scanned image.
-  Future<Map<String, dynamic>> sendGradeReport({
-    required String studentId,
-    required String examName,
-    required String subjectCode,
-    required String subjectName,
-    required double percentage,
-    required String grade,
-    required double gradePoint,
-    required String remarks,
-    String? customMessage,
-    bool includeScan = false,
-  }) async {
-    return post('/email/send-grade-report', {
-      'student_id': studentId,
-      'exam_name': examName,
-      'subject_code': subjectCode,
-      'subject_name': subjectName,
-      'percentage': percentage,
-      'grade': grade,
-      'grade_point': gradePoint,
-      'remarks': remarks,
-      'custom_message': customMessage,
-      'include_scan': includeScan,
-    });
-  }
 }

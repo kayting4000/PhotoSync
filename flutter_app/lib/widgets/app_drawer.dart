@@ -34,10 +34,10 @@ class AppDrawer extends StatelessWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       )
-                    : LinearGradient(
+                    : const LinearGradient(
                         colors: [
-                          const Color(0xFFE8F0FF),
-                          const Color(0xFFF0E8FF),
+                          Color(0xFFE8F0FF),
+                          Color(0xFFF0E8FF),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -209,7 +209,7 @@ class AppDrawer extends StatelessWidget {
                 trailing: Switch.adaptive(
                   value: !isDark,
                   onChanged: (_) => themeProvider.toggle(),
-                  activeColor: kAccent2,
+                  activeTrackColor: kAccent2,
                 ),
                 onTap: () => themeProvider.toggle(),
               ),
