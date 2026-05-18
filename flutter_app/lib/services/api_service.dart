@@ -10,9 +10,10 @@ class ApiService {
   factory ApiService() => _instance;
   ApiService._internal();
 
-  // Your computer's LAN IP for real device + backend running on port 8000
-  // Change this to your computer's IP address if different
-  static const String _baseUrl = 'http://192.168.1.76:8000';
+  /// RAILWAY DEPLOYMENT: After deploying to Railway, replace the URL below
+  /// with your Railway app URL (e.g., https://photosync-api.up.railway.app)
+  /// Local dev: use http://192.168.1.76:8000 or http://10.0.2.2:8000 for emulator
+  static const String _baseUrl = 'https://YOUR_APP.up.railway.app';
 
   String? _jwtToken;
   String? _userId;
@@ -50,7 +51,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'email': email, 'password': password}),
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 15));
       if (res.statusCode == 200) {
         return jsonDecode(res.body) as Map<String, dynamic>;
       }
@@ -58,12 +59,13 @@ class ApiService {
       throw Exception(body['detail'] ?? 'Login failed');
     } on SocketException {
       throw Exception(
-          'Cannot connect to backend. Make sure the server is running on port 8000.');
+          'Cannot connect to backend. Make sure the server is running.');
     } on TimeoutException {
-      throw Exception('Connection timed out. The backend server is not responding.');
+      throw Exception(
+          'Connection timed out. The backend server is not responding.');
     } on http.ClientException {
       throw Exception(
-          'Cannot connect to server. Check that the backend is running on port 8000.');
+          'Cannot connect to server. Check your internet connection.');
     }
   }
 
@@ -75,7 +77,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'email': email, 'password': password}),
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 15));
       if (res.statusCode == 200) {
         return jsonDecode(res.body) as Map<String, dynamic>;
       }
@@ -83,12 +85,13 @@ class ApiService {
       throw Exception(body['detail'] ?? 'Signup failed');
     } on SocketException {
       throw Exception(
-          'Cannot connect to backend. Make sure the server is running on port 8000.');
+          'Cannot connect to backend. Make sure the server is running.');
     } on TimeoutException {
-      throw Exception('Connection timed out. The backend server is not responding.');
+      throw Exception(
+          'Connection timed out. The backend server is not responding.');
     } on http.ClientException {
       throw Exception(
-          'Cannot connect to server. Check that the backend is running on port 8000.');
+          'Cannot connect to server. Check your internet connection.');
     }
   }
 
