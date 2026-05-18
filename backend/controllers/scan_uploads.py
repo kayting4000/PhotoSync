@@ -7,7 +7,7 @@ import uuid
 import base64
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from PIL import Image
+from PIL import Image  # type: ignore
 import io
 
 from database import get_db

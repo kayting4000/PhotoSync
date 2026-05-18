@@ -77,15 +77,15 @@ class AppBackground extends StatelessWidget {
                   colors: [dBg1, dBg2, Color(0xFF1A0533)],
                   stops: [0.0, 0.5, 1.0],
                 )
-              : LinearGradient(
+              : const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
                     lBg,
-                    const Color(0xFFE8F0FF),
-                    const Color(0xFFF0E8FF),
+                    Color(0xFFE8F0FF),
+                    Color(0xFFF0E8FF),
                   ],
-                  stops: const [0.0, 0.5, 1.0],
+                  stops: [0.0, 0.5, 1.0],
                 ),
         ),
         child: child,
@@ -536,15 +536,15 @@ ThemeData buildLightTheme() {
     ),
     useMaterial3: true,
     scaffoldBackgroundColor: Colors.transparent,
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      titleTextStyle: const TextStyle(
+      titleTextStyle: TextStyle(
         color: lTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w600,
       ),
-      iconTheme: const IconThemeData(color: lTextPrimary),
+      iconTheme: IconThemeData(color: lTextPrimary),
     ),
     textTheme: const TextTheme(
       headlineLarge: TextStyle(color: lTextPrimary, fontWeight: FontWeight.bold),

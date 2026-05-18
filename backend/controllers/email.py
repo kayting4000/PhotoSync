@@ -1,10 +1,9 @@
 """
-Email controller — sends grade report emails with scanned image attachments.
+Email controller — sends grade report emails (results only, no attachments).
 Uses Resend API for email delivery.
 """
 import os
 import httpx
-import base64
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, EmailStr
 from typing import Optional
@@ -14,7 +13,6 @@ from dotenv import load_dotenv
 from database import get_db
 from controllers.auth import get_current_user
 from models.user import User
-from models.exam_result import ExamResult
 from models.student import Student
 
 load_dotenv()
@@ -35,7 +33,6 @@ class GradeReportEmailRequest(BaseModel):
     grade_point: float
     remarks: str
     custom_message: Optional[str] = None
-    include_scan: bool = False
 
 
 @router.post("/send-grade-report")
@@ -44,7 +41,7 @@ async def send_grade_report(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Send a grade report email to a student, optionally with scanned image attached."""
+    """Send a grade report email to a student (results only, no attachments)."""
     if not RESEND_API_KEY:
         return {
             "success": True,
@@ -90,31 +87,6 @@ async def send_grade_report(
     </html>
     """
 
-    # Prepare attachments
-    attachments = []
-    if body.include_scan:
-        # Find the latest exam result for this student
-        result = db.query(ExamResult).filter(
-            ExamResult.user_id == current_user.id,
-            ExamResult.student_id == body.student_id,
-        ).order_by(ExamResult.created_at.desc()).first()
-
-        if result and result.scanned_image_url:
-            # The URL is like "/uploads/filename.jpg"
-            # Convert to filesystem path
-            file_path = os.path.join(
-                os.path.dirname(os.path.dirname(__file__)),
-                result.scanned_image_url.lstrip("/"),
-            )
-            if os.path.exists(file_path):
-                with open(file_path, "rb") as f:
-                    img_data = f.read()
-                img_b64 = base64.b64encode(img_data).decode()
-                attachments.append({
-                    "filename": f"scanned_test_{body.student_id[:8]}.jpg",
-                    "content": img_b64,
-                })
-
     # Send via Resend
     async with httpx.AsyncClient(timeout=30.0) as client:
         payload = {
@@ -123,8 +95,6 @@ async def send_grade_report(
             "subject": f"Grade Report - {body.subject_code} {body.subject_name}",
             "html": html,
         }
-        if attachments:
-            payload["attachments"] = attachments
 
         res = await client.post(
             "https://api.resend.com/emails",
@@ -141,7 +111,6 @@ async def send_grade_report(
     return {
         "success": True,
         "message": f"Grade report sent to {student.email}",
-        "has_attachment": len(attachments) > 0,
     }
 
 
