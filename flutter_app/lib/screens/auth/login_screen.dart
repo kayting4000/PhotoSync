@@ -79,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const FadeSlideIn(
                   delay: Duration(milliseconds: 200),
                   child: Text(
-                    'EduScan',
+                    'PhotoSync',
                     style: TextStyle(
                       color: kTextPrimary,
                       fontSize: 36,

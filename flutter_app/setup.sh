@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# EduScan Flutter App - Setup Script
+# PhotoSync Flutter App - Setup Script
 # This script automates the setup process for the Flutter app
 
 set -e
 
 echo "======================================"
-echo "EduScan Flutter App - Setup"
+echo "PhotoSync Flutter App - Setup"
 echo "======================================"
 echo ""
 

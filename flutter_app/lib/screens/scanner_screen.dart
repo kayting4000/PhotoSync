@@ -1,11 +1,15 @@
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../services/api_service.dart';
+import '../providers/student_provider.dart';
+import '../providers/exam_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/fade_slide_in.dart';
+import '../widgets/app_drawer.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -19,12 +23,56 @@ class _ScannerScreenState extends State<ScannerScreen> {
   String? _visualizedImageUrl;
   int _detectedCount = 0;
   bool _isAnalyzing = false;
+  bool _isUploading = false;
+  String? _uploadedUrl;
   final ImagePicker _picker = ImagePicker();
+
+  // Student & Exam selection
+  String? _selectedStudentId;
+  String? _selectedExamId;
+  bool _subjectsLoading = true;
+  List<dynamic> _subjects = [];
+  String? _selectedSubjectId;
 
   static const _backendUrl = 'http://10.0.2.2:8000/scanner/scan';
 
+  @override
+  void initState() {
+    super.initState();
+    _fetchSubjects();
+    Provider.of<StudentProvider>(context, listen: false).fetchStudents();
+    Provider.of<ExamProvider>(context, listen: false).fetchExams();
+  }
+
+  Future<void> _fetchSubjects() async {
+    try {
+      final api = ApiService();
+      final subjects = await api.get('/subjects/');
+      if (mounted) {
+        setState(() {
+          _subjects = subjects;
+          _subjectsLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _subjectsLoading = false);
+    }
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     try {
+      if (_selectedStudentId == null || _selectedExamId == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please select a student and exam first'),
+              backgroundColor: kAccent3,
+            ),
+          );
+        }
+        return;
+      }
+
       final pickedFile = await _picker.pickImage(
         source: source,
         imageQuality: 85,
@@ -34,6 +82,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           _selectedImage = File(pickedFile.path);
           _visualizedImageUrl = null;
           _detectedCount = 0;
+          _uploadedUrl = null;
         });
         await _analyzeWithRoboflow(pickedFile.path);
       }
@@ -66,6 +115,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
             _visualizedImageUrl = data['visualization_url'];
           });
         }
+        // Auto-save the scanned image to the student's record
+        await _saveScannedImage(imagePath);
       } else {
         throw Exception('Backend error: ${response.statusCode} ${response.body}');
       }
@@ -80,6 +131,40 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
+  Future<void> _saveScannedImage(String imagePath) async {
+    setState(() => _isUploading = true);
+    try {
+      final api = ApiService();
+      final result = await api.uploadScan(
+        studentId: _selectedStudentId!,
+        examId: _selectedExamId!,
+        imageFile: File(imagePath),
+      );
+      if (mounted) {
+        setState(() {
+          _uploadedUrl = result['file_url'];
+          _isUploading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Test paper saved to student record (${result['compression_ratio']} compression)'),
+            backgroundColor: kAccent1,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isUploading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Save failed: $e'),
+            backgroundColor: kAccent3,
+          ),
+        );
+      }
+    }
+  }
+
   Color get _scoreColor {
     if (_detectedCount >= 15) return const Color(0xFF43E97B);
     if (_detectedCount >= 8) return const Color(0xFFF7971E);
@@ -88,7 +173,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final students = context.watch<StudentProvider>().students;
+    final exams = context.watch<ExamProvider>().exams;
+
     return Scaffold(
+      drawer: const AppDrawer(currentRoute: '/scanner'),
       body: AppBackground(
         child: SafeArea(
           child: SingleChildScrollView(
@@ -99,13 +188,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 FadeSlideIn(
                   child: Row(
                     children: [
-                      GestureDetector(
-                        onTap: () => context.go('/dashboard'),
-                        child: const GlassCard(
-                          padding: EdgeInsets.all(10),
-                          borderRadius: 12,
-                          child: Icon(Icons.arrow_back_ios_new_rounded,
-                              color: kTextPrimary, size: 18),
+                      Builder(
+                        builder: (context) => GestureDetector(
+                          onTap: () => Scaffold.of(context).openDrawer(),
+                          child: const GlassCard(
+                            padding: EdgeInsets.all(10),
+                            borderRadius: 12,
+                            child: Icon(Icons.menu_rounded,
+                                color: kTextPrimary, size: 20),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -123,6 +214,72 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   child: Text(
                     'Powered by Roboflow AI',
                     style: TextStyle(color: kAccent2, fontSize: 12),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // ─── Student & Exam selection ─────────────────────────────
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 100),
+                  child: GlassCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Select Student',
+                            style: TextStyle(color: kTextSecondary, fontSize: 13)),
+                        const SizedBox(height: 8),
+                        _buildDropdown(
+                          value: _selectedStudentId,
+                          hint: 'Choose a student',
+                          items: students
+                              .map((s) => DropdownMenuItem(
+                                    value: s.id,
+                                    child: Text(s.fullName, style: const TextStyle(color: kTextPrimary)),
+                                  ))
+                              .toList(),
+                          onChanged: (v) => setState(() => _selectedStudentId = v),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text('Select Subject (for exam filter)',
+                            style: TextStyle(color: kTextSecondary, fontSize: 13)),
+                        const SizedBox(height: 8),
+                        _buildDropdown(
+                          value: _selectedSubjectId,
+                          hint: 'Choose a subject',
+                          items: _subjects
+                              .map((s) => DropdownMenuItem(
+                                    value: s['id'] as String,
+                                    child: Text(s['name'] ?? '', style: const TextStyle(color: kTextPrimary)),
+                                  ))
+                              .toList(),
+                          onChanged: (v) {
+                            setState(() {
+                              _selectedSubjectId = v;
+                              _selectedExamId = null;
+                            });
+                            if (v != null) {
+                              Provider.of<ExamProvider>(context, listen: false)
+                                  .fetchExams(subjectId: v);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        const Text('Select Exam',
+                            style: TextStyle(color: kTextSecondary, fontSize: 13)),
+                        const SizedBox(height: 8),
+                        _buildDropdown(
+                          value: _selectedExamId,
+                          hint: 'Choose an exam',
+                          items: exams
+                              .map((e) => DropdownMenuItem(
+                                    value: e.id,
+                                    child: Text(e.name, style: const TextStyle(color: kTextPrimary)),
+                                  ))
+                              .toList(),
+                          onChanged: (v) => setState(() => _selectedExamId = v),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -190,7 +347,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     children: [
                       Expanded(
                         child: GradientButton(
-                          onPressed: _isAnalyzing
+                          onPressed: (_isAnalyzing || _isUploading)
                               ? null
                               : () => _pickImage(ImageSource.camera),
                           colors: const [kAccent1, kAccent2],
@@ -211,7 +368,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: GradientButton(
-                          onPressed: _isAnalyzing
+                          onPressed: (_isAnalyzing || _isUploading)
                               ? null
                               : () => _pickImage(ImageSource.gallery),
                           colors: const [kAccent3, kAccent1],
@@ -247,7 +404,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   ),
                 ],
 
-                if (!_isAnalyzing && _selectedImage != null) ...[
+                if (_isUploading) ...[
+                  const SizedBox(height: 24),
+                  const GlassCard(
+                    child: Column(
+                      children: [
+                        CircularProgressIndicator(color: kAccent1),
+                        SizedBox(height: 16),
+                        Text('Saving scanned test paper to student record...',
+                            style: TextStyle(color: kTextSecondary)),
+                      ],
+                    ),
+                  ),
+                ],
+
+                if (!_isAnalyzing && !_isUploading && _selectedImage != null) ...[
                   const SizedBox(height: 24),
                   FadeSlideIn(
                     child: GlassCard(
@@ -310,25 +481,38 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                 ],
                               ),
                             ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            child: GradientButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Result saved!'),
-                                    backgroundColor: kAccent1,
+                          if (_uploadedUrl != null) ...[
+                            const SizedBox(height: 10),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: const Color(0x1A6C63FF),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                    color: const Color(0x406C63FF)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.cloud_done_rounded,
+                                      color: kAccent1, size: 16),
+                                  const SizedBox(width: 8),
+                                  const Expanded(
+                                    child: Text('Test paper saved to student record',
+                                        style: TextStyle(
+                                            color: kAccent1,
+                                            fontSize: 12)),
                                   ),
-                                );
-                              },
-                              child: const Text('Save Result',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16)),
+                                  Text(
+                                    _detectedCount > 0 ? '✓ Auto-saved' : 'Saved',
+                                    style: const TextStyle(
+                                        color: kAccent2, fontSize: 11, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
+                          ],
+                          const SizedBox(height: 20),
                         ],
                       ),
                     ),
@@ -337,6 +521,42 @@ class _ScannerScreenState extends State<ScannerScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdown({
+    required String? value,
+    required String hint,
+    required List<DropdownMenuItem<String>> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: kGlass,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: kGlassBorder),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          dropdownColor: const Color(0xFF1A1A3E),
+          style: const TextStyle(color: kTextPrimary),
+          hint: Text(hint, style: const TextStyle(color: kTextSecondary)),
+          items: items.isEmpty
+              ? [
+                  DropdownMenuItem(
+                    value: null,
+                    enabled: false,
+                    child: Text('No items available',
+                        style: TextStyle(color: Colors.grey[500], fontSize: 13)),
+                  ),
+                ]
+              : items,
+          onChanged: onChanged,
         ),
       ),
     );

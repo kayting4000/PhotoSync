@@ -1,6 +1,6 @@
-# EduScan Backend API
+# PhotoSync Backend API
 
-FastAPI backend for EduScan — Test Paper Scanner & Grade Management System.
+FastAPI backend for PhotoSync — Test Paper Scanner & Grade Management System.
 Built for **Mindanao State University - Tawi-Tawi (MSU-Tawi-Tawi)**.
 
 ---

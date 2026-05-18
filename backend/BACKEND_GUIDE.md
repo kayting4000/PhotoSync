@@ -1,4 +1,4 @@
-# EduScan Backend — Complete Learning Guide
+# PhotoSync Backend — Complete Learning Guide
 
 > This guide explains every part of the backend in simple terms.
 > No prior backend experience needed.

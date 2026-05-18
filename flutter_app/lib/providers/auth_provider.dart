@@ -1,30 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final supabase = Supabase.instance.client;
-  User? _currentUser;
+  final api = ApiService();
+  String? _userId;
+  String? _userEmail;
   String? _errorMessage;
   bool _isLoading = false;
 
-  User? get currentUser => _currentUser;
+  String? get userId => _userId;
+  String? get userEmail => _userEmail;
   String? get errorMessage => _errorMessage;
   bool get isLoading => _isLoading;
-  bool get isAuthenticated => _currentUser != null;
-
-  AuthProvider() {
-    _initializeAuth();
-  }
-
-  void _initializeAuth() {
-    _currentUser = supabase.auth.currentUser;
-    notifyListeners();
-
-    supabase.auth.onAuthStateChange.listen((data) {
-      _currentUser = data.session?.user;
-      notifyListeners();
-    });
-  }
+  bool get isAuthenticated => _userId != null;
 
   Future<bool> login(String email, String password) async {
     try {
@@ -32,17 +20,19 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      await supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
+      final data = await api.login(email, password);
+      final user = data['user'] as Map<String, dynamic>;
+      final token = data['access_token'] as String;
 
-      _currentUser = supabase.auth.currentUser;
+      api.setAuth(token, user['id'], user['email']);
+      _userId = user['id'];
+      _userEmail = user['email'];
+
       _isLoading = false;
       notifyListeners();
       return true;
-    } on AuthException catch (e) {
-      _errorMessage = e.message;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
       _isLoading = false;
       notifyListeners();
       return false;
@@ -55,26 +45,29 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      await supabase.auth.signUp(
-        email: email,
-        password: password,
-      );
+      final data = await api.signup(email, password);
+      final user = data['user'] as Map<String, dynamic>;
+      final token = data['access_token'] as String;
 
-      _currentUser = supabase.auth.currentUser;
+      api.setAuth(token, user['id'], user['email']);
+      _userId = user['id'];
+      _userEmail = user['email'];
+
       _isLoading = false;
       notifyListeners();
       return true;
-    } on AuthException catch (e) {
-      _errorMessage = e.message;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  Future<void> logout() async {
-    await supabase.auth.signOut();
-    _currentUser = null;
+  void logout() {
+    api.clearAuth();
+    _userId = null;
+    _userEmail = null;
     notifyListeners();
   }
 }

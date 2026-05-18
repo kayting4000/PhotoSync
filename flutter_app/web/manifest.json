@@ -1,6 +1,6 @@
 {
-    "name": "eduscan",
-    "short_name": "eduscan",
+    "name": "PhotoSync",
+    "short_name": "PhotoSync",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

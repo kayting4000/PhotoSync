@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/student_provider.dart';
 import 'providers/subject_provider.dart';
 import 'providers/exam_provider.dart';
+import 'providers/theme_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
@@ -19,12 +19,8 @@ import 'screens/grades_screen.dart';
 import 'screens/email_screen.dart';
 import 'screens/subjects_screen.dart';
 
-const String supabaseUrl = 'https://spbzddkeklaexgukmrxn.supabase.co';
-const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwYnpkZGtla2xhZXhndWttcnhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMzg2NjIsImV4cCI6MjA5MjkxNDY2Mn0.xK8vIBG_NLGwSxmebt2QRiT54Qr-LLy2CARNxktengc';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
@@ -45,12 +41,19 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => StudentProvider()),
         ChangeNotifierProvider(create: (_) => SubjectProvider()),
         ChangeNotifierProvider(create: (_) => ExamProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp.router(
-        title: 'EduScan',
-        theme: buildAppTheme(),
-        routerConfig: _buildRouter(),
-        debugShowCheckedModeBanner: false,
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) {
+          return MaterialApp.router(
+            title: 'PhotoSync',
+            theme: buildLightTheme(),
+            darkTheme: buildDarkTheme(),
+            themeMode: themeProvider.themeMode,
+            routerConfig: _buildRouter(),
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
     );
   }
@@ -158,7 +161,10 @@ CustomTransitionPage _slideUpPage(Widget child) {
       ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuart));
       return SlideTransition(
         position: slide,
-        child: child,
+        child: FadeTransition(
+          opacity: animation,
+          child: child,
+        ),
       );
     },
   );

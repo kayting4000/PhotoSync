@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/subject.dart';
+import '../services/api_service.dart';
 
 class SubjectProvider extends ChangeNotifier {
-  final supabase = Supabase.instance.client;
+  final api = ApiService();
   List<Subject> _subjects = [];
   bool _isLoading = false;
   String? _errorMessage;
@@ -18,11 +18,8 @@ class SubjectProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      final data = await supabase.from('subjects').select();
-
-      _subjects = (data as List<dynamic>)
-          .map((item) => Subject.fromJson(item))
-          .toList();
+      final data = await api.get('/subjects/');
+      _subjects = data.map((item) => Subject.fromJson(item)).toList();
 
       _isLoading = false;
       notifyListeners();
@@ -35,9 +32,11 @@ class SubjectProvider extends ChangeNotifier {
 
   Future<bool> addSubject(Subject subject) async {
     try {
-      final userId = supabase.auth.currentUser?.id;
-      if (userId == null) return false;
-      await supabase.from('subjects').insert(subject.toJson(userId: userId));
+      await api.post('/subjects/', {
+        'code': subject.code,
+        'name': subject.name,
+        'units': subject.units,
+      });
       await fetchSubjects();
       return true;
     } catch (e) {
@@ -49,10 +48,11 @@ class SubjectProvider extends ChangeNotifier {
 
   Future<bool> updateSubject(String id, Subject subject) async {
     try {
-      await supabase
-          .from('subjects')
-          .update(subject.toJson())
-          .eq('id', id);
+      await api.put('/subjects/$id', {
+        'code': subject.code,
+        'name': subject.name,
+        'units': subject.units,
+      });
       await fetchSubjects();
       return true;
     } catch (e) {
@@ -64,7 +64,7 @@ class SubjectProvider extends ChangeNotifier {
 
   Future<bool> deleteSubject(String id) async {
     try {
-      await supabase.from('subjects').delete().eq('id', id);
+      await api.delete('/subjects/$id');
       await fetchSubjects();
       return true;
     } catch (e) {

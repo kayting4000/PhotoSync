@@ -1,8 +1,8 @@
 @echo off
-REM EduScan Flutter App - Setup Script for Windows
+REM PhotoSync Flutter App - Setup Script for Windows
 
 echo ======================================
-echo EduScan Flutter App - Setup
+echo PhotoSync Flutter App - Setup
 echo ======================================
 echo.
 

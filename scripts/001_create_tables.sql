@@ -98,7 +98,7 @@ ALTER TABLE exam_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE student_subjects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE scoring_rules ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies
+-- RLS Policies 
 CREATE POLICY "users_own_students" ON students
   FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 

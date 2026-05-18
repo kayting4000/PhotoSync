@@ -79,7 +79,7 @@ export function DashboardNav({ user }: { user: SupabaseUser }) {
       <div className="container mx-auto flex h-14 items-center px-4">
         <div className="flex items-center gap-2 mr-6">
           <GraduationCap className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg">EduScan</span>
+          <span className="font-bold text-lg">PhotoSync</span>
         </div>
 
         <nav className="hidden md:flex items-center gap-1 flex-1">
@@ -97,7 +97,7 @@ export function DashboardNav({ user }: { user: SupabaseUser }) {
             <SheetContent side="left" className="w-64">
               <div className="flex items-center gap-2 mb-6">
                 <GraduationCap className="h-6 w-6 text-primary" />
-                <span className="font-bold text-lg">EduScan</span>
+                <span className="font-bold text-lg">PhotoSync</span>
               </div>
               <nav className="flex flex-col gap-1">
                 <NavLinks />

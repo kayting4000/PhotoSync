@@ -1,4 +1,4 @@
-# EduScan Flutter App
+# PhotoSync Flutter App
 
 A cross-platform Flutter application for test paper scanning and student information management using the Supabase backend.
 

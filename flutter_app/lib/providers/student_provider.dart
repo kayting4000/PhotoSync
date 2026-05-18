@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/student.dart';
+import '../services/api_service.dart';
 
 class StudentProvider extends ChangeNotifier {
-  final supabase = Supabase.instance.client;
+  final api = ApiService();
   List<Student> _students = [];
   bool _isLoading = false;
   String? _errorMessage;
@@ -18,11 +18,8 @@ class StudentProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      final data = await supabase.from('students').select();
-
-      _students = (data as List<dynamic>)
-          .map((item) => Student.fromJson(item))
-          .toList();
+      final data = await api.get('/students/');
+      _students = data.map((item) => Student.fromJson(item)).toList();
 
       _isLoading = false;
       notifyListeners();
@@ -35,9 +32,14 @@ class StudentProvider extends ChangeNotifier {
 
   Future<bool> addStudent(Student student) async {
     try {
-      final userId = supabase.auth.currentUser?.id;
-      if (userId == null) return false;
-      await supabase.from('students').insert(student.toJson(userId: userId));
+      await api.post('/students/', {
+        'student_id': student.studentId,
+        'first_name': student.firstName,
+        'last_name': student.lastName,
+        'email': student.email,
+        'course': student.course,
+        'year_level': student.yearLevel,
+      });
       await fetchStudents();
       return true;
     } catch (e) {
@@ -49,10 +51,15 @@ class StudentProvider extends ChangeNotifier {
 
   Future<bool> updateStudent(String id, Student student) async {
     try {
-      await supabase
-          .from('students')
-          .update(student.toJson())
-          .eq('id', id);
+      final body = <String, dynamic>{
+        'student_id': student.studentId,
+        'first_name': student.firstName,
+        'last_name': student.lastName,
+        'email': student.email,
+        'course': student.course,
+        'year_level': student.yearLevel,
+      };
+      await api.put('/students/$id', body);
       await fetchStudents();
       return true;
     } catch (e) {
@@ -64,7 +71,7 @@ class StudentProvider extends ChangeNotifier {
 
   Future<bool> deleteStudent(String id) async {
     try {
-      await supabase.from('students').delete().eq('id', id);
+      await api.delete('/students/$id');
       await fetchStudents();
       return true;
     } catch (e) {

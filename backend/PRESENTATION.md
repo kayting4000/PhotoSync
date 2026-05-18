@@ -1,11 +1,11 @@
-# EduScan Backend — Presentation Guide
+# PhotoSync Backend — Presentation Guide
 ### Milestone 2 | FastAPI + Supabase + MVC
 
 ---
 
 ## Slide 1 — Title
 
-**EduScan**
+**PhotoSync**
 *Test Paper Scanner & Grade Management System*
 
 - **Framework:** FastAPI (Python)
@@ -16,7 +16,7 @@
 
 ---
 
-## Slide 2 — What is EduScan?
+## Slide 2 — What is PhotoSync?
 
 A backend system that lets teachers:
 
@@ -200,7 +200,7 @@ python test_api.py
 ```
 
 ```
-=== EduScan API Tests ===
+=== PhotoSync API Tests ===
   ✓ GET  /           [200]
   ✓ POST /students/  [200]
   ✓ GET  /students/  [200]

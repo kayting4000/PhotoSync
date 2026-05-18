@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1f2937;">
           <div style="text-align: center; margin-bottom: 24px;">
-            <h1 style="color: #2563eb; margin: 0; font-size: 24px;">EduScan</h1>
+            <h1 style="color: #2563eb; margin: 0; font-size: 24px;">PhotoSync</h1>
             <p style="color: #6b7280; margin: 4px 0 0 0;">Grade Report</p>
           </div>
           
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
           }
 
           <div style="text-align: center; color: #6b7280; font-size: 12px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
-            <p style="margin: 0;">This is an automated message from EduScan.</p>
+            <p style="margin: 0;">This is an automated message from PhotoSync.</p>
             <p style="margin: 4px 0 0 0;">Please do not reply to this email.</p>
           </div>
         </body>
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: "EduScan <onboarding@resend.dev>",
+      from: process.env.RESEND_FROM_EMAIL || "PhotoSync <onboarding@resend.dev>",
       to: [to],
       subject: `Grade Report - ${subjectCode} ${subjectName}`,
       html: htmlContent,

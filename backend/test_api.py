@@ -1,5 +1,5 @@
 """
-test_api.py — Smoke tests for EduScan API endpoints.
+test_api.py — Smoke tests for PhotoSync API endpoints.
 Run: python test_api.py
 Requires the server to be running at http://localhost:8000
 """
@@ -22,7 +22,7 @@ def check(label: str, res: httpx.Response, expected: int):
 
 
 def run():
-    print("\n=== EduScan API Tests ===\n")
+    print("\n=== PhotoSync API Tests ===\n")
 
     # Health
     print("[Health]")

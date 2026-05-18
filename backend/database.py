@@ -1,5 +1,5 @@
 """
-EduScan — Neon PostgreSQL Database Configuration
+PhotoSync — Neon PostgreSQL Database Configuration
 Uses SQLAlchemy ORM with asyncpg (async) or psycopg2 (sync) driver.
 This module uses sync SQLAlchemy for simplicity with FastAPI endpoints.
 """

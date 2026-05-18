@@ -6,5 +6,7 @@ from .results import router as results_router
 from .dashboard import router as dashboard_router
 from .grades import router as grades_router
 from .scanner import router as scanner_router
+from .scan_uploads import router as scan_uploads_router
+from .email import router as email_router
 from .student_subjects import router as student_subjects_router
 from .scoring_rules import router as scoring_rules_router

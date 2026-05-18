@@ -1,4 +1,4 @@
-# EduScan Flutter App - Deployment & Build Guide
+# PhotoSync Flutter App - Deployment & Build Guide
 
 ## Building for iOS
 

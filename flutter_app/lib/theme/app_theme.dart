@@ -1,19 +1,57 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-const kBg1 = Color(0xFF0A0E27);
-const kBg2 = Color(0xFF0D1B4B);
+// ─── Dark Mode Colors ───────────────────────────────────────────────────
+const dBg1 = Color(0xFF0A0E27);
+const dBg2 = Color(0xFF0D1B4B);
+const dAccent1 = Color(0xFF6C63FF);
+const dAccent2 = Color(0xFF48CAE4);
+const dAccent3 = Color(0xFFFF6584);
+const dGlass = Color(0x1AFFFFFF);
+const dGlassBorder = Color(0x33FFFFFF);
+const dTextPrimary = Colors.white;
+const dTextSecondary = Color(0xAAFFFFFF);
+
+// ─── Light Mode Colors ──────────────────────────────────────────────────
+const lBg = Color(0xFFF8F9FF);
+const lSurface = Color(0xFFFFFFFF);
+const lAccent1 = Color(0xFF6C63FF);
+const lAccent2 = Color(0xFF48CAE4);
+const lAccent3 = Color(0xFFFF6584);
+const lGlass = Color(0x1A6C63FF);
+const lGlassBorder = Color(0x336C63FF);
+const lTextPrimary = Color(0xFF1A1A2E);
+const lTextSecondary = Color(0xAA1A1A2E);
+
+// ─── Shared constants ───────────────────────────────────────────────────
 const kAccent1 = Color(0xFF6C63FF);
 const kAccent2 = Color(0xFF48CAE4);
 const kAccent3 = Color(0xFFFF6584);
-const kGlass = Color(0x1AFFFFFF);
-const kGlassBorder = Color(0x33FFFFFF);
-const kTextPrimary = Colors.white;
-const kTextSecondary = Color(0xAAFFFFFF);
 
-// Solid glass color - no blur needed
-const kGlassSolid = Color(0x26FFFFFF);
-const kGlassSolidDark = Color(0x1A1A2040);
+// Backward-compatible aliases for existing screens
+// These adapt to the current theme brightness automatically via the extension
+const kBg1 = dBg1;
+const kBg2 = dBg2;
+const kGlass = dGlass;
+const kGlassBorder = dGlassBorder;
+const kTextPrimary = dTextPrimary;
+const kTextSecondary = dTextSecondary;
+
+// Helper — get dark/light colors based on brightness
+extension ThemeColors on BuildContext {
+  Color get bg1 => isDark ? dBg1 : lBg;
+  Color get bg2 => isDark ? dBg2 : lSurface;
+  Color get surface => isDark ? const Color(0x1AFFFFFF) : lGlass;
+  Color get glass => isDark ? dGlass : lGlass;
+  Color get glassBorder => isDark ? dGlassBorder : lGlassBorder;
+  Color get textPrimary => isDark ? dTextPrimary : lTextPrimary;
+  Color get textSecondary => isDark ? dTextSecondary : lTextSecondary;
+  Color get accent1 => kAccent1;
+  Color get accent2 => kAccent2;
+  Color get accent3 => kAccent3;
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+}
 
 class AppBackground extends StatelessWidget {
   final Widget child;
@@ -21,22 +59,34 @@ class AppBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
+      value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         systemNavigationBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
       ),
       child: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [kBg1, kBg2, Color(0xFF1A0533)],
-            stops: [0.0, 0.5, 1.0],
-          ),
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [dBg1, dBg2, Color(0xFF1A0533)],
+                  stops: [0.0, 0.5, 1.0],
+                )
+              : LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    lBg,
+                    const Color(0xFFE8F0FF),
+                    const Color(0xFFF0E8FF),
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
         ),
         child: child,
       ),
@@ -44,12 +94,14 @@ class AppBackground extends StatelessWidget {
   }
 }
 
-// No blur - just solid semi-transparent card
+// Glass card with optional blur and tap support
 class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final double borderRadius;
   final Color? color;
+  final VoidCallback? onTap;
+  final double blurIntensity;
 
   const GlassCard({
     super.key,
@@ -57,19 +109,52 @@ class GlassCard extends StatelessWidget {
     this.padding,
     this.borderRadius = 20,
     this.color,
+    this.onTap,
+    this.blurIntensity = 0,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = color ?? (isDark ? dGlass : lGlass);
+    final borderColor = isDark ? dGlassBorder : lGlassBorder;
+
+    Widget card = Container(
       padding: padding ?? const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: color ?? const Color(0x26FFFFFF),
+        color: bgColor,
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: kGlassBorder, width: 1.2),
+        border: Border.all(color: borderColor, width: 1.2),
       ),
       child: child,
     );
+
+    if (blurIntensity > 0) {
+      card = ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: blurIntensity,
+            sigmaY: blurIntensity,
+          ),
+          child: card,
+        ),
+      );
+    }
+
+    if (onTap != null) {
+      card = Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: card,
+        ),
+      );
+    }
+
+    return card;
   }
 }
 
@@ -93,25 +178,26 @@ class GlassTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      style: const TextStyle(color: kTextPrimary),
+      style: TextStyle(color: isDark ? dTextPrimary : lTextPrimary),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: kTextSecondary),
-        prefixIcon: Icon(prefixIcon, color: kTextSecondary),
+        labelStyle: TextStyle(color: isDark ? dTextSecondary : lTextSecondary),
+        prefixIcon: Icon(prefixIcon, color: isDark ? dTextSecondary : lTextSecondary),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: const Color(0x1AFFFFFF),
+        fillColor: isDark ? dGlass : lGlass,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: kGlassBorder),
+          borderSide: BorderSide(color: isDark ? dGlassBorder : lGlassBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: kGlassBorder),
+          borderSide: BorderSide(color: isDark ? dGlassBorder : lGlassBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -141,7 +227,7 @@ class GradientButton extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: disabled
-              ? [Colors.grey.shade800, Colors.grey.shade700]
+              ? [Colors.grey.shade400, Colors.grey.shade300]
               : colors,
         ),
         borderRadius: BorderRadius.circular(14),
@@ -169,7 +255,7 @@ class GradientButton extends StatelessWidget {
   }
 }
 
-// ── AI Assistant Bubble ───────────────────────────────────────────────────────
+// ── AI Assistant Bubble ──────────────────────────────────────────────────
 class AIAssistantBubble extends StatefulWidget {
   const AIAssistantBubble({super.key});
 
@@ -231,14 +317,21 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
     if (q.contains('scan') || q.contains('paper')) return 'Use the Scanner to upload and analyze test papers.';
     if (q.contains('grade') || q.contains('gpa')) return 'Check the Grades screen to view GPA and results.';
     if (q.contains('email')) return 'Use Send Email Reports to notify students.';
-    if (q.contains('creator') || q.contains('who made') || q.contains('team') || q.contains('developer')) {
-      return 'EduScan was built by:\n• Habibun-najal Kayting (Lead Developer)\n• Hareeja Montenegro (Sub-dev & QA)\n• Mohd Shaffiqh (Sub-dev & Documentation)';
+    if (q.contains('theme') || q.contains('dark') || q.contains('light') || q.contains('mode')) {
+      return 'You can toggle between dark and light mode from the sidebar menu.';
     }
-    return 'Hi! I can help you navigate EduScan. Ask me about students, subjects, scanning, grades, or emails.';
+    if (q.contains('creator') || q.contains('who made') || q.contains('team') || q.contains('developer')) {
+      return 'PhotoSync was built by:\n• Habibun-najal Kayting (Lead Developer)\n• Hareeja Montenegro (Sub-dev & QA)\n• Mohd Shaffiqh (Sub-dev & Documentation)';
+    }
+    return 'Hi! I can help you navigate PhotoSync. Ask me about students, subjects, scanning, grades, or emails.';
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final chatBg = isDark ? const Color(0xFF1A1A3E) : const Color(0xFFFFFFFF);
+    final msgBg = isDark ? dGlass : lGlass;
+
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
@@ -251,9 +344,9 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
               height: 380,
               margin: const EdgeInsets.only(bottom: 72, right: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF1A1A3E),
+                color: chatBg,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: kGlassBorder),
+                border: Border.all(color: isDark ? dGlassBorder : lGlassBorder),
               ),
               child: Column(
                 children: [
@@ -268,7 +361,7 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
                         const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
                         const SizedBox(width: 8),
                         const Expanded(
-                          child: Text('EduScan AI',
+                          child: Text('PhotoSync AI',
                               style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
                         GestureDetector(
@@ -280,12 +373,15 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
                   ),
                   Expanded(
                     child: _messages.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Padding(
-                              padding: EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(16),
                               child: Text(
-                                'Hi! Ask me anything about EduScan 👋',
-                                style: TextStyle(color: kTextSecondary, fontSize: 13),
+                              'Hi! Ask me anything about PhotoSync 👋',
+                                style: TextStyle(
+                                  color: isDark ? dTextSecondary : lTextSecondary,
+                                  fontSize: 13,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -306,12 +402,15 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
                                     gradient: isUser
                                         ? const LinearGradient(colors: [kAccent1, kAccent2])
                                         : null,
-                                    color: isUser ? null : const Color(0x26FFFFFF),
+                                    color: isUser ? null : msgBg,
                                     borderRadius: BorderRadius.circular(12),
-                                    border: isUser ? null : Border.all(color: kGlassBorder),
+                                    border: isUser ? null : Border.all(color: isDark ? dGlassBorder : lGlassBorder),
                                   ),
                                   child: Text(msg['text']!,
-                                      style: const TextStyle(color: Colors.white, fontSize: 12)),
+                                      style: TextStyle(
+                                        color: isUser ? Colors.white : (isDark ? dTextPrimary : lTextPrimary),
+                                        fontSize: 12,
+                                      )),
                                 ),
                               );
                             },
@@ -324,20 +423,26 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
                         Expanded(
                           child: TextField(
                             controller: _controller,
-                            style: const TextStyle(color: kTextPrimary, fontSize: 13),
+                            style: TextStyle(
+                              color: isDark ? dTextPrimary : lTextPrimary,
+                              fontSize: 13,
+                            ),
                             decoration: InputDecoration(
                               hintText: 'Ask something...',
-                              hintStyle: const TextStyle(color: kTextSecondary, fontSize: 12),
+                              hintStyle: TextStyle(
+                                color: isDark ? dTextSecondary : lTextSecondary,
+                                fontSize: 12,
+                              ),
                               filled: true,
-                              fillColor: const Color(0x1AFFFFFF),
+                              fillColor: msgBg,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: kGlassBorder),
+                                borderSide: BorderSide(color: isDark ? dGlassBorder : lGlassBorder),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: kGlassBorder),
+                                borderSide: BorderSide(color: isDark ? dGlassBorder : lGlassBorder),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -390,12 +495,13 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
   }
 }
 
-ThemeData buildAppTheme() {
+ThemeData buildDarkTheme() {
   return ThemeData(
+    brightness: Brightness.dark,
     colorScheme: const ColorScheme.dark(
       primary: kAccent1,
       secondary: kAccent2,
-      surface: kBg1,
+      surface: dBg1,
     ),
     useMaterial3: true,
     scaffoldBackgroundColor: Colors.transparent,
@@ -403,19 +509,50 @@ ThemeData buildAppTheme() {
       backgroundColor: Colors.transparent,
       elevation: 0,
       titleTextStyle: TextStyle(
-        color: kTextPrimary,
+        color: dTextPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w600,
       ),
-      iconTheme: IconThemeData(color: kTextPrimary),
+      iconTheme: IconThemeData(color: dTextPrimary),
     ),
     textTheme: const TextTheme(
-      headlineLarge: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold),
-      headlineSmall: TextStyle(color: kTextPrimary, fontWeight: FontWeight.w600),
-      titleLarge: TextStyle(color: kTextPrimary, fontWeight: FontWeight.w600),
-      titleMedium: TextStyle(color: kTextPrimary),
-      bodyMedium: TextStyle(color: kTextSecondary),
-      bodySmall: TextStyle(color: kTextSecondary),
+      headlineLarge: TextStyle(color: dTextPrimary, fontWeight: FontWeight.bold),
+      headlineSmall: TextStyle(color: dTextPrimary, fontWeight: FontWeight.w600),
+      titleLarge: TextStyle(color: dTextPrimary, fontWeight: FontWeight.w600),
+      titleMedium: TextStyle(color: dTextPrimary),
+      bodyMedium: TextStyle(color: dTextSecondary),
+      bodySmall: TextStyle(color: dTextSecondary),
+    ),
+  );
+}
+
+ThemeData buildLightTheme() {
+  return ThemeData(
+    brightness: Brightness.light,
+    colorScheme: const ColorScheme.light(
+      primary: kAccent1,
+      secondary: kAccent2,
+      surface: lBg,
+    ),
+    useMaterial3: true,
+    scaffoldBackgroundColor: Colors.transparent,
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      titleTextStyle: const TextStyle(
+        color: lTextPrimary,
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+      ),
+      iconTheme: const IconThemeData(color: lTextPrimary),
+    ),
+    textTheme: const TextTheme(
+      headlineLarge: TextStyle(color: lTextPrimary, fontWeight: FontWeight.bold),
+      headlineSmall: TextStyle(color: lTextPrimary, fontWeight: FontWeight.w600),
+      titleLarge: TextStyle(color: lTextPrimary, fontWeight: FontWeight.w600),
+      titleMedium: TextStyle(color: lTextPrimary),
+      bodyMedium: TextStyle(color: lTextSecondary),
+      bodySmall: TextStyle(color: lTextSecondary),
     ),
   );
 }

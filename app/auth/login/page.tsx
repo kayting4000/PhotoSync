@@ -49,7 +49,7 @@ export default function LoginPage() {
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-center gap-2 text-primary">
             <GraduationCap className="h-8 w-8" />
-            <span className="text-xl font-bold">EduScan</span>
+            <span className="text-xl font-bold">PhotoSync</span>
           </div>
           <Card>
             <CardHeader>

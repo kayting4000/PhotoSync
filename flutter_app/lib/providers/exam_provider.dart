@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/exam.dart';
+import '../services/api_service.dart';
 
 class ExamProvider extends ChangeNotifier {
-  final supabase = Supabase.instance.client;
+  final api = ApiService();
   List<Exam> _exams = [];
   bool _isLoading = false;
   String? _errorMessage;
@@ -18,16 +18,12 @@ class ExamProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      var query = supabase.from('exams').select();
+      var path = '/exams/';
       if (subjectId != null) {
-        query = query.eq('subject_id', subjectId);
+        path = '/exams/?subject_id=$subjectId';
       }
-
-      final data = await query;
-
-      _exams = (data as List<dynamic>)
-          .map((item) => Exam.fromJson(item))
-          .toList();
+      final data = await api.get(path);
+      _exams = data.map((item) => Exam.fromJson(item)).toList();
 
       _isLoading = false;
       notifyListeners();
@@ -40,9 +36,7 @@ class ExamProvider extends ChangeNotifier {
 
   Future<bool> addExam(Exam exam) async {
     try {
-      final userId = supabase.auth.currentUser?.id;
-      if (userId == null) return false;
-      await supabase.from('exams').insert(exam.toJson(userId: userId));
+      await api.post('/exams/', exam.toJson());
       await fetchExams();
       return true;
     } catch (e) {
@@ -54,10 +48,7 @@ class ExamProvider extends ChangeNotifier {
 
   Future<bool> updateExam(String id, Exam exam) async {
     try {
-      await supabase
-          .from('exams')
-          .update(exam.toJson())
-          .eq('id', id);
+      await api.put('/exams/$id', exam.toJson());
       await fetchExams();
       return true;
     } catch (e) {
@@ -69,7 +60,7 @@ class ExamProvider extends ChangeNotifier {
 
   Future<bool> deleteExam(String id) async {
     try {
-      await supabase.from('exams').delete().eq('id', id);
+      await api.delete('/exams/$id');
       await fetchExams();
       return true;
     } catch (e) {

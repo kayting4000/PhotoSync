@@ -129,7 +129,7 @@ class _SplashScreenState extends State<SplashScreen>
                             const LinearGradient(colors: [kAccent1, kAccent2])
                                 .createShader(bounds),
                         child: const Text(
-                          'EduScan',
+                          'PhotoSync',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 42,

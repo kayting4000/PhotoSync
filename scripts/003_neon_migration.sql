@@ -1,5 +1,5 @@
 -- =============================================================================
--- EduScan — Neon PostgreSQL Migration (replaces Supabase Auth + PostgREST)
+-- PhotoSync — Neon PostgreSQL Migration (replaces Supabase Auth + PostgREST)
 -- =============================================================================
 -- This script creates all tables with app-level user_id isolation
 -- (no Row-Level Security — we handle it in the API layer now).

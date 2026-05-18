@@ -42,7 +42,7 @@ export default function HomePage() {
         <nav className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">EduScan</span>
+            <span className="text-xl font-bold">PhotoSync</span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/auth/login">
@@ -106,7 +106,7 @@ export default function HomePage() {
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-2xl text-center mb-12">
               <h2 className="text-3xl font-bold tracking-tight mb-4">
-                Why Choose EduScan?
+                Why Choose PhotoSync?
               </h2>
               <p className="text-muted-foreground">
                 Built by educators, for educators. Streamline your grading workflow today.
@@ -131,7 +131,7 @@ export default function HomePage() {
               Ready to Transform Your Grading Process?
             </h2>
             <p className="text-muted-foreground">
-              Join educators who are saving hours every week with EduScan.
+              Join educators who are saving hours every week with PhotoSync.
             </p>
             <Link href="/auth/sign-up">
               <Button size="lg" className="gap-2">
@@ -144,7 +144,7 @@ export default function HomePage() {
 
       <footer className="border-t py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>EduScan - Test Paper Scanner and Student Information Management System</p>
+          <p>PhotoSync - Test Paper Scanner and Student Information Management System</p>
           <p className="mt-1">Built by Hareeja A. Montenegro, Mohd. Shaffiqh Annang, Habibun-najal Kayting</p>
         </div>
       </footer>

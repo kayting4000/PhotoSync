@@ -1,6 +1,6 @@
-# EduScan — Milestone 2 Submission Guide
+# PhotoSync — Milestone 2 Submission Guide
 
-**Course:** CCC151 | **Project:** EduScan — Test Paper Scanner & Grade Management  
+**Course:** CCC151 | **Project:** PhotoSync — Test Paper Scanner & Grade Management
 **Repository:** https://github.com/kayting4000/EduScan  
 **Developer:** Habibun-najal K. Kayting
 
@@ -233,7 +233,7 @@ python test_api.py
 ### Expected output
 
 ```
-=== EduScan API Tests ===
+=== PhotoSync API Tests ===
 
 [Health]
   ✓ GET / [200]
@@ -332,4 +332,4 @@ POST /auth/login
 
 ---
 
-*EduScan — Built with FastAPI, Pydantic, and Supabase*
+*PhotoSync — Built with FastAPI, Pydantic, and Supabase*

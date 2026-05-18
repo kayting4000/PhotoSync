@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/student_provider.dart';
 import '../models/student.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_drawer.dart';
 
 class StudentsScreen extends StatefulWidget {
   const StudentsScreen({super.key});
@@ -101,14 +102,12 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: GestureDetector(
+                      child: GlassCard(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         onTap: () => Navigator.pop(context),
-                        child: GlassCard(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: const Center(
-                            child: Text('Cancel',
-                                style: TextStyle(color: kTextSecondary)),
-                          ),
+                        child: const Center(
+                          child: Text('Cancel',
+                              style: TextStyle(color: kTextSecondary)),
                         ),
                       ),
                     ),
@@ -156,6 +155,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(currentRoute: '/students'),
       body: AppBackground(
         child: SafeArea(
           child: Column(
@@ -164,13 +164,15 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                 child: Row(
                   children: [
-                    GestureDetector(
-                      onTap: () => context.go('/dashboard'),
-                      child: GlassCard(
-                        padding: const EdgeInsets.all(10),
-                        borderRadius: 12,
-                        child: const Icon(Icons.arrow_back_ios_new_rounded,
-                            color: kTextPrimary, size: 18),
+                    Builder(
+                      builder: (context) => GestureDetector(
+                        onTap: () => Scaffold.of(context).openDrawer(),
+                        child: const GlassCard(
+                          padding: EdgeInsets.all(10),
+                          borderRadius: 12,
+                          child: Icon(Icons.menu_rounded,
+                              color: kTextPrimary, size: 20),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -191,12 +193,12 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           child: CircularProgressIndicator(color: kAccent1));
                     }
                     if (provider.students.isEmpty) {
-                      return Center(
+                      return const Center(
                         child: GlassCard(
-                          padding: const EdgeInsets.all(40),
+                          padding: EdgeInsets.all(40),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
-                            children: const [
+                            children: [
                               Icon(Icons.people_outline,
                                   size: 64, color: kTextSecondary),
                               SizedBox(height: 16),
@@ -255,7 +257,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                                               fontSize: 15)),
                                       const SizedBox(height: 4),
                                       Text(
-                                          '${student.studentId} • ${student.course}',
+                                          '${student.studentId} \u2022 ${student.course}',
                                           style: const TextStyle(
                                               color: kTextSecondary,
                                               fontSize: 12)),

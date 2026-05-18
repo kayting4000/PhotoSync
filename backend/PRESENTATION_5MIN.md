@@ -1,8 +1,8 @@
-# EduScan Backend — 5-Minute Swagger Demo Script
+# PhotoSync Backend — 5-Minute Swagger Demo Script
 
 ---
 
-Good morning/afternoon, everyone. I'm going to show you EduScan — a grade management backend for MSU-Tawi-Tawi, built with FastAPI.
+Good morning/afternoon, everyone. I'm going to show you PhotoSync — a grade management backend for MSU-Tawi-Tawi, built with FastAPI.
 
 My entire presentation is this Swagger page. No PowerPoint. Everything I'm about to show is live and interactive.
 
