@@ -1,6 +1,7 @@
 """
 Exam model — represents the 'exams' table in Neon PostgreSQL.
 """
+import uuid
 from sqlalchemy import Column, String, Integer, Float, DateTime, ForeignKey, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -13,7 +14,7 @@ TABLE = "exams"
 class Exam(Base):
     __tablename__ = TABLE
 
-    id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     subject_id = Column(UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
     name = Column(String, nullable=False)

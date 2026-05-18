@@ -1,7 +1,8 @@
 """
-ScoringRule model — represents the 'scoring_rules' table in Neon PostgreSQL.
+Scoring Rule model — represents the 'scoring_rules' table in Neon PostgreSQL.
 """
-from sqlalchemy import Column, String, Integer, Float, DateTime, ForeignKey, text
+import uuid
+from sqlalchemy import Column, String, Float, Integer, DateTime, ForeignKey, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from database import Base
@@ -13,7 +14,7 @@ TABLE = "scoring_rules"
 class ScoringRule(Base):
     __tablename__ = TABLE
 
-    id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     exam_id = Column(UUID(as_uuid=True), ForeignKey("exams.id", ondelete="CASCADE"), nullable=False)
     section_name = Column(String, nullable=True)
