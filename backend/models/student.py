@@ -1,6 +1,7 @@
 """
 Student model — represents the 'students' table in Neon PostgreSQL.
 """
+import uuid
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -13,7 +14,7 @@ TABLE = "students"
 class Student(Base):
     __tablename__ = TABLE
 
-    id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     student_id = Column(String, nullable=False)
     first_name = Column(String, nullable=False)

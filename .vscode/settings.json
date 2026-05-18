@@ -11,7 +11,7 @@
     "**/.*",
     ".venv",
     ".venv-1",
-    ".venv-*",
+    ".venv-*",  
     "flutter_app/ios/Flutter/ephemeral/**"
   ]
 }

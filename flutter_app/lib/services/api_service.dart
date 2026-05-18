@@ -10,11 +10,8 @@ class ApiService {
   factory ApiService() => _instance;
   ApiService._internal();
 
-  /// Backend API base URL
-  /// Android emulator: http://10.0.2.2:8000
-  /// iOS simulator:    http://localhost:8000
-  /// Physical device:  http://<your-ip>:8000
-  static const String _baseUrl = 'http://10.0.2.2:8000';
+  /// Backend API base URL — hosted on Render (no laptop needed)
+  static const String _baseUrl = 'https://photosync-4pj7.onrender.com';
 
   String? _jwtToken;
   String? _userId;
