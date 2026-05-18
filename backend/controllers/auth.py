@@ -67,21 +67,29 @@ def get_current_user(
 
 @router.post("/signup")
 def signup(body: AuthSignup, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.email == body.email).first()
-    if existing:
-        raise HTTPException(status_code=409, detail="Email already registered")
-    user = User(
-        email=body.email,
-        password_hash=hash_password(body.password),
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    token = create_access_token(str(user.id))
-    return {
-        "access_token": token,
-        "user": {"id": str(user.id), "email": user.email},
-    }
+    try:
+        existing = db.query(User).filter(User.email == body.email).first()
+        if existing:
+            raise HTTPException(status_code=409, detail="Email already registered")
+        user = User(
+            email=body.email,
+            password_hash=hash_password(body.password),
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        token = create_access_token(str(user.id))
+        return {
+            "access_token": token,
+            "user": {"id": str(user.id), "email": user.email},
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        print(f"SIGNUP ERROR: {type(e).__name__}: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Signup failed: {type(e).__name__}: {str(e)[:200]}")
 
 
 @router.post("/login")
