@@ -4,6 +4,7 @@ Uses SQLAlchemy ORM with asyncpg (async) or psycopg2 (sync) driver.
 This module uses sync SQLAlchemy for simplicity with FastAPI endpoints.
 """
 import os
+import re
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
@@ -13,6 +14,9 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set in .env")
+
+# Strip unsupported URL parameters (e.g., channel_binding) that psycopg2 can't parse
+DATABASE_URL = re.sub(r'[?&]channel_binding=\w+', '', DATABASE_URL)
 
 # Neon requires SSL
 engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_size=5, max_overflow=10)
