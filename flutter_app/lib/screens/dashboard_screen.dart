@@ -43,6 +43,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tp = context.textPrimary;
+    final ts = context.textSecondary;
+    final isDark = context.isDark;
     return Scaffold(
       drawer: const AppDrawer(currentRoute: '/dashboard'),
       body: AppBackground(
@@ -66,19 +69,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             borderRadius: 14,
                             blurIntensity: 3,
                             child: Icon(Icons.menu_rounded,
-                                color: kTextPrimary, size: 20),
+                                color: kAccent2, size: 20),
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               'PhotoSync',
                               style: TextStyle(
-                                color: kTextPrimary,
+                                color: tp,
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1,
@@ -86,7 +89,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             Text(
                               'Welcome back! 👋',
-                              style: TextStyle(color: kTextSecondary, fontSize: 13),
+                              style: TextStyle(color: ts, fontSize: 13),
                             ),
                           ],
                         ),
@@ -155,10 +158,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             color: Colors.white, size: 16),
                       ),
                       const SizedBox(width: 10),
-                      const Text(
+                      Text(
                         'Quick Actions',
                         style: TextStyle(
-                          color: kTextPrimary,
+                          color: tp,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -221,45 +224,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(height: 20),
 
                 // Compact Team info
-                const FadeSlideIn(
-                  delay: Duration(milliseconds: 600),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 600),
                   child: GlassCard(
-                    padding: EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(14),
                     blurIntensity: 3,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.groups_rounded, color: kAccent2, size: 16),
-                            SizedBox(width: 8),
+                            const Icon(Icons.groups_rounded, color: kAccent2, size: 16),
+                            const SizedBox(width: 8),
                             Text('Development Team',
                                 style: TextStyle(
-                                    color: kTextPrimary,
+                                    color: tp,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13)),
                           ],
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         _TeamMember(
                           name: 'Habibun-najal Kayting',
                           role: 'Lead Developer',
                           email: 'kayting4k@gmail.com',
-                          colors: [kAccent1, kAccent2],
+                          colors: const [kAccent1, kAccent2],
                           icon: Icons.code_rounded,
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         _TeamMember(
                           name: 'Hareeja Montenegro',
                           role: 'Sub-developer & Quality Assurance',
-                          colors: [kAccent3, kAccent1],
+                          colors: const [kAccent3, kAccent1],
                           icon: Icons.verified_rounded,
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         _TeamMember(
                           name: 'Mohd Shaffiqh Anang',
                           role: 'Sub-developer & Documentation',
-                          colors: [Color(0xFF43E97B), Color(0xFF38F9D7)],
+                          colors: const [Color(0xFF43E97B), Color(0xFF38F9D7)],
                           icon: Icons.description_rounded,
                         ),
                       ],
@@ -296,6 +299,8 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tp = context.textPrimary;
+    final ts = context.textSecondary;
     return GlassCard(
       padding: const EdgeInsets.all(14),
       blurIntensity: 3,
@@ -316,13 +321,13 @@ class _StatCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(value,
-                  style: const TextStyle(
-                    color: kTextPrimary,
+                  style: TextStyle(
+                    color: tp,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   )),
               Text(title,
-                  style: const TextStyle(color: kTextSecondary, fontSize: 11)),
+                  style: TextStyle(color: ts, fontSize: 11)),
             ],
           ),
         ],
@@ -348,6 +353,8 @@ class _TeamMember extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tp = context.textPrimary;
+    final ts = context.textSecondary;
     return Row(
       children: [
         Container(
@@ -364,13 +371,13 @@ class _TeamMember extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(name,
-                  style: const TextStyle(
-                      color: kTextPrimary,
+                  style: TextStyle(
+                      color: tp,
                       fontWeight: FontWeight.w600,
                       fontSize: 12)),
               Text(role,
-                  style: const TextStyle(
-                      color: kTextSecondary, fontSize: 10)),
+                  style: TextStyle(
+                      color: ts, fontSize: 10)),
               if (email != null)
                 Text(email!,
                     style: const TextStyle(
@@ -400,6 +407,8 @@ class _ActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tp = context.textPrimary;
+    final ts = context.textSecondary;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GlassCard(
@@ -422,18 +431,18 @@ class _ActionTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(label,
-                      style: const TextStyle(
-                          color: kTextPrimary,
+                      style: TextStyle(
+                          color: tp,
                           fontWeight: FontWeight.w600,
                           fontSize: 14)),
                   Text(subtitle,
-                      style: const TextStyle(
-                          color: kTextSecondary, fontSize: 11)),
+                      style: TextStyle(
+                          color: ts, fontSize: 11)),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded,
-                color: kTextSecondary, size: 12),
+            Icon(Icons.arrow_forward_ios_rounded,
+                color: ts, size: 12),
           ],
         ),
       ),

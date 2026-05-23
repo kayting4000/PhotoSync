@@ -15,6 +15,8 @@ class AppDrawer extends StatelessWidget {
     final auth = context.watch<AuthProvider>();
     final themeProvider = context.watch<ThemeProvider>();
     final isDark = themeProvider.isDark;
+    final tp = context.textPrimary;
+    final ts = context.textSecondary;
 
     return Drawer(
       backgroundColor: isDark ? dBg1 : lBgStart,
@@ -65,7 +67,7 @@ class AppDrawer extends StatelessWidget {
                   const SizedBox(height: 14),
                   Text('PhotoSync',
                       style: TextStyle(
-                          color: isDark ? dTextPrimary : lTextPrimary,
+                          color: tp,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1)),
@@ -73,7 +75,7 @@ class AppDrawer extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(auth.userEmail!,
                         style: TextStyle(
-                          color: isDark ? dTextSecondary : lTextSecondary,
+                          color: ts,
                           fontSize: 12,
                         )),
                   ],
@@ -102,7 +104,7 @@ class AppDrawer extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                     child: Text('MANAGE',
                         style: TextStyle(
-                            color: isDark ? dTextSecondary : lTextSecondary,
+                            color: ts,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 1.2)),
@@ -145,7 +147,7 @@ class AppDrawer extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                     child: Text('REPORTS',
                         style: TextStyle(
-                            color: isDark ? dTextSecondary : lTextSecondary,
+                            color: ts,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 1.2)),
@@ -202,7 +204,7 @@ class AppDrawer extends StatelessWidget {
                 title: Text(
                   isDark ? 'Light Mode' : 'Dark Mode',
                   style: TextStyle(
-                    color: isDark ? dTextPrimary : lTextPrimary,
+                    color: tp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -271,7 +273,8 @@ class _DrawerItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = currentRoute == route;
-    final textCol = isActive ? kAccent1 : (isDark ? dTextSecondary : lTextSecondary);
+    final ts = context.textSecondary;
+    final textCol = isActive ? kAccent1 : ts;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       decoration: BoxDecoration(

@@ -76,12 +76,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const FadeSlideIn(
-                  delay: Duration(milliseconds: 200),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 200),
                   child: Text(
                     'PhotoSync',
                     style: TextStyle(
-                      color: kTextPrimary,
+                      color: context.textPrimary,
                       fontSize: 36,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.2,
@@ -89,11 +89,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const FadeSlideIn(
-                  delay: Duration(milliseconds: 300),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 300),
                   child: Text(
                     'Test Paper Scanner & Grade Management',
-                    style: TextStyle(color: kTextSecondary, fontSize: 13),
+                    style: TextStyle(color: context.textSecondary, fontSize: 13),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -103,23 +103,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: GlassCard(
                     child: Column(
                       children: [
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
                             'Welcome back',
                             style: TextStyle(
-                              color: kTextPrimary,
+                              color: context.textPrimary,
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
                             'Sign in to continue',
-                            style: TextStyle(color: kTextSecondary, fontSize: 13),
+                            style: TextStyle(color: context.textSecondary, fontSize: 13),
                           ),
                         ),
                         const SizedBox(height: 28),
