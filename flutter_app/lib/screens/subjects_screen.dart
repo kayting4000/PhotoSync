@@ -36,9 +36,9 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Add Subject',
+                Text('Add Subject',
                     style: TextStyle(
-                        color: kTextPrimary,
+                        color: context.textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold)),
                 const SizedBox(height: 20),
@@ -64,7 +64,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                       value: units,
                       isExpanded: true,
                       dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
-                      style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? kTextPrimary : lTextPrimary),
+                      style: TextStyle(color: context.textPrimary),
                       items: List.generate(
                         5,
                         (i) => DropdownMenuItem(
@@ -87,7 +87,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                         onTap: () => Navigator.pop(context),
                         child: const Center(
                           child: Text('Cancel',
-                              style: TextStyle(color: kTextSecondary)),
+                              style: TextStyle(color: kAccent2)),
                         ),
                       ),
                     ),
@@ -145,9 +145,9 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Edit Subject',
+                Text('Edit Subject',
                     style: TextStyle(
-                        color: kTextPrimary,
+                        color: context.textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold)),
                 const SizedBox(height: 20),
@@ -173,7 +173,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                       value: units,
                       isExpanded: true,
                       dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
-                      style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? kTextPrimary : lTextPrimary),
+                      style: TextStyle(color: context.textPrimary),
                       items: List.generate(
                         5,
                         (i) => DropdownMenuItem(
@@ -196,7 +196,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                         onTap: () => Navigator.pop(context),
                         child: const Center(
                           child: Text('Cancel',
-                              style: TextStyle(color: kTextSecondary)),
+                              style: TextStyle(color: kAccent2)),
                         ),
                       ),
                     ),
@@ -267,14 +267,14 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                           padding: EdgeInsets.all(10),
                           borderRadius: 12,
                           child: Icon(Icons.menu_rounded,
-                              color: kTextPrimary, size: 20),
+                              color: kAccent2, size: 20),
                         ),
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Text('Subjects',
+                    Text('Subjects',
                         style: TextStyle(
-                            color: kTextPrimary,
+                            color: context.textPrimary,
                             fontSize: 22,
                             fontWeight: FontWeight.bold)),
                   ],
@@ -289,23 +289,23 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                           child: CircularProgressIndicator(color: kAccent2));
                     }
                     if (provider.subjects.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: GlassCard(
-                          padding: EdgeInsets.all(40),
-                          child: Column(
+                          padding: const EdgeInsets.all(40),
+                          child: const Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.menu_book_outlined,
-                                  size: 64, color: kTextSecondary),
+                                  size: 64, color: kAccent2),
                               SizedBox(height: 16),
                               Text('No subjects yet',
                                   style: TextStyle(
-                                      color: kTextPrimary,
+                                      color: kAccent2,
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600)),
                               SizedBox(height: 8),
                               Text('Tap + to add a subject',
-                                  style: TextStyle(color: kTextSecondary)),
+                                  style: TextStyle(color: kAccent2)),
                             ],
                           ),
                         ),
@@ -349,22 +349,22 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(subject.name,
-                                          style: const TextStyle(
-                                              color: kTextPrimary,
+                                          style: TextStyle(
+                                              color: context.textPrimary,
                                               fontWeight: FontWeight.w600,
                                               fontSize: 15)),
                                       const SizedBox(height: 4),
                                       Text(
                                           '${subject.code} \u2022 ${subject.units} unit(s)',
-                                          style: const TextStyle(
-                                              color: kTextSecondary,
+                                          style: TextStyle(
+                                              color: context.textSecondary,
                                               fontSize: 12)),
                                     ],
                                   ),
                                 ),
                                 PopupMenuButton(
                                   icon: const Icon(Icons.more_vert_rounded,
-                                      color: kTextSecondary),
+                                      color: kAccent2),
                                   color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
                                   itemBuilder: (_) => [
                                     PopupMenuItem(
@@ -375,7 +375,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                                           SizedBox(width: 8),
                                           Text('Edit',
                                               style: TextStyle(
-                                                  color: kTextPrimary)),
+                                                  color: kAccent2)),
                                         ],
                                       ),
                                       onTap: () => _showEditDialog(subject),

@@ -132,6 +132,8 @@ class _EmailScreenState extends State<EmailScreen> {
   Widget build(BuildContext context) {
     final students = context.watch<StudentProvider>().students;
     final studentsWithEmail = students.where((s) => s.email != null && s.email!.isNotEmpty).length;
+    final tp = context.textPrimary;
+    final ts = context.textSecondary;
 
     return Scaffold(
       drawer: const AppDrawer(currentRoute: '/email'),
@@ -153,14 +155,14 @@ class _EmailScreenState extends State<EmailScreen> {
                                 padding: EdgeInsets.all(10),
                                 borderRadius: 12,
                                 child: Icon(Icons.menu_rounded,
-                                    color: kTextPrimary, size: 20),
+                                    color: kAccent2, size: 20),
                               ),
                             ),
                           ),
                           const SizedBox(width: 16),
-                          const Text('Send Grade Reports',
+                          Text('Send Grade Reports',
                               style: TextStyle(
-                                  color: kTextPrimary,
+                                  color: tp,
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold)),
                         ],
@@ -171,9 +173,9 @@ class _EmailScreenState extends State<EmailScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Select Subject',
+                            Text('Select Subject',
                                 style: TextStyle(
-                                    color: kTextSecondary, fontSize: 13)),
+                                    color: ts, fontSize: 13)),
                             const SizedBox(height: 10),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -187,9 +189,9 @@ class _EmailScreenState extends State<EmailScreen> {
                                   value: _selectedSubject,
                                   isExpanded: true,
                                   dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
-                                  style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? kTextPrimary : lTextPrimary),
-                                  hint: const Text('Choose a subject',
-                                      style: TextStyle(color: kTextSecondary)),
+                                  style: TextStyle(color: tp),
+                                  hint: Text('Choose a subject',
+                                      style: TextStyle(color: ts)),
                                   items: _subjects
                                       .map((s) => DropdownMenuItem(
                                             value: s['id'] as String,
@@ -209,19 +211,19 @@ class _EmailScreenState extends State<EmailScreen> {
                               ),
                             ),
                             const SizedBox(height: 20),
-                            const Text('Message (Optional)',
+                            Text('Message (Optional)',
                                 style: TextStyle(
-                                    color: kTextSecondary, fontSize: 13)),
+                                    color: ts, fontSize: 13)),
                             const SizedBox(height: 10),
                             ClipRRect(
                               borderRadius: BorderRadius.circular(14),
                               child: TextField(
                                 controller: _messageController,
                                 maxLines: 4,
-                                style: const TextStyle(color: kTextPrimary),
+                                style: TextStyle(color: tp),
                                 decoration: InputDecoration(
                                   hintText: 'Add a custom message...',
-                                  hintStyle: const TextStyle(color: kTextSecondary),
+                                  hintStyle: TextStyle(color: ts),
                                   filled: true,
                                   fillColor: kGlass,
                                   border: OutlineInputBorder(
@@ -282,25 +284,25 @@ class _EmailScreenState extends State<EmailScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
                               children: [
-                                Icon(Icons.preview_rounded, color: kAccent1, size: 18),
-                                SizedBox(width: 8),
+                                const Icon(Icons.preview_rounded, color: kAccent1, size: 18),
+                                const SizedBox(width: 8),
                                 Text('Email Preview',
                                     style: TextStyle(
-                                        color: kTextPrimary,
+                                        color: tp,
                                         fontWeight: FontWeight.w600)),
                               ],
                             ),
                             const SizedBox(height: 12),
                             Text(
                               'Subject: Grade Report - ${_selectedSubjectName ?? 'Not selected'}',
-                              style: const TextStyle(color: kTextSecondary, fontSize: 13),
+                              style: TextStyle(color: ts, fontSize: 13),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'To: $studentsWithEmail students with email addresses',
-                              style: const TextStyle(color: kTextSecondary, fontSize: 12),
+                              style: TextStyle(color: ts, fontSize: 12),
                             ),
                           ],
                         ),

@@ -39,9 +39,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Add Student',
+                Text('Add Student',
                     style: TextStyle(
-                        color: kTextPrimary,
+                        color: context.textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold)),
                 const SizedBox(height: 20),
@@ -83,7 +83,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                       value: yearLevel,
                       isExpanded: true,
                       dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
-                      style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? kTextPrimary : lTextPrimary),
+                      style: TextStyle(color: context.textPrimary),
                       items: List.generate(
                         4,
                         (i) => DropdownMenuItem(
@@ -106,7 +106,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                         onTap: () => Navigator.pop(context),
                         child: const Center(
                           child: Text('Cancel',
-                              style: TextStyle(color: kTextSecondary)),
+                              style: TextStyle(color: kAccent2)),
                         ),
                       ),
                     ),
@@ -169,9 +169,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Edit Student',
+                Text('Edit Student',
                     style: TextStyle(
-                        color: kTextPrimary,
+                        color: context.textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold)),
                 const SizedBox(height: 20),
@@ -213,7 +213,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                       value: yearLevel,
                       isExpanded: true,
                       dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
-                      style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? kTextPrimary : lTextPrimary),
+                      style: TextStyle(color: context.textPrimary),
                       items: List.generate(
                         4,
                         (i) => DropdownMenuItem(
@@ -236,7 +236,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                         onTap: () => Navigator.pop(context),
                         child: const Center(
                           child: Text('Cancel',
-                              style: TextStyle(color: kTextSecondary)),
+                              style: TextStyle(color: kAccent2)),
                         ),
                       ),
                     ),
@@ -285,6 +285,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tp = context.textPrimary;
+    final ts = context.textSecondary;
     return Scaffold(
       drawer: const AppDrawer(currentRoute: '/students'),
       body: AppBackground(
@@ -302,14 +304,14 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           padding: EdgeInsets.all(10),
                           borderRadius: 12,
                           child: Icon(Icons.menu_rounded,
-                              color: kTextPrimary, size: 20),
+                              color: kAccent2, size: 20),
                         ),
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Text('Students',
+                    Text('Students',
                         style: TextStyle(
-                            color: kTextPrimary,
+                            color: tp,
                             fontSize: 22,
                             fontWeight: FontWeight.bold)),
                   ],
@@ -324,23 +326,23 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           child: CircularProgressIndicator(color: kAccent1));
                     }
                     if (provider.students.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: GlassCard(
-                          padding: EdgeInsets.all(40),
-                          child: Column(
+                          padding: const EdgeInsets.all(40),
+                          child: const Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.people_outline,
-                                  size: 64, color: kTextSecondary),
+                                  size: 64, color: kAccent2),
                               SizedBox(height: 16),
                               Text('No students yet',
                                   style: TextStyle(
-                                      color: kTextPrimary,
+                                      color: kAccent2,
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600)),
                               SizedBox(height: 8),
                               Text('Tap + to add a student',
-                                  style: TextStyle(color: kTextSecondary)),
+                                  style: TextStyle(color: kAccent2)),
                             ],
                           ),
                         ),
@@ -382,22 +384,22 @@ class _StudentsScreenState extends State<StudentsScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(student.fullName,
-                                          style: const TextStyle(
-                                              color: kTextPrimary,
+                                          style: TextStyle(
+                                              color: tp,
                                               fontWeight: FontWeight.w600,
                                               fontSize: 15)),
                                       const SizedBox(height: 4),
                                       Text(
                                           '${student.studentId} \u2022 ${student.course}',
-                                          style: const TextStyle(
-                                              color: kTextSecondary,
+                                          style: TextStyle(
+                                              color: ts,
                                               fontSize: 12)),
                                     ],
                                   ),
                                 ),
                                 PopupMenuButton(
                                   icon: const Icon(Icons.more_vert_rounded,
-                                      color: kTextSecondary),
+                                      color: kAccent2),
                                   color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
                                   itemBuilder: (_) => [
                                     PopupMenuItem(

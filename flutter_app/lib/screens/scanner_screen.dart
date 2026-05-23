@@ -175,7 +175,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   Widget build(BuildContext context) {
     final students = context.watch<StudentProvider>().students;
-   
+    final tp = context.textPrimary;
+    final ts = context.textSecondary;
+    final isDark = context.isDark;
 
     return Scaffold(
       drawer: const AppDrawer(currentRoute: '/scanner'),
@@ -196,14 +198,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             padding: EdgeInsets.all(10),
                             borderRadius: 12,
                             child: Icon(Icons.menu_rounded,
-                                color: kTextPrimary, size: 20),
+                                color: kAccent2, size: 20),
                           ),
                         ),
                       ),
                       const SizedBox(width: 16),
-                      const Text('Test Paper Scanner',
+                      Text('Test Paper Scanner',
                           style: TextStyle(
-                              color: kTextPrimary,
+                              color: tp,
                               fontSize: 22,
                               fontWeight: FontWeight.bold)),
                     ],
@@ -226,8 +228,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Select Student',
-                            style: TextStyle(color: kTextSecondary, fontSize: 13)),
+                        Text('Select Student',
+                            style: TextStyle(color: ts, fontSize: 13)),
                         const SizedBox(height: 8),
                         _buildDropdown(
                           value: _selectedStudentId,
@@ -235,14 +237,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           items: students
                               .map((s) => DropdownMenuItem(
                                     value: s.id,
-                                    child: Text(s.fullName, style: const TextStyle(color: kTextPrimary)),
+                                    child: Text(s.fullName, style: TextStyle(color: tp)),
                                   ))
                               .toList(),
                           onChanged: (v) => setState(() => _selectedStudentId = v),
                         ),
                         const SizedBox(height: 16),
-                        const Text('Select Subject (for exam filter)',
-                            style: TextStyle(color: kTextSecondary, fontSize: 13)),
+                        Text('Select Subject (for exam filter)',
+                            style: TextStyle(color: ts, fontSize: 13)),
                         const SizedBox(height: 8),
                         _buildDropdown(
                           value: _selectedSubjectId,
@@ -250,7 +252,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           items: _subjects
                               .map((s) => DropdownMenuItem(
                                     value: s['id'] as String,
-                                    child: Text(s['name'] ?? '', style: const TextStyle(color: kTextPrimary)),
+                                    child: Text(s['name'] ?? '', style: TextStyle(color: tp)),
                                   ))
                               .toList(),
                           onChanged: (v) {
@@ -265,8 +267,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
-                        const Text('Paper Type',
-                            style: TextStyle(color: kTextSecondary, fontSize: 13)),
+                        Text('Paper Type',
+                            style: TextStyle(color: ts, fontSize: 13)),
                         const SizedBox(height: 8),
                         _buildDropdown(
                           value: _selectedPaperType,
@@ -274,7 +276,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           items: _paperTypes
                               .map((type) => DropdownMenuItem(
                                     value: type == 'All' ? null : type.toLowerCase(),
-                                    child: Text(type, style: const TextStyle(color: kTextPrimary)),
+                                    child: Text(type, style: TextStyle(color: tp)),
                                   ))
                               .toList(),
                           onChanged: (v) {
@@ -285,16 +287,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
-                        const Text('Select Semester',
-                            style: TextStyle(color: kTextSecondary, fontSize: 13)),
+                        Text('Select Semester',
+                            style: TextStyle(color: ts, fontSize: 13)),
                         const SizedBox(height: 8),
                         _buildDropdown(
                           value: _selectedExamId,
                           hint: 'Choose a semester',
-                          items: const [
-                             DropdownMenuItem(value: 'preliminary', child: Text('Preliminary Term', style: TextStyle(color: kTextPrimary))),
-                             DropdownMenuItem(value: 'midsemester', child: Text('Mid-Semester Term', style: TextStyle(color: kTextPrimary))),
-                             DropdownMenuItem(value: 'final', child: Text('Final Term', style: TextStyle(color: kTextPrimary))),
+                          items: [
+                             DropdownMenuItem(value: 'preliminary', child: Text('Preliminary Term', style: TextStyle(color: tp))),
+                             DropdownMenuItem(value: 'midsemester', child: Text('Mid-Semester Term', style: TextStyle(color: tp))),
+                             DropdownMenuItem(value: 'final', child: Text('Final Term', style: TextStyle(color: tp))),
                            ],
                           onChanged: (v) => setState(() => _selectedExamId = v),
                         ),
@@ -337,20 +339,20 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                   height: 280,
                                   width: double.infinity,
                                   color: const Color(0x1AFFFFFF),
-                                  child: const Column(
+                                  child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.document_scanner_rounded,
-                                          size: 64, color: kTextSecondary),
-                                      SizedBox(height: 16),
+                                      const Icon(Icons.document_scanner_rounded,
+                                          size: 64, color: kAccent2),
+                                      const SizedBox(height: 16),
                                       Text('No image selected',
                                           style: TextStyle(
-                                              color: kTextSecondary,
+                                              color: ts,
                                               fontSize: 15)),
-                                      SizedBox(height: 8),
+                                      const SizedBox(height: 8),
                                       Text('Take a photo or pick from gallery',
                                           style: TextStyle(
-                                              color: kTextSecondary,
+                                              color: ts,
                                               fontSize: 12)),
                                     ],
                                   ),
@@ -418,7 +420,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                         CircularProgressIndicator(color: kAccent1),
                         SizedBox(height: 16),
                         Text('Analyzing with Roboflow AI...',
-                            style: TextStyle(color: kTextSecondary)),
+                            style: TextStyle(color: kAccent2)),
                       ],
                     ),
                   ),
@@ -432,7 +434,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                         CircularProgressIndicator(color: kAccent1),
                         SizedBox(height: 16),
                         Text('Saving scanned test paper to student record...',
-                            style: TextStyle(color: kTextSecondary)),
+                            style: TextStyle(color: kAccent2)),
                       ],
                     ),
                   ),
@@ -445,14 +447,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                          Row(
                             children: [
-                              Icon(Icons.auto_awesome_rounded,
+                              const Icon(Icons.auto_awesome_rounded,
                                   color: kAccent2, size: 18),
-                              SizedBox(width: 8),
+                              const SizedBox(width: 8),
                               Text('AI Detection Results',
                                   style: TextStyle(
-                                      color: kTextPrimary,
+                                      color: tp,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600)),
                             ],
@@ -461,8 +463,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Checkmarks Detected',
-                                  style: TextStyle(color: kTextSecondary)),
+                              Text('Checkmarks Detected',
+                                  style: TextStyle(color: ts)),
                               ShaderMask(
                                 shaderCallback: (bounds) => LinearGradient(
                                   colors: [_scoreColor, kAccent2],
@@ -553,6 +555,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
     required ValueChanged<String?> onChanged,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tp = context.textPrimary;
+    final ts = context.textSecondary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
@@ -565,8 +569,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
           value: value,
           isExpanded: true,
           dropdownColor: isDark ? const Color(0xFF1A1A3E) : lSurface,
-          style: TextStyle(color: isDark ? kTextPrimary : lTextPrimary),
-          hint: Text(hint, style: const TextStyle(color: kTextSecondary)),
+          style: TextStyle(color: tp),
+          hint: Text(hint, style: TextStyle(color: ts)),
           items: items.isEmpty
               ? [
                   DropdownMenuItem(
