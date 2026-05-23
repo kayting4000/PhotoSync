@@ -1,6 +1,5 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -16,6 +15,8 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { GraduationCap } from 'lucide-react'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,16 +26,24 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       })
-      if (error) throw error
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.detail || 'Login failed')
+      }
+
+      const data = await response.json()
+      localStorage.setItem('access_token', data.access_token)
+      localStorage.setItem('user', JSON.stringify(data.user))
       router.push('/dashboard')
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')

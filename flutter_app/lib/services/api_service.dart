@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../config.dart';
 
 /// Singleton API service that handles all backend HTTP calls
 /// with JWT Bearer auth headers.
@@ -10,8 +11,8 @@ class ApiService {
   factory ApiService() => _instance;
   ApiService._internal();
 
-  /// Backend API base URL — hosted on Render (no laptop needed)
-  static const String _baseUrl = 'https://photosync-4pj7.onrender.com';
+  /// Backend API base URL — uses AppConfig to toggle between local/production
+  String get _baseUrl => AppConfig.baseUrl;
 
   String? _jwtToken;
   String? _userId;

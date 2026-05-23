@@ -1,6 +1,5 @@
 'use client'
 
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -24,7 +23,6 @@ import {
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
-import type { User as SupabaseUser } from "@supabase/supabase-js"
 import { useState } from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
@@ -37,14 +35,19 @@ const navItems = [
   { href: "/dashboard/email", label: "Email Results", icon: Mail },
 ]
 
-export function DashboardNav({ user }: { user: SupabaseUser }) {
+interface User {
+  id: string
+  email: string
+}
+
+export function DashboardNav({ user }: { user: User }) {
   const pathname = usePathname()
   const router = useRouter()
   const [open, setOpen] = useState(false)
 
   const handleSignOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('user')
     router.push("/auth/login")
   }
 

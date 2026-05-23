@@ -63,8 +63,8 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                     child: DropdownButton<int>(
                       value: units,
                       isExpanded: true,
-                      dropdownColor: const Color(0xFF1A1A3E),
-                      style: const TextStyle(color: kTextPrimary),
+                      dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
+                      style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? kTextPrimary : lTextPrimary),
                       items: List.generate(
                         5,
                         (i) => DropdownMenuItem(
@@ -172,8 +172,8 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                     child: DropdownButton<int>(
                       value: units,
                       isExpanded: true,
-                      dropdownColor: const Color(0xFF1A1A3E),
-                      style: const TextStyle(color: kTextPrimary),
+                      dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
+                      style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? kTextPrimary : lTextPrimary),
                       items: List.generate(
                         5,
                         (i) => DropdownMenuItem(
@@ -365,7 +365,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                                 PopupMenuButton(
                                   icon: const Icon(Icons.more_vert_rounded,
                                       color: kTextSecondary),
-                                  color: const Color(0xFF1A1A3E),
+                                  color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
                                   itemBuilder: (_) => [
                                     PopupMenuItem(
                                       child: const Row(

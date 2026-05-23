@@ -1,6 +1,5 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -15,6 +14,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { GraduationCap } from 'lucide-react'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
@@ -32,21 +33,29 @@ export default function SignUpPage() {
       return
     }
 
-    const supabase = createClient()
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters')
+      return
+    }
+
     setIsLoading(true)
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo:
-            process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ??
-            `${window.location.origin}/auth/callback`,
-        },
+      const response = await fetch(`${API_URL}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       })
-      if (error) throw error
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.detail || 'Signup failed')
+      }
+
+      const data = await response.json()
+      localStorage.setItem('access_token', data.access_token)
+      localStorage.setItem('user', JSON.stringify(data.user))
       router.push('/auth/sign-up-success')
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
