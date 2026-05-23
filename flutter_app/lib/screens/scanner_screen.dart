@@ -42,8 +42,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
   void initState() {
     super.initState();
     _fetchSubjects();
-    Provider.of<StudentProvider>(context, listen: false).fetchStudents();
-    Provider.of<ExamProvider>(context, listen: false).fetchExams();
+    // Use WidgetsBinding to avoid calling Provider during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<StudentProvider>(context, listen: false).fetchStudents();
+        Provider.of<ExamProvider>(context, listen: false).fetchExams();
+      }
+    });
   }
 
   Future<void> _fetchSubjects() async {
