@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../services/api_service.dart';
+import '../config.dart';
 import '../providers/student_provider.dart';
 import '../providers/exam_provider.dart';
 import '../theme/app_theme.dart';
@@ -32,8 +33,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
   String? _selectedExamId;
   List<dynamic> _subjects = [];
   String? _selectedSubjectId;
+  String? _selectedPaperType;
+  static const List<String> _paperTypes = ['All', 'Exam', 'Quiz', 'Assignment', 'Other'];
 
-  static const _backendUrl = 'http://10.0.2.2:8000/scanner/scan';
+  String get _backendUrl => '${AppConfig.baseUrl}/scanner/scan';
 
   @override
   void initState() {
@@ -172,7 +175,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   Widget build(BuildContext context) {
     final students = context.watch<StudentProvider>().students;
-    final exams = context.watch<ExamProvider>().exams;
+   
 
     return Scaffold(
       drawer: const AppDrawer(currentRoute: '/scanner'),
@@ -262,18 +265,37 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
-                        const Text('Select Exam',
+                        const Text('Paper Type',
+                            style: TextStyle(color: kTextSecondary, fontSize: 13)),
+                        const SizedBox(height: 8),
+                        _buildDropdown(
+                          value: _selectedPaperType,
+                          hint: 'All types',
+                          items: _paperTypes
+                              .map((type) => DropdownMenuItem(
+                                    value: type == 'All' ? null : type.toLowerCase(),
+                                    child: Text(type, style: const TextStyle(color: kTextPrimary)),
+                                  ))
+                              .toList(),
+                          onChanged: (v) {
+                            setState(() {
+                              _selectedPaperType = v;
+                              _selectedExamId = null;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        const Text('Select Semester',
                             style: TextStyle(color: kTextSecondary, fontSize: 13)),
                         const SizedBox(height: 8),
                         _buildDropdown(
                           value: _selectedExamId,
-                          hint: 'Choose an exam',
-                          items: exams
-                              .map((e) => DropdownMenuItem(
-                                    value: e.id,
-                                    child: Text(e.name, style: const TextStyle(color: kTextPrimary)),
-                                  ))
-                              .toList(),
+                          hint: 'Choose a semester',
+                          items: const [
+                             DropdownMenuItem(value: 'preliminary', child: Text('Preliminary Term', style: TextStyle(color: kTextPrimary))),
+                             DropdownMenuItem(value: 'midsemester', child: Text('Mid-Semester Term', style: TextStyle(color: kTextPrimary))),
+                             DropdownMenuItem(value: 'final', child: Text('Final Term', style: TextStyle(color: kTextPrimary))),
+                           ],
                           onChanged: (v) => setState(() => _selectedExamId = v),
                         ),
                       ],
@@ -530,6 +552,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     required List<DropdownMenuItem<String>> items,
     required ValueChanged<String?> onChanged,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
@@ -541,8 +564,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
         child: DropdownButton<String>(
           value: value,
           isExpanded: true,
-          dropdownColor: const Color(0xFF1A1A3E),
-          style: const TextStyle(color: kTextPrimary),
+          dropdownColor: isDark ? const Color(0xFF1A1A3E) : lSurface,
+          style: TextStyle(color: isDark ? kTextPrimary : lTextPrimary),
           hint: Text(hint, style: const TextStyle(color: kTextSecondary)),
           items: items.isEmpty
               ? [

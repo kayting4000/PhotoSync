@@ -113,6 +113,26 @@ class _GradesScreenState extends State<GradesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 10),
+          child: GlassCard(
+            padding: const EdgeInsets.all(8),
+            borderRadius: 12,
+            onTap: () => Navigator.of(context).pop(),
+            child: const Icon(Icons.arrow_back_ios_rounded, color: kTextPrimary, size: 20),
+          ),
+        ),
+        title: const Text('Grades & GPA',
+            style: TextStyle(
+                color: kTextPrimary,
+                fontSize: 22,
+                fontWeight: FontWeight.bold)),
+        centerTitle: true,
+      ),
       drawer: const AppDrawer(currentRoute: '/grades'),
       body: AppBackground(
         child: SafeArea(
@@ -124,28 +144,29 @@ class _GradesScreenState extends State<GradesScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Hamburger menu + title
-                      Row(
-                        children: [
-                          Builder(
-                            builder: (context) => GestureDetector(
-                              onTap: () => Scaffold.of(context).openDrawer(),
-                              child: const GlassCard(
-                                padding: EdgeInsets.all(10),
-                                borderRadius: 12,
-                                child: Icon(Icons.menu_rounded,
-                                    color: kTextPrimary, size: 20),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          const Text('Grades & GPA',
-                              style: TextStyle(
-                                  color: kTextPrimary,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
+                      // Removed: Replaced by AppBar's leading and title
+                      // Row(
+                      //   children: [
+                      //     Builder(
+                      //       builder: (context) => GestureDetector(
+                      //         onTap: () => Scaffold.of(context).openDrawer(),
+                      //         child: const GlassCard(
+                      //           padding: EdgeInsets.all(10),
+                      //           borderRadius: 12,
+                      //           child: Icon(Icons.menu_rounded,
+                      //               color: kTextPrimary, size: 20),
+                      //         ),
+                      //       ),
+                      //     ),
+                      //     const SizedBox(width: 16),
+                      //     const Text('Grades & GPA',
+                      //         style: TextStyle(
+                      //             color: kTextPrimary,
+                      //             fontSize: 22,
+                      //             fontWeight: FontWeight.bold)),
+                      //   ],
+                      // ),
+                      // const SizedBox(height: 20),
 
                       // GPA Summary Card
                       GlassCard(

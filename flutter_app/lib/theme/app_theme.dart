@@ -13,24 +13,28 @@ const dGlassBorder = Color(0x33FFFFFF);
 const dTextPrimary = Colors.white;
 const dTextSecondary = Color(0xAAFFFFFF);
 
-// ─── Light Mode Colors ──────────────────────────────────────────────────
-const lBg = Color(0xFFF8F9FF);
-const lSurface = Color(0xFFFFFFFF);
+// ─── Light Mode Colors (Neumorphic Sky Blue Theme) ────────────────────
+// Neumorphic base background (light sky blue)
+const lBgBase = Color(0xFFE0F0FF);    // Soft light blue background
+const lBgStart = Color(0xFFB8D8F0);   // Slightly darker for shadows
+const lBgMid = Color(0xFFE0F0FF);     // Medium base
+const lBgEnd = Color(0xFFF5FBFF);     // Lighter for highlights
+const lSurface = Color(0xFFE0F0FF);   // Neumorphic surface color
 const lAccent1 = Color(0xFF6C63FF);
 const lAccent2 = Color(0xFF48CAE4);
 const lAccent3 = Color(0xFFFF6584);
-const lGlass = Color(0x1A6C63FF);
-const lGlassBorder = Color(0x336C63FF);
-const lTextPrimary = Color(0xFF1A1A2E);
-const lTextSecondary = Color(0xAA1A1A2E);
+// Neumorphic glass/container colors
+const lGlass = Color(0xFFE0F0FF);     // Neumorphic surface base
+const lGlassBorder = Colors.transparent; // No borders for neumorphism
+const lTextPrimary = Color(0xFF2D3748);   // Dark gray (near-black) for readability
+const lTextSecondary = Color(0xFF4A5568); // Medium-dark gray for secondary text
 
 // ─── Shared constants ───────────────────────────────────────────────────
 const kAccent1 = Color(0xFF6C63FF);
 const kAccent2 = Color(0xFF48CAE4);
 const kAccent3 = Color(0xFFFF6584);
 
-// Backward-compatible aliases for existing screens
-// These adapt to the current theme brightness automatically via the extension
+// Backward-compatible aliases
 const kBg1 = dBg1;
 const kBg2 = dBg2;
 const kGlass = dGlass;
@@ -40,9 +44,9 @@ const kTextSecondary = dTextSecondary;
 
 // Helper — get dark/light colors based on brightness
 extension ThemeColors on BuildContext {
-  Color get bg1 => isDark ? dBg1 : lBg;
-  Color get bg2 => isDark ? dBg2 : lSurface;
-  Color get surface => isDark ? const Color(0x1AFFFFFF) : lGlass;
+  Color get bg1 => isDark ? dBg1 : lBgStart;
+  Color get bg2 => isDark ? dBg2 : lBgEnd;
+  Color get surface => isDark ? const Color(0x1AFFFFFF) : lSurface;
   Color get glass => isDark ? dGlass : lGlass;
   Color get glassBorder => isDark ? dGlassBorder : lGlassBorder;
   Color get textPrimary => isDark ? dTextPrimary : lTextPrimary;
@@ -78,23 +82,69 @@ class AppBackground extends StatelessWidget {
                   stops: [0.0, 0.5, 1.0],
                 )
               : const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                   colors: [
-                    lBg,
-                    Color(0xFFE8F0FF),
-                    Color(0xFFF0E8FF),
+                    lBgStart,
+                    lBgBase,
+                    lBgEnd,
                   ],
                   stops: [0.0, 0.5, 1.0],
                 ),
         ),
-        child: child,
+        child: ClipRect(
+          child: Stack(
+            children: [
+              // Remove cloud texture and backdrop blur for clean neumorphic design in light mode
+              if (isDark)
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _CloudTexturePainter(),
+                  ),
+                ),
+              if (isDark)
+                BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                  child: Container(color: Colors.black.withValues(alpha: 0)),
+                ),
+              child,
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-// Glass card with optional blur and tap support
+// Cloud texture painter for light mode background
+class _CloudTexturePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+    
+    // Soft white cloud-like patches
+    for (int i = 0; i < 8; i++) {
+      final x = (i * 0.137 + 0.3) * size.width;
+      final y = (i * 0.124 + 0.1) * size.height;
+      final radius = size.width * (0.15 + i * 0.02);
+      paint.color = Colors.white.withValues(alpha: 0.12 - i * 0.01);
+      canvas.drawCircle(Offset(x % size.width, y % size.height), radius, paint);
+    }
+    
+    // Subtle wispy clouds
+    for (int i = 0; i < 5; i++) {
+      final x = (i * 0.2 + 0.1) * size.width;
+      final y = (i * 0.18 + 0.6) * size.height;
+      paint.color = Colors.white.withValues(alpha: 0.06);
+      canvas.drawOval(Rect.fromCenter(center: Offset(x % size.width, y % size.height), width: size.width * 0.4, height: size.height * 0.12), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// Glass card with support for both frosted glass (dark mode) and neumorphism (light mode)
 class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -102,6 +152,7 @@ class GlassCard extends StatelessWidget {
   final Color? color;
   final VoidCallback? onTap;
   final double blurIntensity;
+  final bool? flat; // Disable neumorphic shadows if needed
 
   const GlassCard({
     super.key,
@@ -110,7 +161,8 @@ class GlassCard extends StatelessWidget {
     this.borderRadius = 20,
     this.color,
     this.onTap,
-    this.blurIntensity = 0,
+    this.blurIntensity = 8,
+    this.flat = false,
   });
 
   @override
@@ -119,17 +171,10 @@ class GlassCard extends StatelessWidget {
     final bgColor = color ?? (isDark ? dGlass : lGlass);
     final borderColor = isDark ? dGlassBorder : lGlassBorder;
 
-    Widget card = Container(
-      padding: padding ?? const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: borderColor, width: 1.2),
-      ),
-      child: child,
-    );
+    Widget card;
 
-    if (blurIntensity > 0) {
+    if (isDark) {
+      // Dark mode: keep original frosted glass effect
       card = ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
         child: BackdropFilter(
@@ -137,8 +182,44 @@ class GlassCard extends StatelessWidget {
             sigmaX: blurIntensity,
             sigmaY: blurIntensity,
           ),
-          child: card,
+          child: Container(
+            padding: padding ?? const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(borderRadius),
+              border: Border.all(color: borderColor, width: 1.2),
+            ),
+            child: child,
+          ),
         ),
+      );
+    } else {
+      // Light mode: neumorphic design with soft shadows
+      List<BoxShadow> neumorphicShadows = flat! ? [] : [
+        // Darker blue shadow (bottom-right) - matches sky theme
+        BoxShadow(
+          color: const Color(0xFF90B8D8).withValues(alpha: 0.6),
+          offset: const Offset(8, 8),
+          blurRadius: 16,
+          spreadRadius: -4,
+        ),
+        // Lighter sky blue highlight (top-left)
+        BoxShadow(
+          color: Colors.white.withValues(alpha: 0.9),
+          offset: const Offset(-8, -8),
+          blurRadius: 16,
+          spreadRadius: -4,
+        ),
+      ];
+
+      card = Container(
+        padding: padding ?? const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(borderRadius),
+          boxShadow: neumorphicShadows,
+        ),
+        child: child,
       );
     }
 
@@ -149,6 +230,8 @@ class GlassCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(borderRadius),
+          splashColor: isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFF3182CE).withValues(alpha: 0.08),
+          highlightColor: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFF3182CE).withValues(alpha: 0.05),
           child: card,
         ),
       );
@@ -329,7 +412,7 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final chatBg = isDark ? const Color(0xFF1A1A3E) : const Color(0xFFFFFFFF);
+    final chatBg = isDark ? const Color(0xFF1A1A3E) : const Color(0xCCFFFFFF);
     final msgBg = isDark ? dGlass : lGlass;
 
     return Stack(
@@ -532,7 +615,7 @@ ThemeData buildLightTheme() {
     colorScheme: const ColorScheme.light(
       primary: kAccent1,
       secondary: kAccent2,
-      surface: lBg,
+      surface: lBgStart,
     ),
     useMaterial3: true,
     scaffoldBackgroundColor: Colors.transparent,

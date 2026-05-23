@@ -17,7 +17,7 @@ class AppDrawer extends StatelessWidget {
     final isDark = themeProvider.isDark;
 
     return Drawer(
-      backgroundColor: isDark ? dBg1 : lBg,
+      backgroundColor: isDark ? dBg1 : lBgStart,
       width: 280,
       child: SafeArea(
         child: Column(

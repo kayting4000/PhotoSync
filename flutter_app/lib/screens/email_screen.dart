@@ -186,8 +186,8 @@ class _EmailScreenState extends State<EmailScreen> {
                                 child: DropdownButton<String>(
                                   value: _selectedSubject,
                                   isExpanded: true,
-                                  dropdownColor: const Color(0xFF1A1A3E),
-                                  style: const TextStyle(color: kTextPrimary),
+                                  dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
+                                  style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? kTextPrimary : lTextPrimary),
                                   hint: const Text('Choose a subject',
                                       style: TextStyle(color: kTextSecondary)),
                                   items: _subjects

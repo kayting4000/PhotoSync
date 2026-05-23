@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useCallback } from "react"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -255,24 +254,32 @@ export function TestScanner({ students, exams }: TestScannerProps) {
     setError(null)
 
     try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("Not authenticated")
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const token = localStorage.getItem('access_token')
+      
+      if (!token) throw new Error("Not authenticated")
 
-      const { error } = await supabase.from("exam_results").upsert({
-        user_id: user.id,
-        student_id: selectedStudent,
-        exam_id: selectedExam,
-        correct_answers: scanResult.checkMarks,
-        total_score: scanResult.score,
-        percentage: scanResult.percentage,
-        grade: scanResult.grade,
-        remarks: scanResult.passed ? "Passed" : "Failed",
-      }, {
-        onConflict: "student_id,exam_id"
+      const response = await fetch(`${API_URL}/exam_results`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          student_id: selectedStudent,
+          exam_id: selectedExam,
+          correct_answers: scanResult.checkMarks,
+          total_score: scanResult.score,
+          percentage: scanResult.percentage,
+          grade: scanResult.grade,
+          remarks: scanResult.passed ? "Passed" : "Failed",
+        })
       })
 
-      if (error) throw error
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.detail || 'Failed to save result')
+      }
 
       // Reset form
       setSelectedStudent("")
@@ -295,33 +302,31 @@ export function TestScanner({ students, exams }: TestScannerProps) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload & Scan</CardTitle>
-          <CardDescription>
+      <Card className="border-0 shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-slate-900 dark:text-slate-50">Upload & Scan</CardTitle>
+          <CardDescription className="text-slate-600 dark:text-slate-400">
             Upload a test paper image to detect check marks
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="exam">Select Exam</Label>
+              <Label htmlFor="semester" className="text-slate-700 dark:text-slate-300 font-medium">Select Semester</Label>
               <Select value={selectedExam} onValueChange={setSelectedExam}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose an exam" />
+                  <SelectValue placeholder="Choose a semester" />
                 </SelectTrigger>
                 <SelectContent>
-                  {exams.map((exam) => (
-                    <SelectItem key={exam.id} value={exam.id}>
-                      {exam.subject?.code} - {exam.name} ({exam.total_items} items)
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="prelim">Prelim</SelectItem>
+                  <SelectItem value="midterm">Midterm</SelectItem>
+                  <SelectItem value="final">Final Term</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="student">Select Student</Label>
+              <Label htmlFor="student" className="text-slate-700 dark:text-slate-300 font-medium">Select Student</Label>
               <Select value={selectedStudent} onValueChange={setSelectedStudent}>
                 <SelectTrigger>
                   <SelectValue placeholder="Choose a student" />
@@ -337,9 +342,9 @@ export function TestScanner({ students, exams }: TestScannerProps) {
             </div>
 
             <div className="grid gap-2">
-              <Label>Test Paper Image</Label>
+              <Label className="text-slate-700 dark:text-slate-300 font-medium">Test Paper Image</Label>
               <div
-                className="relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 cursor-pointer hover:border-primary transition-colors"
+                className="relative flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-6 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors bg-slate-50 dark:bg-slate-900/50 shadow-[inset_0_1px_3px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.3)]"
                 onClick={() => fileInputRef.current?.click()}
               >
                 {imagePreview ? (
@@ -350,11 +355,11 @@ export function TestScanner({ students, exams }: TestScannerProps) {
                   />
                 ) : (
                   <>
-                    <Upload className="h-10 w-10 text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">
+                    <Upload className="h-10 w-10 text-slate-400 dark:text-slate-500 mb-2" />
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
                       Click to upload or drag and drop
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
                       PNG, JPG up to 10MB
                     </p>
                   </>
@@ -364,6 +369,8 @@ export function TestScanner({ students, exams }: TestScannerProps) {
                   type="file"
                   accept="image/*"
                   className="hidden"
+                  aria-label="Upload test paper image"
+                  title="Upload test paper image"
                   onChange={handleFileChange}
                 />
               </div>
@@ -372,8 +379,8 @@ export function TestScanner({ students, exams }: TestScannerProps) {
             {isScanning && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">Scanning image...</span>
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-500 dark:text-blue-400" />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">Scanning image...</span>
                 </div>
                 <Progress value={scanProgress} />
               </div>
@@ -389,9 +396,9 @@ export function TestScanner({ students, exams }: TestScannerProps) {
             </Button>
 
             {selectedExamData && (
-              <div className="space-y-2 pt-2 border-t">
-                <Label>Manual Score Entry</Label>
-                <p className="text-xs text-muted-foreground">
+              <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+                <Label className="text-slate-700 dark:text-slate-300 font-medium">Manual Score Entry</Label>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
                   For essays or partial scoring, enter the score directly
                 </p>
                 <div className="flex gap-2">
@@ -414,10 +421,10 @@ export function TestScanner({ students, exams }: TestScannerProps) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Scan Results</CardTitle>
-          <CardDescription>
+      <Card className="border-0 shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-slate-900 dark:text-slate-50">Scan Results</CardTitle>
+          <CardDescription className="text-slate-600 dark:text-slate-400">
             Review and save the detected score
           </CardDescription>
         </CardHeader>
@@ -432,30 +439,30 @@ export function TestScanner({ students, exams }: TestScannerProps) {
 
           {scanResult ? (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Check Marks Detected</p>
-                  <p className="text-2xl font-bold">{scanResult.checkMarks}</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1 p-3 rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]">
+                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400">Check Marks Detected</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-slate-50">{scanResult.checkMarks}</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Total Score</p>
-                  <p className="text-2xl font-bold">{scanResult.score} / {maxScore}</p>
+                <div className="space-y-1 p-3 rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]">
+                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400">Total Score</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-slate-50">{scanResult.score} / {maxScore}</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Percentage</p>
-                  <p className="text-2xl font-bold">{scanResult.percentage.toFixed(1)}%</p>
+                <div className="space-y-1 p-3 rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]">
+                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400">Percentage</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-slate-50">{scanResult.percentage.toFixed(1)}%</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Grade</p>
-                  <p className="text-2xl font-bold">{scanResult.grade}</p>
+                <div className="space-y-1 p-3 rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]">
+                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400">Grade</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-slate-50">{scanResult.grade}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]">
                 <Badge variant={scanResult.passed ? "default" : "destructive"}>
                   {scanResult.passed ? "PASSED" : "FAILED"}
                 </Badge>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   Confidence: {scanResult.confidence.toFixed(0)}%
                 </span>
               </div>
@@ -471,9 +478,9 @@ export function TestScanner({ students, exams }: TestScannerProps) {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <ScanLine className="h-10 w-10 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No scan results yet</p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <ScanLine className="h-10 w-10 text-slate-400 dark:text-slate-500 mb-4" />
+              <p className="text-slate-600 dark:text-slate-400 font-medium">No scan results yet</p>
+              <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
                 Upload an image and click scan to detect check marks
               </p>
             </div>
