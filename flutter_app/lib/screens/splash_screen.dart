@@ -64,14 +64,15 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _startAnimation() async {
     await Future.delayed(const Duration(milliseconds: 100));
+    if (!mounted) return;
     _logoController.forward();
     await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
     _textController.forward();
     await Future.delayed(const Duration(milliseconds: 1200));
-    if (mounted) {
-      final auth = context.read<AuthProvider>();
-      context.go(auth.isAuthenticated ? '/dashboard' : '/login');
-    }
+    if (!mounted) return;
+    final auth = context.read<AuthProvider>();
+    context.go(auth.isAuthenticated ? '/dashboard' : '/login');
   }
 
   @override
