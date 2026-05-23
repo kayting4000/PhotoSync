@@ -139,9 +139,9 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Smart Grade Management',
-                        style: TextStyle(color: kTextSecondary, fontSize: 14),
+                        style: TextStyle(color: context.textSecondary, fontSize: 14),
                       ),
                     ],
                   ),

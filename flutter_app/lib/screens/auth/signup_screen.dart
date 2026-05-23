@@ -17,6 +17,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   void dispose() {
@@ -30,12 +31,12 @@ class _SignupScreenState extends State<SignupScreen> {
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Passwords do not match'),
-          backgroundColor: kAccent3,
-        ),
+            content: Text('Passwords do not match'),
+            backgroundColor: kAccent3),
       );
       return;
     }
+
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.signup(
       _emailController.text,
@@ -46,7 +47,7 @@ class _SignupScreenState extends State<SignupScreen> {
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.errorMessage ?? 'Signup failed'),
+          content: Text(authProvider.errorMessage ?? 'Sign up failed'),
           backgroundColor: kAccent3,
         ),
       );
@@ -55,6 +56,8 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tp = context.textPrimary;
+    final ts = context.textSecondary;
     return Scaffold(
       body: AppBackground(
         child: SafeArea(
@@ -64,7 +67,7 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 FadeSlideIn(
                   delay: const Duration(milliseconds: 100),
                   beginOffset: const Offset(0, -0.1),
@@ -72,7 +75,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [kAccent3, kAccent1]),
+                      gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
@@ -87,12 +90,12 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const FadeSlideIn(
-                  delay: Duration(milliseconds: 200),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 200),
                   child: Text(
                     'PhotoSync',
                     style: TextStyle(
-                      color: kTextPrimary,
+                      color: tp,
                       fontSize: 36,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.2,
@@ -100,11 +103,11 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const FadeSlideIn(
-                  delay: Duration(milliseconds: 300),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 300),
                   child: Text(
                     'Create your account',
-                    style: TextStyle(color: kTextSecondary, fontSize: 13),
+                    style: TextStyle(color: ts, fontSize: 13),
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -113,23 +116,23 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: GlassCard(
                     child: Column(
                       children: [
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
                             'Get started',
                             style: TextStyle(
-                              color: kTextPrimary,
+                              color: tp,
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
                             'Fill in your details below',
-                            style: TextStyle(color: kTextSecondary, fontSize: 13),
+                            style: TextStyle(color: ts, fontSize: 13),
                           ),
                         ),
                         const SizedBox(height: 28),
@@ -150,7 +153,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               _isPasswordVisible
                                   ? Icons.visibility
                                   : Icons.visibility_off,
-                              color: kTextSecondary,
+                              color: kAccent2,
                             ),
                             onPressed: () => setState(
                                 () => _isPasswordVisible = !_isPasswordVisible),
@@ -161,7 +164,17 @@ class _SignupScreenState extends State<SignupScreen> {
                           controller: _confirmPasswordController,
                           label: 'Confirm Password',
                           prefixIcon: Icons.lock_outlined,
-                          obscureText: true,
+                          obscureText: !_isConfirmPasswordVisible,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isConfirmPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: kAccent2,
+                            ),
+                            onPressed: () => setState(() =>
+                                _isConfirmPasswordVisible = !_isConfirmPasswordVisible),
+                          ),
                         ),
                         const SizedBox(height: 28),
                         Consumer<AuthProvider>(
@@ -169,7 +182,6 @@ class _SignupScreenState extends State<SignupScreen> {
                             width: double.infinity,
                             child: GradientButton(
                               onPressed: auth.isLoading ? null : _handleSignup,
-                              colors: const [kAccent3, kAccent1],
                               child: auth.isLoading
                                   ? const SizedBox(
                                       height: 20,
@@ -180,7 +192,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                       ),
                                     )
                                   : const Text(
-                                      'Create Account',
+                                      'Sign Up',
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
@@ -200,8 +212,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Already have an account? ',
-                          style: TextStyle(color: kTextSecondary)),
+                      Text("Already have an account? ",
+                          style: TextStyle(color: ts)),
                       GestureDetector(
                         onTap: () => context.go('/login'),
                         child: const Text(
