@@ -48,10 +48,12 @@ async def upload_scan(
     student_id: str = Form(...),
     exam_id: str = Form(...),
     file: UploadFile = File(...),
+    page_number: int = Form(1),
+    total_pages: int = Form(1),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Upload a scanned test paper image, compress it, and link to an exam result."""
+    """Upload a scanned test paper image (single or multi-page), compress it, and link to an exam result."""
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Only image files are allowed")
 
