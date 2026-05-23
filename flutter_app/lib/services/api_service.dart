@@ -184,6 +184,8 @@ class ApiService {
     required String studentId,
     required String examId,
     required File imageFile,
+    int pageNumber = 1,
+    int totalPages = 1,
   }) async {
     final request = http.MultipartRequest(
       'POST',
@@ -192,6 +194,8 @@ class ApiService {
     request.headers['Authorization'] = 'Bearer $_jwtToken';
     request.fields['student_id'] = studentId;
     request.fields['exam_id'] = examId;
+    request.fields['page_number'] = pageNumber.toString();
+    request.fields['total_pages'] = totalPages.toString();
     request.files.add(
       await http.MultipartFile.fromPath('file', imageFile.path),
     );

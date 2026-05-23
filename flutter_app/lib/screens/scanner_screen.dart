@@ -20,7 +20,8 @@ class ScannerScreen extends StatefulWidget {
 }
 
 class _ScannerScreenState extends State<ScannerScreen> {
-  File? _selectedImage;
+  /// Multi-page support: each page is a separate image file
+  final List<File> _pageImages = [];
   String? _visualizedImageUrl;
   int _detectedCount = 0;
   bool _isAnalyzing = false;
@@ -42,7 +43,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
   void initState() {
     super.initState();
     _fetchSubjects();
-    // Use WidgetsBinding to avoid calling Provider during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         Provider.of<StudentProvider>(context, listen: false).fetchStudents();
@@ -65,13 +65,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  Future<void> _pickImage(ImageSource source) async {
+  /// Pick an image and add it as a new page
+  Future<void> _addPage(ImageSource source) async {
     try {
-      if (_selectedStudentId == null || _selectedExamId == null) {
+      if (_pageImages.length >= 5) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Please select a student and exam first'),
+              content: Text('Maximum 5 pages allowed'),
               backgroundColor: kAccent3,
             ),
           );
@@ -85,12 +86,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
       );
       if (pickedFile != null) {
         setState(() {
-          _selectedImage = File(pickedFile.path);
-          _visualizedImageUrl = null;
-          _detectedCount = 0;
-          _uploadedUrl = null;
+          _pageImages.add(File(pickedFile.path));
         });
-        await _analyzeWithRoboflow(pickedFile.path);
       }
     } catch (e) {
       if (mounted) {
@@ -101,35 +98,81 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  Future<void> _analyzeWithRoboflow(String imagePath) async {
-    setState(() => _isAnalyzing = true);
-    try {
-      final imageBytes = await File(imagePath).readAsBytes();
-      final base64Image = base64Encode(imageBytes);
+  /// Remove a page by index
+  void _removePage(int index) {
+    setState(() {
+      _pageImages.removeAt(index);
+    });
+  }
 
-      final response = await http.post(
-        Uri.parse(_backendUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'image_base64': base64Image}),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (mounted) {
-          setState(() {
-            _detectedCount = data['count'] ?? 0;
-            _visualizedImageUrl = data['visualization_url'];
-          });
-        }
-        // Auto-save the scanned image to the student's record
-        await _saveScannedImage(imagePath);
-      } else {
-        throw Exception('Backend error: ${response.statusCode} ${response.body}');
+  /// Scan all pages together — sends each page to Roboflow and aggregates results
+  Future<void> _scanAllPages() async {
+    if (_selectedStudentId == null || _selectedExamId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select a student and exam first'),
+            backgroundColor: kAccent3,
+          ),
+        );
       }
+      return;
+    }
+    if (_pageImages.isEmpty) return;
+
+    setState(() {
+      _isAnalyzing = true;
+      _detectedCount = 0;
+      _visualizedImageUrl = null;
+    });
+
+    int totalDetected = 0;
+    String? firstVisualization;
+
+    try {
+      for (int i = 0; i < _pageImages.length; i++) {
+        final imageBytes = await _pageImages[i].readAsBytes();
+        final base64Image = base64Encode(imageBytes);
+        debugPrint('Scanning page ${i + 1}/${_pageImages.length}...');
+
+        final response = await http.post(
+          Uri.parse(_backendUrl),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'image_base64': base64Image,
+            'page_number': i + 1,
+            'total_pages': _pageImages.length,
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final pageCount = (data['count'] ?? 0) as int;
+          totalDetected += pageCount;
+          // Keep the first visualization
+          if (firstVisualization == null) {
+            firstVisualization = data['visualization_url'];
+          }
+          debugPrint('  Page ${i + 1}: $pageCount checkmarks detected');
+        } else {
+          throw Exception('Page ${i + 1} error: ${response.statusCode}');
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _detectedCount = totalDetected;
+          _visualizedImageUrl = firstVisualization;
+        });
+      }
+
+      // Auto-save all pages to the student record
+      await _saveAllPages(totalDetected);
+
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Analysis failed: $e'), backgroundColor: kAccent3),
+          SnackBar(content: Text('Scan failed: $e'), backgroundColor: kAccent3),
         );
       }
     } finally {
@@ -137,23 +180,47 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  Future<void> _saveScannedImage(String imagePath) async {
+  /// Upload all pages as a multi-page scan to the student's record
+  Future<void> _saveAllPages(int totalDetected) async {
+    if (_selectedStudentId == null || _selectedExamId == null) return;
     setState(() => _isUploading = true);
+
     try {
       final api = ApiService();
-      final result = await api.uploadScan(
-        studentId: _selectedStudentId!,
-        examId: _selectedExamId!,
-        imageFile: File(imagePath),
-      );
+      // Upload each page individually
+      List<String> uploadedUrls = [];
+      for (int i = 0; i < _pageImages.length; i++) {
+        final result = await api.uploadScan(
+          studentId: _selectedStudentId!,
+          examId: _selectedExamId!,
+          imageFile: _pageImages[i],
+          pageNumber: i + 1,
+          totalPages: _pageImages.length,
+        );
+        if (result['file_url'] != null) {
+          uploadedUrls.add(result['file_url'] as String);
+        }
+      }
+
+      // Also save the aggregated result to the exam result record
+      if (uploadedUrls.isNotEmpty) {
+        await api.post('/exam-results/update-or-create', {
+          'student_id': _selectedStudentId,
+          'exam_id': _selectedExamId,
+          'correct_answers': totalDetected,
+          'total_score': _pageImages.length * 20.0, // estimate
+          'percentage': (totalDetected / (_pageImages.length * 20.0) * 100).clamp(0, 100),
+        });
+      }
+
       if (mounted) {
         setState(() {
-          _uploadedUrl = result['file_url'];
+          _uploadedUrl = uploadedUrls.isNotEmpty ? uploadedUrls.first : null;
           _isUploading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Test paper saved to student record (${result['compression_ratio']} compression)'),
+            content: Text('${_pageImages.length} page(s) saved — $totalDetected checkmarks detected'),
             backgroundColor: kAccent1,
           ),
         );
@@ -224,7 +291,45 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     style: TextStyle(color: kAccent2, fontSize: 12),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
+
+                // Page count indicator
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 50),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0x1AFFFFFF) : const Color(0x1A6C63FF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark ? const Color(0x33FFFFFF) : const Color(0x306C63FF),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.description_rounded, color: kAccent1, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${_pageImages.isEmpty ? 'No' : _pageImages.length} page${_pageImages.length != 1 ? 's' : ''} selected',
+                          style: TextStyle(
+                            color: tp,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                        if (_pageImages.length > 0 && _pageImages.length < 5) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            '(max 5)',
+                            style: TextStyle(color: ts, fontSize: 11),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
 
                 // ─── Student & Exam selection ─────────────────────────────
                 FadeSlideIn(
@@ -298,10 +403,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
                         _buildDropdown(
                           value: _selectedExamId,
                           hint: 'Choose a semester',
-                          items: [
-                             DropdownMenuItem(value: 'preliminary', child: Text('Preliminary Term', style: TextStyle(color: tp))),
-                             DropdownMenuItem(value: 'midsemester', child: Text('Mid-Semester Term', style: TextStyle(color: tp))),
-                             DropdownMenuItem(value: 'final', child: Text('Final Term', style: TextStyle(color: tp))),
+                          items: const [
+                             DropdownMenuItem(value: 'preliminary', child: Text('Preliminary Term', style: TextStyle(color: kAccent2))),
+                             DropdownMenuItem(value: 'midsemester', child: Text('Mid-Semester Term', style: TextStyle(color: kAccent2))),
+                             DropdownMenuItem(value: 'final', child: Text('Final Term', style: TextStyle(color: kAccent2))),
                            ],
                           onChanged: (v) => setState(() => _selectedExamId = v),
                         ),
@@ -309,122 +414,186 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                // Image preview
-                FadeSlideIn(
-                  delay: const Duration(milliseconds: 150),
-                  child: GlassCard(
-                    padding: EdgeInsets.zero,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: _visualizedImageUrl != null
-                          ? Image.network(
-                              _visualizedImageUrl!,
-                              height: 280,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              loadingBuilder: (_, child, progress) =>
-                                  progress == null
-                                      ? child
-                                      : const SizedBox(
-                                          height: 280,
-                                          child: Center(
-                                            child: CircularProgressIndicator(
-                                                color: kAccent1),
-                                          ),
-                                        ),
-                            )
-                          : _selectedImage != null
-                              ? Image.file(_selectedImage!,
-                                  height: 280,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover)
-                              : Container(
-                                  height: 280,
-                                  width: double.infinity,
-                                  color: const Color(0x1AFFFFFF),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(Icons.document_scanner_rounded,
-                                          size: 64, color: kAccent2),
-                                      const SizedBox(height: 16),
-                                      Text('No image selected',
-                                          style: TextStyle(
-                                              color: ts,
-                                              fontSize: 15)),
-                                      const SizedBox(height: 8),
-                                      Text('Take a photo or pick from gallery',
-                                          style: TextStyle(
-                                              color: ts,
-                                              fontSize: 12)),
-                                    ],
+                // ─── Page Thumbnail Gallery ──────────────────────────────
+                if (_pageImages.isNotEmpty) ...[
+                  FadeSlideIn(
+                    delay: const Duration(milliseconds: 120),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.collections_bookmark_rounded, color: kAccent2, size: 18),
+                            const SizedBox(width: 8),
+                            Text('Pages',
+                                style: TextStyle(color: tp, fontSize: 14, fontWeight: FontWeight.w600)),
+                            const Spacer(),
+                            Text('${_pageImages.length} page${_pageImages.length != 1 ? 's' : ''}',
+                                style: TextStyle(color: ts, fontSize: 12)),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 100,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _pageImages.length,
+                            separatorBuilder: (_, __) => const SizedBox(width: 10),
+                            itemBuilder: (context, index) {
+                              return Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.file(
+                                      _pageImages[index],
+                                      width: 80,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
-                                ),
+                                  // Page number badge
+                                  Positioned(
+                                    top: 4,
+                                    left: 4,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: kAccent1.withValues(alpha: 0.85),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        '${index + 1}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // Delete button
+                                  Positioned(
+                                    top: 4,
+                                    right: 4,
+                                    child: GestureDetector(
+                                      onTap: () => _removePage(index),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(2),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.black54,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.close_rounded,
+                                            color: Colors.white, size: 14),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 12),
+                ],
 
-                // Buttons
+                // ─── Add Page & Scan Buttons ────────────────────────────
                 FadeSlideIn(
                   delay: const Duration(milliseconds: 200),
-                  child: Row(
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: GradientButton(
-                          onPressed: (_isAnalyzing || _isUploading)
-                              ? null
-                              : () => _pickImage(ImageSource.camera),
-                          colors: const [kAccent1, kAccent2],
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.camera_alt_rounded,
-                                  color: Colors.white, size: 18),
-                              SizedBox(width: 8),
-                              Text('Camera',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold)),
-                            ],
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GradientButton(
+                              onPressed: _pageImages.length >= 5 ? null : () => _addPage(ImageSource.camera),
+                              colors: const [kAccent1, kAccent2],
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.camera_alt_rounded,
+                                      color: Colors.white, size: 18),
+                                  SizedBox(width: 8),
+                                  Text('Add Page',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: GradientButton(
+                              onPressed: _pageImages.length >= 5 ? null : () => _addPage(ImageSource.gallery),
+                              colors: const [kAccent3, kAccent1],
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.photo_library_rounded,
+                                      color: Colors.white, size: 18),
+                                  SizedBox(width: 8),
+                                  Text('From Gallery',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (_pageImages.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: GradientButton(
+                            onPressed: (_isAnalyzing || _isUploading)
+                                ? null
+                                : _scanAllPages,
+                            colors: const [Color(0xFF43E97B), Color(0xFF38F9D7)],
+                            child: _isAnalyzing
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2, color: Colors.white),
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(Icons.auto_awesome_rounded,
+                                          color: Colors.white, size: 18),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Scan ${_pageImages.length > 1 ? 'All ${_pageImages.length} Pages' : 'Page'}',
+                                        style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15),
+                                      ),
+                                    ],
+                                  ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: GradientButton(
-                          onPressed: (_isAnalyzing || _isUploading)
-                              ? null
-                              : () => _pickImage(ImageSource.gallery),
-                          colors: const [kAccent3, kAccent1],
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.photo_library_rounded,
-                                  color: Colors.white, size: 18),
-                              SizedBox(width: 8),
-                              Text('Gallery',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
 
+                // ─── AI Analysis Progress ───────────────────────────────
                 if (_isAnalyzing) ...[
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   const GlassCard(
                     child: Column(
                       children: [
                         CircularProgressIndicator(color: kAccent1),
                         SizedBox(height: 16),
-                        Text('Analyzing with Roboflow AI...',
+                        Text('Analyzing pages with Roboflow AI...',
                             style: TextStyle(color: kAccent2)),
                       ],
                     ),
@@ -432,21 +601,22 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 ],
 
                 if (_isUploading) ...[
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   const GlassCard(
                     child: Column(
                       children: [
                         CircularProgressIndicator(color: kAccent1),
                         SizedBox(height: 16),
-                        Text('Saving scanned test paper to student record...',
+                        Text('Saving pages to student record...',
                             style: TextStyle(color: kAccent2)),
                       ],
                     ),
                   ),
                 ],
 
-                if (!_isAnalyzing && !_isUploading && _selectedImage != null) ...[
-                  const SizedBox(height: 24),
+                // ─── Results ───────────────────────────────────────────
+                if (!_isAnalyzing && !_isUploading && _pageImages.isNotEmpty && _detectedCount > 0) ...[
+                  const SizedBox(height: 20),
                   FadeSlideIn(
                     child: GlassCard(
                       child: Column(
@@ -484,6 +654,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                 ),
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Across ${_pageImages.length} page${_pageImages.length != 1 ? 's' : ''}',
+                            style: TextStyle(color: ts, fontSize: 12),
                           ),
                           const SizedBox(height: 16),
                           if (_visualizedImageUrl != null)
@@ -525,13 +700,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                       color: kAccent1, size: 16),
                                   const SizedBox(width: 8),
                                   const Expanded(
-                                    child: Text('Test paper saved to student record',
+                                    child: Text('All pages saved to student record',
                                         style: TextStyle(
                                             color: kAccent1,
                                             fontSize: 12)),
                                   ),
                                   Text(
-                                    _detectedCount > 0 ? '✓ Auto-saved' : 'Saved',
+                                    '✓ Saved',
                                     style: const TextStyle(
                                         color: kAccent2, fontSize: 11, fontWeight: FontWeight.bold),
                                   ),
@@ -539,6 +714,30 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               ),
                             ),
                           ],
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+
+                // Empty state
+                if (_pageImages.isEmpty && !_isAnalyzing) ...[
+                  const SizedBox(height: 16),
+                  FadeSlideIn(
+                    delay: const Duration(milliseconds: 150),
+                    child: GlassCard(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+                          Icon(Icons.document_scanner_rounded,
+                              size: 48, color: kAccent2.withValues(alpha: 0.5)),
+                          const SizedBox(height: 12),
+                          Text('Tap the buttons above to add pages',
+                              style: TextStyle(color: ts, fontSize: 13)),
+                          const SizedBox(height: 4),
+                          Text('Supports 1–5 page exam papers',
+                              style: TextStyle(color: ts, fontSize: 12)),
                           const SizedBox(height: 20),
                         ],
                       ),
