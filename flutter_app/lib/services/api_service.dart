@@ -188,10 +188,11 @@ class ApiService {
   // ─── Scan Upload (multipart) ────────────────────────────────────────────
 
   /// Upload a scanned test paper image, associate with a student + exam.
+  /// [imageFile] can be a [File] (native) or [XFile] (cross-platform web).
   Future<Map<String, dynamic>> uploadScan({
     required String studentId,
     required String examId,
-    required File imageFile,
+    required dynamic imageFile,
     int pageNumber = 1,
     int totalPages = 1,
   }) async {
@@ -204,9 +205,25 @@ class ApiService {
     request.fields['exam_id'] = examId;
     request.fields['page_number'] = pageNumber.toString();
     request.fields['total_pages'] = totalPages.toString();
-    request.files.add(
-      await http.MultipartFile.fromPath('file', imageFile.path),
-    );
+    
+    if (imageFile is http.MultipartFile) {
+      request.files.add(imageFile);
+    } else if (imageFile is String) {
+      request.files.add(await http.MultipartFile.fromPath('file', imageFile));
+    } else {
+      try {
+        // XFile has .path property
+        final path = imageFile.path;
+        request.files.add(await http.MultipartFile.fromPath('file', path));
+      } catch (_) {
+        // Fallback for web/Uint8List — convert to bytes
+        final bytes = await imageFile.readAsBytes();
+        request.files.add(http.MultipartFile.fromBytes(
+          'file', bytes,
+          filename: 'scan_${DateTime.now().millisecondsSinceEpoch}.png',
+        ));
+      }
+    }
 
     final streamed = await request.send();
     final res = await http.Response.fromStream(streamed);
