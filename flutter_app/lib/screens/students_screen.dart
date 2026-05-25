@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/student_provider.dart';
+import '../providers/section_provider.dart';
 import '../models/student.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_drawer.dart';
@@ -18,6 +19,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<StudentProvider>().fetchStudents();
+      context.read<SectionProvider>().fetchSections();
     });
   }
 
@@ -28,6 +30,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
     final emailController = TextEditingController();
     final courseController = TextEditingController();
     int yearLevel = 1;
+    String? selectedSectionId;
 
     showDialog(
       context: context,
@@ -97,6 +100,46 @@ class _StudentsScreenState extends State<StudentsScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
+                Consumer<SectionProvider>(
+                  builder: (context, sectionProvider, _) {
+                    final sections = sectionProvider.sections;
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: kGlass,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: kGlassBorder),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String?>(
+                          value: selectedSectionId,
+                          isExpanded: true,
+                          hint: Text('Select Section (Optional)',
+                              style: TextStyle(color: context.textSecondary)),
+                          dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
+                          style: TextStyle(color: context.textPrimary),
+                          items: [
+                            DropdownMenuItem<String?>(
+                              value: null,
+                              child: Text('No Section',
+                                  style: TextStyle(color: context.textSecondary)),
+                            ),
+                            ...sections.map((section) =>
+                                DropdownMenuItem<String?>(
+                                  value: section.id,
+                                  child: Text(section.displayName,
+                                      style: TextStyle(color: context.textPrimary)),
+                                )),
+                          ],
+                          onChanged: (v) {
+                            setState(() => selectedSectionId = v);
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                ),
                 const SizedBox(height: 20),
                 Row(
                   children: [
@@ -121,6 +164,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                             email: emailController.text,
                             course: courseController.text,
                             yearLevel: yearLevel,
+                            sectionId: selectedSectionId,
                           );
                           final provider = context.read<StudentProvider>();
                           final messenger = ScaffoldMessenger.of(context);

@@ -132,6 +132,28 @@ class AppDrawer extends StatelessWidget {
                     isDark: isDark,
                   ),
                   _DrawerItem(
+                    icon: Icons.group_rounded,
+                    label: 'Sections',
+                    route: '/sections',
+                    currentRoute: currentRoute,
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/sections');
+                    },
+                    isDark: isDark,
+                  ),
+                  _DrawerItem(
+                    icon: Icons.calendar_month_rounded,
+                    label: 'Academic Terms',
+                    route: '/academic-terms',
+                    currentRoute: currentRoute,
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/academic-terms');
+                    },
+                    isDark: isDark,
+                  ),
+                  _DrawerItem(
                     icon: Icons.document_scanner_rounded,
                     label: 'Scanner',
                     route: '/scanner',

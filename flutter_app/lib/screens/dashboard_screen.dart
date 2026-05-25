@@ -45,7 +45,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final tp = context.textPrimary;
     final ts = context.textSecondary;
-    final isDark = context.isDark;
     return Scaffold(
       drawer: const AppDrawer(currentRoute: '/dashboard'),
       body: AppBackground(

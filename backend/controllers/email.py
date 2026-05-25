@@ -44,8 +44,9 @@ async def send_grade_report(
     """Send a grade report email to a student (results only, no attachments)."""
     if not RESEND_API_KEY:
         return {
-            "success": True,
-            "message": "Email simulated (RESEND_API_KEY not configured)",
+            "success": False,
+            "message": "Email service not configured. Please set RESEND_API_KEY environment variable to enable email sending.",
+            "error": "RESEND_API_KEY_MISSING"
         }
 
     # Get student info

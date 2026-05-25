@@ -1,5 +1,6 @@
 """
 Student-Subject model — represents the 'student_subjects' table in Neon PostgreSQL.
+Links students to subjects and their specific sections.
 """
 import uuid
 from sqlalchemy import Column, String, Float, DateTime, ForeignKey, text
@@ -18,6 +19,7 @@ class StudentSubject(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     student_id = Column(UUID(as_uuid=True), ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
     subject_id = Column(UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    section_id = Column(UUID(as_uuid=True), ForeignKey("sections.id", ondelete="SET NULL"), nullable=True)
     semester = Column(String, nullable=False)
     academic_year = Column(String, nullable=False)
     final_grade = Column(Float, nullable=True)
@@ -28,3 +30,4 @@ class StudentSubject(Base):
     user = relationship("User", backref="student_subjects")
     student = relationship("Student", backref="student_subjects")
     subject = relationship("Subject", backref="student_subjects")
+    section = relationship("Section", back_populates="student_subjects")

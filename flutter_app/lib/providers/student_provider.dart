@@ -12,13 +12,17 @@ class StudentProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  Future<void> fetchStudents() async {
+  Future<void> fetchStudents({String? sectionId}) async {
     try {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
 
-      final data = await api.get('/students/');
+      var endpoint = '/students/';
+      if (sectionId != null) {
+        endpoint += '?section_id=$sectionId';
+      }
+      final data = await api.get(endpoint);
       _students = data.map((item) => Student.fromJson(item)).toList();
 
       _isLoading = false;
@@ -39,6 +43,7 @@ class StudentProvider extends ChangeNotifier {
         'email': student.email,
         'course': student.course,
         'year_level': student.yearLevel,
+        if (student.sectionId != null) 'section_id': student.sectionId,
       });
       await fetchStudents();
       return true;
@@ -58,6 +63,7 @@ class StudentProvider extends ChangeNotifier {
         'email': student.email,
         'course': student.course,
         'year_level': student.yearLevel,
+        if (student.sectionId != null) 'section_id': student.sectionId,
       };
       await api.put('/students/$id', body);
       await fetchStudents();

@@ -22,9 +22,11 @@ class Student(Base):
     email = Column(String, nullable=True)
     course = Column(String, nullable=False)
     year_level = Column(Integer, nullable=False, default=1)
+    section_id = Column(UUID(as_uuid=True), ForeignKey("sections.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=text("now()"))
     updated_at = Column(DateTime(timezone=True), server_default=text("now()"), onupdate=text("now()"))
 
     # Relationships
     user = relationship("User", backref="students")
+    section = relationship("Section", backref="students")
     exam_results = relationship("ExamResult", back_populates="student", cascade="all, delete-orphan")

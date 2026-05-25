@@ -246,6 +246,7 @@ class GlassTextField extends StatelessWidget {
   final String label;
   final IconData prefixIcon;
   final bool obscureText;
+  final bool autofocus;
   final Widget? suffixIcon;
   final TextInputType? keyboardType;
 
@@ -255,6 +256,7 @@ class GlassTextField extends StatelessWidget {
     required this.label,
     required this.prefixIcon,
     this.obscureText = false,
+    this.autofocus = false,
     this.suffixIcon,
     this.keyboardType,
   });
@@ -265,6 +267,7 @@ class GlassTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       obscureText: obscureText,
+      autofocus: autofocus,
       keyboardType: keyboardType,
       style: TextStyle(color: isDark ? dTextPrimary : lTextPrimary),
       decoration: InputDecoration(

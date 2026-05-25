@@ -35,6 +35,13 @@ dependencies:
   # Theme persistence
   shared_preferences: ^2.2.0
 
+  # Offline / local database
+  sqflite: ^2.3.0
+  path: ^1.8.0
+
+  # Connectivity monitoring
+  connectivity_plus: ^5.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
