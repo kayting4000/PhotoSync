@@ -1,7 +1,7 @@
 """
 Database Migration Script
 Adds missing columns from Professor-Friendly Grading System changes.
-Safe to run multiple times (uses IF NOT EXISTS / column existence checks).
+Safe to run multiple times (uses column existence checks).
 """
 import os
 import sys
@@ -125,6 +125,17 @@ if table_exists("academic_terms"):
         print("  ✓ percentage_weight already exists")
 else:
     print("\n[academic_terms] table does not exist")
+
+# ───── STUDENT SUBJECTS ─────
+if table_exists("student_subjects"):
+    print("\n[student_subjects]")
+    if not column_exists("student_subjects", "section_id"):
+        print("  + Adding section_id column...")
+        cur.execute("ALTER TABLE student_subjects ADD COLUMN section_id UUID REFERENCES sections(id) ON DELETE SET NULL")
+    else:
+        print("  ✓ section_id already exists")
+else:
+    print("\n[student_subjects] table does not exist")
 
 # ───── DONE ─────
 cur.close()
