@@ -18,6 +18,8 @@ def _serialize(t: AcademicTerm) -> dict:
         "id": str(t.id),
         "user_id": str(t.user_id),
         "name": t.name,
+        "term_type": t.term_type,
+        "percentage_weight": t.percentage_weight,
         "start_date": t.start_date.isoformat() if t.start_date else None,
         "end_date": t.end_date.isoformat() if t.end_date else None,
         "is_current": t.is_current,
@@ -51,6 +53,8 @@ def create_academic_term(
     term = AcademicTerm(
         user_id=current_user.id,
         name=body.name,
+        term_type=body.term_type,
+        percentage_weight=body.percentage_weight,
         start_date=body.start_date,
         end_date=body.end_date,
         is_current=body.is_current,
