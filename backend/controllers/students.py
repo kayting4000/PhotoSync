@@ -25,6 +25,7 @@ def _serialize(s: Student) -> dict:
         "email": s.email,
         "course": s.course,
         "year_level": s.year_level,
+        "section_id": str(s.section_id) if s.section_id else None,
         "created_at": s.created_at.isoformat() if s.created_at else None,
         "updated_at": s.updated_at.isoformat() if s.updated_at else None,
     }
@@ -34,6 +35,7 @@ def _serialize(s: Student) -> dict:
 def get_students(
     course: Optional[str] = Query(None),
     year_level: Optional[int] = Query(None),
+    section_id: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -43,6 +45,8 @@ def get_students(
         q = q.filter(Student.course == course)
     if year_level is not None:
         q = q.filter(Student.year_level == year_level)
+    if section_id:
+        q = q.filter(Student.section_id == section_id)
     if search:
         q = q.filter(
             or_(
@@ -68,6 +72,7 @@ def create_student(
         email=body.email,
         course=body.course,
         year_level=body.year_level,
+        section_id=body.section_id,
     )
     db.add(student)
     db.commit()

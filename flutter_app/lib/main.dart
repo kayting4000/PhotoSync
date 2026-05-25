@@ -7,6 +7,8 @@ import 'providers/student_provider.dart';
 import 'providers/subject_provider.dart';
 import 'providers/exam_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/section_provider.dart';
+import 'providers/academic_term_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
@@ -17,6 +19,8 @@ import 'screens/scanner_screen.dart';
 import 'screens/grades_screen.dart';
 import 'screens/email_screen.dart';
 import 'screens/subjects_screen.dart';
+import 'screens/sections_screen.dart';
+import 'screens/academic_terms_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +45,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SubjectProvider()),
         ChangeNotifierProvider(create: (_) => ExamProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => SectionProvider()),
+        ChangeNotifierProvider(create: (_) => AcademicTermProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
@@ -107,6 +113,14 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/subjects',
           pageBuilder: (_, __) => _slideUpPage(const SubjectsScreen()),
+        ),
+        GoRoute(
+          path: '/sections',
+          pageBuilder: (_, __) => _slideUpPage(const SectionsScreen()),
+        ),
+        GoRoute(
+          path: '/academic-terms',
+          pageBuilder: (_, __) => _slideUpPage(const AcademicTermsScreen()),
         ),
       ],
     );

@@ -10,3 +10,5 @@ from .scan_uploads import router as scan_uploads_router
 from .email import router as email_router
 from .student_subjects import router as student_subjects_router
 from .scoring_rules import router as scoring_rules_router
+from .sections import router as sections_router
+from .academic_terms import router as academic_terms_router

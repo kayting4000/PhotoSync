@@ -139,13 +139,21 @@ export function EmailManager({ students, results, subjects }: EmailManagerProps)
         })
 
         if (!response.ok) throw new Error('Failed to send email')
+        
+        const data = await response.json()
+        
+        // Check for email service configuration error
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to send email')
+        }
 
         setEmailStatuses(prev => prev.map(s => 
           s.studentId === studentId ? { ...s, status: 'sent' } : s
         ))
-      } catch {
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to send'
         setEmailStatuses(prev => prev.map(s => 
-          s.studentId === studentId ? { ...s, status: 'error', message: 'Failed to send' } : s
+          s.studentId === studentId ? { ...s, status: 'error', message: errorMessage } : s
         ))
       }
 
@@ -333,7 +341,7 @@ export function EmailManager({ students, results, subjects }: EmailManagerProps)
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Errors</AlertTitle>
                     <AlertDescription>
-                      Failed to send {errorCount} email{errorCount !== 1 ? 's' : ''}.
+                      {emailStatuses.find(s => s.status === 'error')?.message || `Failed to send ${errorCount} email${errorCount !== 1 ? 's' : ''}.`}
                     </AlertDescription>
                   </Alert>
                 )}

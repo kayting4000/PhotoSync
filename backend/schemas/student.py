@@ -9,6 +9,7 @@ class StudentCreate(BaseModel):
     email: Optional[str] = None
     course: str
     year_level: int = 1
+    section_id: Optional[str] = None
 
     model_config = {
         "json_schema_extra": {
@@ -32,6 +33,7 @@ class StudentUpdate(BaseModel):
     email: Optional[str] = None
     course: Optional[str] = None
     year_level: Optional[int] = None
+    section_id: Optional[str] = None
 
     model_config = {
         "json_schema_extra": {

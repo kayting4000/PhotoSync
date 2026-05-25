@@ -70,6 +70,12 @@ export function TestScanner({ students, exams }: TestScannerProps) {
 
   const detectCheckMarks = useCallback(async (imageData: ImageData): Promise<number> => {
     const { data, width, height } = imageData
+    
+    // Validate image dimensions (problem #5 fix)
+    if (width < 100 || height < 100) {
+      throw new Error("Image too small to scan. Please use an image at least 100x100 pixels.")
+    }
+    
     let checkMarkCount = 0
     const visitedCells = new Set<string>()
     
@@ -88,7 +94,8 @@ export function TestScanner({ students, exams }: TestScannerProps) {
     }
     
     // Group dark pixels into clusters (potential check marks)
-    const cellSize = Math.min(width, height) / 20
+    // Ensure cellSize is at least 1 to avoid division by zero (problem #5 fix)
+    const cellSize = Math.max(1, Math.min(width, height) / 20)
     
     for (const pixel of darkPixels) {
       const cellX = Math.floor(pixel.x / cellSize)

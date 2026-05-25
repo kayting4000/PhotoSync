@@ -19,8 +19,9 @@ def _serialize(e: Exam) -> dict:
         "id": str(e.id),
         "user_id": str(e.user_id),
         "subject_id": str(e.subject_id),
+        "term_id": str(e.term_id) if e.term_id else None,
         "name": e.name,
-        "exam_type": e.exam_type,
+        "component_type": e.component_type,
         "total_items": e.total_items,
         "points_per_item": e.points_per_item,
         "passing_score": e.passing_score,
@@ -31,12 +32,15 @@ def _serialize(e: Exam) -> dict:
 @router.get("/")
 def get_exams(
     subject_id: Optional[str] = Query(None),
+    term_id: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     q = db.query(Exam).filter(Exam.user_id == current_user.id)
     if subject_id:
         q = q.filter(Exam.subject_id == subject_id)
+    if term_id:
+        q = q.filter(Exam.term_id == term_id)
     q = q.order_by(Exam.created_at.desc())
     return [_serialize(e) for e in q.all()]
 
@@ -51,10 +55,11 @@ def create_exam(
         user_id=current_user.id,
         subject_id=body.subject_id,
         name=body.name,
-        exam_type=body.exam_type,
+        component_type=body.component_type,
         total_items=body.total_items,
         points_per_item=body.points_per_item,
         passing_score=body.passing_score,
+        term_id=body.term_id,
     )
     db.add(exam)
     db.commit()

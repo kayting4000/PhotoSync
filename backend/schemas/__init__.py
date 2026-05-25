@@ -5,3 +5,5 @@ from .exam_result import ExamResultCreate, ExamResultUpdate
 from .auth import AuthLogin, AuthSignup
 from .student_subject import StudentSubjectCreate, StudentSubjectUpdate
 from .scoring_rule import ScoringRuleCreate, ScoringRuleUpdate
+from .section import SectionCreate, SectionUpdate
+from .academic_term import AcademicTermCreate, AcademicTermUpdate

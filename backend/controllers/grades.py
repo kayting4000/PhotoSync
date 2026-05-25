@@ -1,15 +1,17 @@
 """
 Grades / GPA controller — computes GPA using MSU-Tawi-Tawi formula.
 Uses SQLAlchemy joins instead of Supabase PostgREST nested selects.
+Also supports weighted term grades (preliminary, mid-semester, final).
 """
 from fastapi import APIRouter, Query, Depends
-from typing import Optional
+from typing import Optional, Dict
 from sqlalchemy.orm import Session, joinedload
 
 from database import get_db
 from controllers.auth import get_current_user
 from models.exam_result import ExamResult
 from models.exam import Exam
+from models.academic_term import AcademicTerm
 from models.subject import Subject
 from models.user import User
 
@@ -33,6 +35,7 @@ def _interpret(gpa: float) -> str:
 @router.get("/")
 def get_gpa(
     student_id: Optional[str] = Query(None),
+    term_id: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -43,6 +46,8 @@ def get_gpa(
     )
     if student_id:
         q = q.filter(ExamResult.student_id == student_id)
+    if term_id:
+        q = q.filter(ExamResult.exam.has(Exam.term_id == term_id))
     q = q.order_by(ExamResult.created_at.desc())
 
     results = q.all()
@@ -73,4 +78,89 @@ def get_gpa(
         "total_units": total_units,
         "subjects_counted": len(results),
         "interpretation": _interpret(gpa),
+    }
+
+
+@router.get("/weighted/")
+def get_weighted_term_grades(
+    student_id: Optional[str] = Query(None),
+    subject_id: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Calculate final grade as weighted average of terms.
+    Each term (preliminary, mid-semester, final) has a percentage_weight.
+    Final Grade = sum(term_score * percentage_weight / 100)
+    """
+    q = (
+        db.query(ExamResult)
+        .options(
+            joinedload(ExamResult.exam)
+            .joinedload(Exam.term)
+        )
+        .filter(ExamResult.user_id == current_user.id)
+    )
+    if student_id:
+        q = q.filter(ExamResult.student_id == student_id)
+    if subject_id:
+        q = q.filter(ExamResult.exam.has(Exam.subject_id == subject_id))
+    
+    results = q.all()
+    if not results:
+        return {
+            "final_grade": None,
+            "term_scores": {},
+            "total_weight": 0,
+            "message": "No exam results found"
+        }
+
+    # Group results by term
+    term_scores: Dict[str, Dict] = {}
+    
+    for result in results:
+        if not result.exam or not result.exam.term:
+            continue
+        
+        term = result.exam.term
+        term_id = str(term.id)
+        
+        if term_id not in term_scores:
+            term_scores[term_id] = {
+                "term_id": term_id,
+                "term_name": term.name,
+                "term_type": term.term_type,
+                "percentage_weight": term.percentage_weight,
+                "scores": [],
+            }
+        
+        # Collect percentage score for each component
+        if result.percentage is not None:
+            term_scores[term_id]["scores"].append(result.percentage)
+    
+    # Calculate average for each term
+    term_averages = {}
+    total_weight = 0
+    weighted_sum = 0.0
+    
+    for term_id, term_data in term_scores.items():
+        if term_data["scores"]:
+            avg_score = sum(term_data["scores"]) / len(term_data["scores"])
+            term_data["average_score"] = round(avg_score, 2)
+            term_averages[term_id] = term_data
+            
+            # Add to weighted sum
+            weight = term_data["percentage_weight"]
+            weighted_sum += avg_score * (weight / 100)
+            total_weight += weight
+    
+    final_grade = None
+    if total_weight > 0:
+        final_grade = round(weighted_sum, 2)
+    
+    return {
+        "final_grade": final_grade,
+        "term_scores": term_averages,
+        "total_weight": total_weight,
+        "calculation_method": "weighted_average",
     }

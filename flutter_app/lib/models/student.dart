@@ -6,6 +6,7 @@ class Student {
   final String? email;
   final String course;
   final int yearLevel;
+  final String? sectionId;
   final DateTime? createdAt;
 
   Student({
@@ -16,6 +17,7 @@ class Student {
     this.email,
     required this.course,
     this.yearLevel = 1,
+    this.sectionId,
     this.createdAt,
   });
 
@@ -28,21 +30,25 @@ class Student {
       email: json['email'],
       course: json['course'],
       yearLevel: json['year_level'] ?? 1,
+      sectionId: json['section_id'],
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : null,
     );
   }
 
-  Map<String, dynamic> toJson({String? userId}) => {
-        if (userId != null) 'user_id': userId,
-        'student_id': studentId,
-        'first_name': firstName,
-        'last_name': lastName,
-        'email': email,
-        'course': course,
-        'year_level': yearLevel,
-      };
+  Map<String, dynamic> toJson({String? userId}) {
+    return {
+      if (userId != null) 'user_id': userId,
+      'student_id': studentId,
+      'first_name': firstName,
+      'last_name': lastName,
+      'email': email,
+      'course': course,
+      'year_level': yearLevel,
+      if (sectionId != null) 'section_id': sectionId,
+    };
+  }
 
   String get fullName => '$firstName $lastName';
 }

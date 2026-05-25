@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from database import engine, Base
-from models import User, Student, Subject, Exam, ExamResult, StudentSubject, ScoringRule  # noqa: F401 — register models
+from models import User, Student, Subject, Exam, ExamResult, StudentSubject, ScoringRule, Section, AcademicTerm  # noqa: F401 — register models
 
 from controllers import (
     auth_router,
@@ -24,6 +24,8 @@ from controllers import (
     email_router,
     student_subjects_router,
     scoring_rules_router,
+    sections_router,
+    academic_terms_router,
 )
 
 
@@ -62,6 +64,8 @@ app.include_router(scan_uploads_router)
 app.include_router(email_router)
 app.include_router(student_subjects_router)
 app.include_router(scoring_rules_router)
+app.include_router(sections_router)
+app.include_router(academic_terms_router)
 
 # Serve uploaded scan images statically
 uploads_dir = os.path.join(os.path.dirname(__file__), "uploads")

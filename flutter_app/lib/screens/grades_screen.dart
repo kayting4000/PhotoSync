@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/academic_term_provider.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_drawer.dart';
@@ -20,16 +22,21 @@ class _GradesScreenState extends State<GradesScreen> {
   int _lowestScore = 100;
   Map<String, List<double>> _subjectPercentages = {};
   Map<String, int> _gradeDistribution = {};
+  String? _selectedTermId;
 
   @override
   void initState() {
     super.initState();
-    _fetchData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AcademicTermProvider>().fetchTerms();
+      _fetchData();
+    });
   }
 
-  Future<void> _fetchData() async {
+  Future<void> _fetchData({String? termId}) async {
     try {
-      final results = await api.get('/exam-results/');
+      final url = termId != null ? '/exam-results/?term_id=$termId' : '/exam-results/';
+      final results = await api.get(url);
       double totalPercentage = 0;
       double highest = 0;
       double lowest = 100;
@@ -143,30 +150,51 @@ class _GradesScreenState extends State<GradesScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Hamburger menu + title
-                      // Removed: Replaced by AppBar's leading and title
-                      // Row(
-                      //   children: [
-                      //     Builder(
-                      //       builder: (context) => GestureDetector(
-                      //         onTap: () => Scaffold.of(context).openDrawer(),
-                      //         child: const GlassCard(
-                      //           padding: EdgeInsets.all(10),
-                      //           borderRadius: 12,
-                      //           child: Icon(Icons.menu_rounded,
-                      //               color: kTextPrimary, size: 20),
-                      //         ),
-                      //       ),
-                      //     ),
-                      //     const SizedBox(width: 16),
-                      //     const Text('Grades & GPA',
-                      //         style: TextStyle(
-                      //             color: kTextPrimary,
-                      //             fontSize: 22,
-                      //             fontWeight: FontWeight.bold)),
-                      //   ],
-                      // ),
-                      // const SizedBox(height: 20),
+                      // Term selector
+                      Consumer<AcademicTermProvider>(
+                        builder: (context, termProvider, _) {
+                          final terms = termProvider.terms;
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: kGlass,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: kGlassBorder),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String?>(
+                                value: _selectedTermId,
+                                isExpanded: true,
+                                hint: Text('All Terms',
+                                    style: TextStyle(color: context.textSecondary)),
+                                dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
+                                style: TextStyle(color: context.textPrimary),
+                                items: [
+                                  DropdownMenuItem<String?>(
+                                    value: null,
+                                    child: Text('All Terms',
+                                        style: TextStyle(color: context.textSecondary)),
+                                  ),
+                                  ...terms.map((term) =>
+                                      DropdownMenuItem<String?>(
+                                        value: term.id,
+                                        child: Text(term.displayName,
+                                            style: TextStyle(color: context.textPrimary)),
+                                      )),
+                                ],
+                                onChanged: (v) {
+                                  setState(() {
+                                    _selectedTermId = v;
+                                    _isLoading = true;
+                                  });
+                                  _fetchData(termId: v);
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 20),
 
                       // GPA Summary Card
                       GlassCard(
