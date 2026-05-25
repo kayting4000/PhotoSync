@@ -58,6 +58,8 @@ def _serialize(r: ExamResult) -> dict:
 def get_results(
     student_id: Optional[str] = Query(None),
     exam_id: Optional[str] = Query(None),
+    skip: int = Query(0, ge=0, alias="offset"),
+    limit: int = Query(100, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -66,8 +68,14 @@ def get_results(
         q = q.filter(ExamResult.student_id == student_id)
     if exam_id:
         q = q.filter(ExamResult.exam_id == exam_id)
-    q = q.order_by(ExamResult.created_at.desc())
-    return [_serialize(r) for r in q.all()]
+    total = q.count()
+    q = q.order_by(ExamResult.created_at.desc()).offset(skip).limit(limit)
+    return {
+        "items": [_serialize(r) for r in q.all()],
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+    }
 
 
 @router.post("/")

@@ -124,6 +124,8 @@ class ApiService {
 
   // ─── Generic CRUD helpers ────────────────────────────────────────────────
 
+  /// GET request — returns a List.
+  /// Handles both paginated responses ({items: [...]}) and raw arrays ([...]).
   Future<List<dynamic>> get(String path) async {
     final res = await http.get(
       Uri.parse('$_baseUrl$path'),
@@ -131,7 +133,13 @@ class ApiService {
     );
     if (res.statusCode == 200) {
       final data = jsonDecode(res.body);
+      // Handle paginated format: {items: [...], total: N}
+      if (data is Map && data.containsKey('items')) {
+        return List<dynamic>.from(data['items']);
+      }
+      // Handle raw array format: [...]
       if (data is List) return data;
+      // Handle single object: {...}
       if (data is Map) return [data];
       return [];
     }

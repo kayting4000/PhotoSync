@@ -16,9 +16,9 @@ TABLE = "sections"
 class Section(Base):
     __tablename__ = TABLE
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    subject_id = Column(UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    subject_id = Column(UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False, index=True)
     section_label = Column(String, nullable=False)  # A, B, C, D, E
     room_number = Column(String, nullable=False)  # e.g., "Room 101", "Lab A"
     created_at = Column(DateTime(timezone=True), server_default=text("now()"))

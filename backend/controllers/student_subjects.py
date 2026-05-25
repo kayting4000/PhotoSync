@@ -35,6 +35,8 @@ def get_student_subjects(
     subject_id: Optional[str] = Query(None),
     semester: Optional[str] = Query(None),
     academic_year: Optional[str] = Query(None),
+    skip: int = Query(0, ge=0, alias="offset"),
+    limit: int = Query(100, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -47,8 +49,14 @@ def get_student_subjects(
         q = q.filter(StudentSubject.semester == semester)
     if academic_year:
         q = q.filter(StudentSubject.academic_year == academic_year)
-    q = q.order_by(StudentSubject.created_at.desc())
-    return [_serialize(ss) for ss in q.all()]
+    total = q.count()
+    q = q.order_by(StudentSubject.created_at.desc()).offset(skip).limit(limit)
+    return {
+        "items": [_serialize(ss) for ss in q.all()],
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+    }
 
 
 @router.post("/")

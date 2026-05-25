@@ -14,8 +14,8 @@ TABLE = "academic_terms"
 class AcademicTerm(Base):
     __tablename__ = TABLE
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String, nullable=False)
     term_type = Column(String, nullable=False)  # "preliminary", "mid-semester", "final"
     percentage_weight = Column(Integer, nullable=False, default=33)  # 10-90% contribution to final grade

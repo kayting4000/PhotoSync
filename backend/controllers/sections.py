@@ -29,6 +29,8 @@ def _serialize(s: Section) -> dict:
 def get_sections(
     subject_id: Optional[str] = Query(None),
     section_label: Optional[str] = Query(None),
+    skip: int = Query(0, ge=0, alias="offset"),
+    limit: int = Query(100, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -37,8 +39,14 @@ def get_sections(
         q = q.filter(Section.subject_id == subject_id)
     if section_label:
         q = q.filter(Section.section_label == section_label)
-    q = q.order_by(Section.created_at.desc())
-    return [_serialize(s) for s in q.all()]
+    total = q.count()
+    q = q.order_by(Section.created_at.desc()).offset(skip).limit(limit)
+    return {
+        "items": [_serialize(s) for s in q.all()],
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+    }
 
 
 @router.post("/")

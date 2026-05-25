@@ -39,11 +39,12 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="PhotoSync API",
     description="Backend API for PhotoSync — Test Paper Scanner & Grade Management (Neon PostgreSQL)",
-    version="37.0.0",
+    version="37.1.0",
     lifespan=lifespan,
     contact={"name": "Habibun-najal K. Kayting", "email": "kayting4k@gmail.com"},
 )
 
+# CORS — allow all origins for cross-device access during development
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -77,7 +78,7 @@ app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 def root():
     return {
         "app": "PhotoSync API",
-        "version": "37.0.0",
+        "version": "37.1.0",
         "database": "Neon PostgreSQL",
         "status": "running",
         "docs": "/docs",

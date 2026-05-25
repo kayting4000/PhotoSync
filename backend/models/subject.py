@@ -14,8 +14,8 @@ TABLE = "subjects"
 class Subject(Base):
     __tablename__ = TABLE
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     code = Column(String, nullable=False)
     name = Column(String, nullable=False)
     units = Column(Integer, nullable=False, default=3)

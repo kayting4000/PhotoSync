@@ -33,6 +33,8 @@ def _serialize(e: Exam) -> dict:
 def get_exams(
     subject_id: Optional[str] = Query(None),
     term_id: Optional[str] = Query(None),
+    skip: int = Query(0, ge=0, alias="offset"),
+    limit: int = Query(100, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -41,8 +43,14 @@ def get_exams(
         q = q.filter(Exam.subject_id == subject_id)
     if term_id:
         q = q.filter(Exam.term_id == term_id)
-    q = q.order_by(Exam.created_at.desc())
-    return [_serialize(e) for e in q.all()]
+    total = q.count()
+    q = q.order_by(Exam.created_at.desc()).offset(skip).limit(limit)
+    return {
+        "items": [_serialize(e) for e in q.all()],
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+    }
 
 
 @router.post("/")

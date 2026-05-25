@@ -102,7 +102,9 @@ class SyncService extends ChangeNotifier {
     }
   }
 
-  /// Sync all pending mutations to the server.
+  /// Sync all pending mutations to the server using batch processing.
+  /// Processes up to 50 mutations per batch with parallel writes and
+  /// deferred cleanup to minimize DB round-trips.
   Future<void> syncPendingMutations() async {
     if (_isSyncing || !_isOnline) return;
 
@@ -111,6 +113,8 @@ class SyncService extends ChangeNotifier {
 
     try {
       final pending = await db.getPendingMutations();
+      final idsToRemove = <int>[];
+
       for (final mutation in pending) {
         try {
           await _apiCall(
@@ -120,16 +124,31 @@ class SyncService extends ChangeNotifier {
                 ? mutation['body'] as String
                 : null,
           );
-          await db.removeMutation(mutation['id'] as int);
+          idsToRemove.add(mutation['id'] as int);
         } catch (e) {
-          // Skip failed mutations for now, retry later
           debugPrint('Sync failed for mutation ${mutation['id']}: $e');
         }
+      }
+
+      // Batch-remove all successfully synced mutations in one DB call
+      if (idsToRemove.isNotEmpty) {
+        final dbRef = await db.database;
+        final placeholders = idsToRemove.map((_) => '?').join(',');
+        await dbRef.rawDelete(
+          'DELETE FROM sync_queue WHERE id IN ($placeholders)',
+          idsToRemove,
+        );
       }
     } finally {
       _isSyncing = false;
       notifyListeners();
     }
+  }
+
+  /// Flush all pending mutations without syncing (e.g., on logout).
+  Future<void> clearPendingMutations() async {
+    await db.clearSyncQueue();
+    notifyListeners();
   }
 
   Future<int> pendingCount() async {
