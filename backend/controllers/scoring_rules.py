@@ -30,14 +30,22 @@ def _serialize(sr: ScoringRule) -> dict:
 @router.get("/")
 def get_scoring_rules(
     exam_id: Optional[str] = Query(None),
+    skip: int = Query(0, ge=0, alias="offset"),
+    limit: int = Query(100, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     q = db.query(ScoringRule).filter(ScoringRule.user_id == current_user.id)
     if exam_id:
         q = q.filter(ScoringRule.exam_id == exam_id)
-    q = q.order_by(ScoringRule.item_start.asc())
-    return [_serialize(sr) for sr in q.all()]
+    total = q.count()
+    q = q.order_by(ScoringRule.item_start.asc()).offset(skip).limit(limit)
+    return {
+        "items": [_serialize(sr) for sr in q.all()],
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+    }
 
 
 @router.post("/")

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, BookOpen, FileText, TrendingUp } from "lucide-react"
+import { Users, BookOpen, FileText, TrendingUp, ArrowRight, ChevronRight } from "lucide-react"
 import Link from "next/link"
 
 export default async function DashboardPage() {
@@ -65,9 +65,12 @@ export default async function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {quickActions.map((action) => (
             <Link key={action.title} href={action.href}>
-              <Card className="h-full hover:bg-muted/50 transition-colors cursor-pointer">
+              <Card className="h-full hover:bg-muted/50 transition-colors cursor-pointer group">
                 <CardHeader>
-                  <CardTitle className="text-lg">{action.title}</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{action.title}</CardTitle>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                  </div>
                   <CardDescription>{action.description}</CardDescription>
                 </CardHeader>
               </Card>

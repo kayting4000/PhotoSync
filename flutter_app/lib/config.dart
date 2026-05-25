@@ -19,11 +19,11 @@
 ///   Run: `cd backend && uvicorn main:app --host 0.0.0.0 --port 8000 --reload`
 class AppConfig {
   /// Set to `true` to use the local backend, `false` for production (Render)
-  static const bool useLocalBackend = false;
+  static const bool useLocalBackend = true;
 
   /// Your laptop's local IP address (only used when [useLocalBackend] is true)
-  /// Example: '192.168.1.100'
-  static const String localHost = '192.168.1.100';
+  /// Use localhost for local development.
+  static const String localHost = '127.0.0.1';
 
   /// Production backend URL (Render)
   static const String productionUrl = 'https://photosync-4pj7.onrender.com';

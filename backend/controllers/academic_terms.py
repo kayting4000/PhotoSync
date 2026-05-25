@@ -1,7 +1,7 @@
 """
 Academic Terms controller — CRUD operations via SQLAlchemy ORM (Neon PostgreSQL).
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Query, Depends
 from sqlalchemy.orm import Session
 
 from database import get_db

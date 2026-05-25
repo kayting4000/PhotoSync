@@ -14,10 +14,10 @@ TABLE = "exams"
 class Exam(Base):
     __tablename__ = TABLE
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    subject_id = Column(UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
-    term_id = Column(UUID(as_uuid=True), ForeignKey("academic_terms.id", ondelete="SET NULL"), nullable=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    subject_id = Column(UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False, index=True)
+    term_id = Column(UUID(as_uuid=True), ForeignKey("academic_terms.id", ondelete="SET NULL"), nullable=True, index=True)
     name = Column(String, nullable=False)
     component_type = Column(String, nullable=False)  # "exam", "quiz", "assignment", "oral"
     total_items = Column(Integer, nullable=False)

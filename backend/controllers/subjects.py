@@ -1,7 +1,7 @@
 """
 Subjects controller — CRUD operations via SQLAlchemy ORM (Neon PostgreSQL).
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Query, Depends
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -26,16 +26,20 @@ def _serialize(s: Subject) -> dict:
 
 @router.get("/")
 def get_subjects(
+    skip: int = Query(0, ge=0, alias="offset"),
+    limit: int = Query(100, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    subjects = (
-        db.query(Subject)
-        .filter(Subject.user_id == current_user.id)
-        .order_by(Subject.created_at.desc())
-        .all()
-    )
-    return [_serialize(s) for s in subjects]
+    q = db.query(Subject).filter(Subject.user_id == current_user.id)
+    total = q.count()
+    subjects = q.order_by(Subject.created_at.desc()).offset(skip).limit(limit).all()
+    return {
+        "items": [_serialize(s) for s in subjects],
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+    }
 
 
 @router.post("/")
