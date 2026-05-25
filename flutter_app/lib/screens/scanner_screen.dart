@@ -446,11 +446,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
-                                    child: Image.file(
-                                      _pageImages[index],
+                                    child: Image(
+                                      image: FileImage(_pageImages[index]),
                                       width: 80,
                                       height: 100,
                                       fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) =>
+                                        Container(
+                                          width: 80,
+                                          height: 100,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[300],
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: const Icon(Icons.image_not_supported_rounded, color: Colors.grey),
+                                        ),
                                     ),
                                   ),
                                   // Page number badge
