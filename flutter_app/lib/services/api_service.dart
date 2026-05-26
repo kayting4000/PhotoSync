@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../config.dart';
 
@@ -210,13 +211,18 @@ class ApiService {
       request.files.add(imageFile);
     } else if (imageFile is String) {
       request.files.add(await http.MultipartFile.fromPath('file', imageFile));
+    } else if (imageFile is Uint8List) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'file', imageFile,
+        filename: 'scan_${DateTime.now().millisecondsSinceEpoch}.png',
+      ));
     } else {
       try {
         // XFile has .path property
         final path = imageFile.path;
         request.files.add(await http.MultipartFile.fromPath('file', path));
       } catch (_) {
-        // Fallback for web/Uint8List — convert to bytes
+        // Fallback for other byte-backed objects
         final bytes = await imageFile.readAsBytes();
         request.files.add(http.MultipartFile.fromBytes(
           'file', bytes,

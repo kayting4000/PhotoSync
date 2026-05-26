@@ -26,7 +26,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
   int _detectedCount = 0;
   bool _isAnalyzing = false;
   bool _isUploading = false;
-  String? _uploadedUrl;
   final ImagePicker _picker = ImagePicker();
 
   // Student & Exam selection
@@ -34,7 +33,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
   String? _selectedExamId;
   List<dynamic> _subjects = [];
   String? _selectedSubjectId;
-  String? _selectedPaperType;
+  String _selectedPaperType = 'All';
+  String? _scanMessage;
+  String? _uploadMessage;
+  String? _uploadedFileInfo;
   static const List<String> _paperTypes = ['All', 'Exam', 'Quiz', 'Assignment', 'Other'];
 
   String get _backendUrl => '${AppConfig.baseUrl}/scanner/scan';
@@ -107,11 +109,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   /// Scan all pages — sends each to Roboflow
   Future<void> _scanAllPages() async {
-    if (_selectedStudentId == null || _selectedExamId == null) {
+    if (_selectedStudentId == null || _selectedExamId == null || _selectedSubjectId == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Please select a student and exam first'),
+            content: Text('Please select a student, subject, and exam first'),
             backgroundColor: kAccent3,
           ),
         );
@@ -124,6 +126,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
       _isAnalyzing = true;
       _detectedCount = 0;
       _visualizedImageUrl = null;
+      _scanMessage = null;
+      _uploadMessage = null;
+      _uploadedFileInfo = null;
     });
 
     int totalDetected = 0;
@@ -148,9 +153,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           final data = jsonDecode(response.body);
           final pageCount = (data['count'] ?? 0) as int;
           totalDetected += pageCount;
-          if (firstVisualization == null) {
-            firstVisualization = data['visualization_url'];
-          }
+          firstVisualization ??= data['visualization_url'];
           debugPrint('  Page ${i + 1}: $pageCount checkmarks detected');
         } else {
           throw Exception('Page ${i + 1} error: ${response.statusCode}');
@@ -161,17 +164,71 @@ class _ScannerScreenState extends State<ScannerScreen> {
         setState(() {
           _detectedCount = totalDetected;
           _visualizedImageUrl = firstVisualization;
+          _scanMessage = 'Detected $totalDetected checkmark${totalDetected == 1 ? '' : 's'}.';
         });
+      }
+
+      if (_pageBytes.isNotEmpty) {
+        await _uploadFirstPage();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Scan failed: $e'), backgroundColor: kAccent3),
         );
+        _scanMessage = 'Scan failed: $e';
       }
     } finally {
       if (mounted) setState(() => _isAnalyzing = false);
     }
+  }
+
+  Future<void> _uploadFirstPage() async {
+    setState(() {
+      _isUploading = true;
+      _uploadMessage = null;
+      _uploadedFileInfo = null;
+    });
+
+    try {
+      final api = ApiService();
+      final result = await api.uploadScan(
+        studentId: _selectedStudentId!,
+        examId: _selectedExamId!,
+        imageFile: _pageBytes.first,
+        pageNumber: 1,
+        totalPages: _pageBytes.length,
+      );
+      if (mounted) {
+        setState(() {
+          _uploadedFileInfo = result['file_url']?.toString();
+          _uploadMessage = 'Scan uploaded successfully.';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _uploadMessage = 'Upload failed: $e';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Upload failed: $e'), backgroundColor: kAccent3),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
+    }
+  }
+
+  List<dynamic> _filteredExams(List<dynamic> exams) {
+    if (_selectedPaperType == 'All') return exams;
+    final type = _selectedPaperType.toLowerCase();
+    return exams.where((exam) {
+      final componentType = (exam.componentType ?? exam['component_type'] ?? '').toString().toLowerCase();
+      if (type == 'other') {
+        return componentType.isNotEmpty && componentType != 'exam' && componentType != 'quiz' && componentType != 'assignment';
+      }
+      return componentType == type;
+    }).toList();
   }
 
   Color get _scoreColor {
@@ -241,7 +298,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           '${_pageBytes.isEmpty ? 'No' : _pageBytes.length} page${_pageBytes.length != 1 ? 's' : ''} selected',
                           style: TextStyle(color: tp, fontWeight: FontWeight.w600, fontSize: 13),
                         ),
-                        if (_pageBytes.length > 0 && _pageBytes.length < 5) ...[
+                        if (_pageBytes.isNotEmpty && _pageBytes.length < 5) ...[
                           const SizedBox(width: 6),
                           Text('(max 5)', style: TextStyle(color: ts, fontSize: 11)),
                         ],
@@ -251,7 +308,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Student & Semester selection
+                // Student, Subject, Paper Type, and Exam selection
                 FadeSlideIn(
                   delay: const Duration(milliseconds: 100),
                   child: GlassCard(
@@ -263,24 +320,77 @@ class _ScannerScreenState extends State<ScannerScreen> {
                         _buildDropdown(
                           value: _selectedStudentId,
                           hint: 'Choose a student',
-                          items: students.map((s) => DropdownMenuItem(
+                          items: students.map((s) => DropdownMenuItem<String>(
                             value: s.id,
                             child: Text(s.fullName, style: TextStyle(color: tp)),
                           )).toList(),
                           onChanged: (v) => setState(() => _selectedStudentId = v),
                         ),
                         const SizedBox(height: 16),
-                        const Text('Select Semester', style: TextStyle(color: kAccent2, fontSize: 13)),
+                        const Text('Select Subject', style: TextStyle(color: kAccent2, fontSize: 13)),
                         const SizedBox(height: 8),
                         _buildDropdown(
-                          value: _selectedExamId,
-                          hint: 'Choose a semester',
-                          items: const [
-                            DropdownMenuItem(value: 'preliminary', child: Text('Preliminary Term', style: TextStyle(color: kAccent2))),
-                            DropdownMenuItem(value: 'midsemester', child: Text('Mid-Semester Term', style: TextStyle(color: kAccent2))),
-                            DropdownMenuItem(value: 'final', child: Text('Final Term', style: TextStyle(color: kAccent2))),
-                          ],
-                          onChanged: (v) => setState(() => _selectedExamId = v),
+                          value: _selectedSubjectId,
+                          hint: 'Choose a subject',
+                          items: _subjects.isEmpty
+                              ? []
+                              : _subjects.map((subject) {
+                                  final code = subject['code'] ?? '';
+                                  final name = subject['name'] ?? '';
+                                  return DropdownMenuItem<String>(
+                                    value: subject['id'] as String?,
+                                    child: Text('$code $name', style: TextStyle(color: tp)),
+                                  );
+                                }).toList(),
+                          onChanged: (v) {
+                            setState(() {
+                              _selectedSubjectId = v;
+                              _selectedExamId = null;
+                            });
+                            if (v != null) {
+                              Provider.of<ExamProvider>(context, listen: false).fetchExams(subjectId: v);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        const Text('Select Paper Type', style: TextStyle(color: kAccent2, fontSize: 13)),
+                        const SizedBox(height: 8),
+                        _buildDropdown(
+                          value: _selectedPaperType,
+                          hint: 'Choose paper type',
+                          items: _paperTypes.map((type) => DropdownMenuItem<String>(
+                            value: type,
+                            child: Text(type, style: TextStyle(color: tp)),
+                          )).toList(),
+                          onChanged: (v) => setState(() => _selectedPaperType = v ?? 'All'),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text('Select Exam', style: TextStyle(color: kAccent2, fontSize: 13)),
+                        const SizedBox(height: 8),
+                        Builder(
+                          builder: (context) {
+                            final exams = context.watch<ExamProvider>().exams;
+                            final filtered = _filteredExams(exams);
+                            final items = filtered.map((exam) {
+                              final examName = exam is Map ? (exam['name'] ?? 'Exam') : exam.name;
+                              final examId = exam is Map ? exam['id'] as String? : exam.id;
+                              return DropdownMenuItem<String>(
+                                value: examId,
+                                child: Text(examName.toString(), style: TextStyle(color: tp)),
+                              );
+                            }).toList();
+
+                            return _buildDropdown(
+                              value: _selectedExamId,
+                              hint: exams.isEmpty
+                                  ? 'Create an exam first'
+                                  : filtered.isEmpty
+                                      ? 'No exams match paper type'
+                                      : 'Choose an exam',
+                              items: items,
+                              onChanged: (v) => setState(() => _selectedExamId = v),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -478,6 +588,52 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           Text('Across ${_pageBytes.length} page${_pageBytes.length != 1 ? 's' : ''}',
                             style: TextStyle(color: ts, fontSize: 12),
                           ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+
+                if (!_isAnalyzing && _pageBytes.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  FadeSlideIn(
+                    delay: const Duration(milliseconds: 50),
+                    child: GlassCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Scan Summary', style: TextStyle(color: kAccent2, fontSize: 14, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 10),
+                          if (_scanMessage != null) ...[
+                            Text(_scanMessage!, style: TextStyle(color: tp)),
+                            const SizedBox(height: 8),
+                          ],
+                          if (_uploadMessage != null) ...[
+                            Text(_uploadMessage!, style: TextStyle(color: tp)),
+                            const SizedBox(height: 8),
+                          ],
+                          if (_uploadedFileInfo != null) ...[
+                            Text('Uploaded file: $_uploadedFileInfo', style: TextStyle(color: ts, fontSize: 12)),
+                            const SizedBox(height: 8),
+                          ],
+                          if (_visualizedImageUrl != null) ...[
+                            const Text('Preview', style: TextStyle(color: kAccent2, fontSize: 13)),
+                            const SizedBox(height: 8),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                _visualizedImageUrl!,
+                                height: 160,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => Container(
+                                  height: 160,
+                                  color: Colors.grey[900],
+                                  child: Center(child: Text('Could not load preview', style: TextStyle(color: ts))),
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
