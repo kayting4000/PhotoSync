@@ -21,6 +21,7 @@ import 'screens/email_screen.dart';
 import 'screens/subjects_screen.dart';
 import 'screens/sections_screen.dart';
 import 'screens/academic_terms_screen.dart';
+import 'screens/hierarchy_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -121,6 +122,10 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/academic-terms',
           pageBuilder: (_, __) => _slideUpPage(const AcademicTermsScreen()),
+        ),
+        GoRoute(
+          path: '/hierarchy',
+          pageBuilder: (_, __) => _slideUpPage(const HierarchyScreen()),
         ),
       ],
     );

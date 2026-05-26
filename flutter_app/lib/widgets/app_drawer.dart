@@ -132,6 +132,17 @@ class AppDrawer extends StatelessWidget {
                     isDark: isDark,
                   ),
                   _DrawerItem(
+                    icon: Icons.folder_rounded,
+                    label: 'Course Structure',
+                    route: '/hierarchy',
+                    currentRoute: currentRoute,
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/hierarchy');
+                    },
+                    isDark: isDark,
+                  ),
+                  _DrawerItem(
                     icon: Icons.group_rounded,
                     label: 'Sections',
                     route: '/sections',
