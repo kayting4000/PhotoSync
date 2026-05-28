@@ -23,7 +23,7 @@ class AppConfig {
 
   /// Your laptop's local IP address (only used when [useLocalBackend] is true)
   /// Use localhost for local development.
-  static const String localHost = '192.168.42.53';
+  static const String localHost = '192.168.180.53';
 
   /// Production backend URL (Render)
   static const String productionUrl = 'https://photosync-4pj7.onrender.com';
