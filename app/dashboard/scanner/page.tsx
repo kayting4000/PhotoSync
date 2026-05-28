@@ -1,20 +1,7 @@
 import { Suspense } from "react"
 import { createClient } from "@/lib/supabase/server"
 import { Skeleton } from "@/components/ui/skeleton"
-import dynamic from "next/dynamic"
-
-const TestScanner = dynamic(
-  () => import("@/components/scanner/test-scanner").then(mod => ({ default: mod.TestScanner })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Skeleton className="h-[500px]" />
-        <Skeleton className="h-[500px]" />
-      </div>
-    ),
-  }
-)
+import ClientScannerWrapper from "@/components/scanner/client-scanner-wrapper"
 
 export default async function ScannerPage() {
   const supabase = await createClient()
@@ -39,7 +26,7 @@ export default async function ScannerPage() {
           <Skeleton className="h-[500px]" />
         </div>
       }>
-        <TestScanner students={students ?? []} exams={exams ?? []} />
+        <ClientScannerWrapper students={students ?? []} exams={exams ?? []} />
       </Suspense>
     </div>
   )

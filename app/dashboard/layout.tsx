@@ -14,9 +14,15 @@ export default async function DashboardLayout({
     redirect("/auth/login")
   }
 
+  // Transform user to match expected type
+  const safeUser = {
+    id: user.id,
+    email: user.email ?? "",
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <DashboardNav user={user} />
+      <DashboardNav user={safeUser} />
       <main className="container mx-auto px-4 py-6">
         {children}
       </main>
