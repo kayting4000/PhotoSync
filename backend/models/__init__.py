@@ -10,6 +10,8 @@ from .student_subject import StudentSubject
 from .scoring_rule import ScoringRule
 from .section import Section
 from .academic_term import AcademicTerm
+from .attendance import Attendance
+from .gpa_config import GpaConfig
 
 TABLES = {
     "users": "users",

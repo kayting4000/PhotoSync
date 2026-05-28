@@ -21,6 +21,12 @@ import 'screens/email_screen.dart';
 import 'screens/subjects_screen.dart';
 import 'screens/sections_screen.dart';
 import 'screens/academic_terms_screen.dart';
+import 'screens/subject_sections_screen.dart';
+import 'screens/section_students_screen.dart';
+import 'screens/student_record_screen.dart';
+import 'models/subject.dart';
+import 'models/section.dart';
+import 'models/student.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -72,6 +78,8 @@ class MyApp extends StatelessWidget {
         final loc = state.matchedLocation;
         final isAuthScreen = loc == '/login' || loc == '/signup' || loc == '/splash';
         if (!isAuthenticated && !isAuthScreen) return '/login';
+        if (isAuthenticated && loc == '/login') return '/subjects';
+        if (isAuthenticated && loc == '/signup') return '/subjects';
         return null;
       },
       errorBuilder: (context, state) => Scaffold(
@@ -113,6 +121,40 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/subjects',
           pageBuilder: (_, __) => _slideUpPage(const SubjectsScreen()),
+          routes: [
+            GoRoute(
+              path: ':subjectId/sections',
+              pageBuilder: (_, state) {
+                final subject = state.extra as Subject;
+                return _slidePage(SubjectSectionsScreen(subject: subject));
+              },
+              routes: [
+                GoRoute(
+                  path: ':sectionId/students',
+                  pageBuilder: (_, state) {
+                    final extra = state.extra as Map<String, dynamic>;
+                    return _slidePage(SectionStudentsScreen(
+                      subject: extra['subject'] as Subject,
+                      section: extra['section'] as Section,
+                    ));
+                  },
+                  routes: [
+                    GoRoute(
+                      path: ':studentId',
+                      pageBuilder: (_, state) {
+                        final extra = state.extra as Map<String, dynamic>;
+                        return _slidePage(StudentRecordScreen(
+                          subject: extra['subject'] as Subject,
+                          section: extra['section'] as Section,
+                          student: extra['student'] as Student,
+                        ));
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
         GoRoute(
           path: '/sections',
