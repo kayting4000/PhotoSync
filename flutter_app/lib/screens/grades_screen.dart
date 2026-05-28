@@ -99,10 +99,10 @@ class _GradesScreenState extends State<GradesScreen> {
 
   List<Color> _gradeColors(String? grade) {
     switch (grade) {
-      case 'A+': case 'A': return [const Color(0xFF43E97B), const Color(0xFF38F9D7)];
-      case 'B+': case 'B': return [kAccent1, kAccent2];
-      case 'C+': case 'C': return [const Color(0xFFF7971E), const Color(0xFFFFD200)];
-      default: return [kAccent3, const Color(0xFFFF8FA3)];
+      case 'A+': case 'A': return [const Color(0xFF555555), const Color(0xFF777777)];
+      case 'B+': case 'B': return [const Color(0xFF666666), const Color(0xFF444444)];
+      case 'C+': case 'C': return [const Color(0xFF777777), const Color(0xFF555555)];
+      default: return [const Color(0xFF444444), const Color(0xFF666666)];
     }
   }
 
@@ -167,7 +167,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                 isExpanded: true,
                                 hint: Text('All Terms',
                                     style: TextStyle(color: context.textSecondary)),
-                                dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
+                                dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : lSurface,
                                 style: TextStyle(color: context.textPrimary),
                                 items: [
                                   DropdownMenuItem<String?>(
@@ -206,7 +206,7 @@ class _GradesScreenState extends State<GradesScreen> {
                             const SizedBox(height: 8),
                             ShaderMask(
                               shaderCallback: (bounds) =>
-                                  const LinearGradient(colors: [kAccent1, kAccent2])
+                                  const LinearGradient(colors: [Color(0xFF777777), Color(0xFF444444)])
                                       .createShader(bounds),
                               child: Text(
                                 _gpa.toStringAsFixed(2),
@@ -243,7 +243,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                 _StatItem(
                                   label: 'Highest',
                                   value: '$_highestScore%',
-                                  color: const Color(0xFF43E97B),
+                                  color: const Color(0xFF777777),
                                 ),
                                 _StatItem(
                                   label: 'Lowest',
@@ -269,7 +269,7 @@ class _GradesScreenState extends State<GradesScreen> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
+                                gradient: const LinearGradient(colors: [Color(0xFF666666), Color(0xFF444444)]),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(Icons.menu_book_rounded, color: Colors.white, size: 16),
@@ -334,7 +334,7 @@ class _GradesScreenState extends State<GradesScreen> {
                           Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(colors: [Color(0xFF43E97B), Color(0xFF38F9D7)]),
+                              gradient: const LinearGradient(colors: [Color(0xFF555555), Color(0xFF777777)]),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(Icons.pie_chart_rounded, color: Colors.white, size: 16),
@@ -389,7 +389,7 @@ class _GradesScreenState extends State<GradesScreen> {
                           Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(colors: [Color(0xFFFF6584), Color(0xFFFF8FA3)]),
+                              gradient: const LinearGradient(colors: [Color(0xFF444444), Color(0xFF666666)]),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(Icons.assignment_rounded, color: Colors.white, size: 16),

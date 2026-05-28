@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/subject_provider.dart';
 import '../providers/section_provider.dart';
-import '../providers/student_provider.dart';
-import '../models/subject.dart';
+// Removed unused import: '../providers/student_provider.dart'
 import '../models/section.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_drawer.dart';
@@ -54,7 +53,7 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Add Student to ${section.label}',
+              Text('Add Student to Section ${section.sectionLabel}',
                   style: TextStyle(
                       color: context.textPrimary,
                       fontSize: 18,
@@ -83,34 +82,15 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                       onTap: () => Navigator.pop(context),
                       child: const Center(
                         child: Text('Cancel',
-                            style: TextStyle(color: kAccent2)),
+                            style: TextStyle(color: kAccent1)),
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: GradientButton(
-                      colors: const [kAccent2, kAccent1],
                       onPressed: () async {
-                        final student = {
-                          'name': nameController.text,
-                          'student_id': idController.text,
-                          'email': emailController.text,
-                          'section_id': section.id,
-                        };
-                        final provider = context.read<StudentProvider>();
-                        final messenger = ScaffoldMessenger.of(context);
-                        final nav = Navigator.of(context);
-                        // TODO: Implement addStudent in StudentProvider
-                        // final success = await provider.addStudent(student);
-                        // if (success && mounted) {
-                        //   nav.pop();
-                        //   messenger.showSnackBar(
-                        //     const SnackBar(
-                        //         content: Text('Student added!'),
-                        //         backgroundColor: kAccent2),
-                        //   );
-                        // }
+                        
                       },
                       child: const Text('Add',
                           style: TextStyle(
@@ -147,7 +127,7 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                           padding: EdgeInsets.all(10),
                           borderRadius: 12,
                           child: Icon(Icons.menu_rounded,
-                              color: kAccent2, size: 20),
+                              color: kAccent1, size: 20),
                         ),
                       ),
                     ),
@@ -167,7 +147,7 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                   builder: (context, subjectProvider, sectionProvider, _) {
                     if (subjectProvider.isLoading) {
                       return const Center(
-                          child: CircularProgressIndicator(color: kAccent2));
+                          child: CircularProgressIndicator(color: kAccent1));
                     }
 
                     if (subjectProvider.subjects.isEmpty) {
@@ -178,7 +158,7 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(Icons.folder_outlined,
-                                  size: 64, color: kAccent2),
+                                  size: 64, color: kAccent1),
                               const SizedBox(height: 16),
                               Text('No subjects yet',
                                   style: TextStyle(
@@ -220,7 +200,7 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                     width: 32,
                                     height: 32,
                                     decoration: BoxDecoration(
-                                      color: kAccent2.withOpacity(0.2),
+                                      color: kAccent1.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Center(
@@ -228,7 +208,7 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                         isExpanded
                                             ? Icons.expand_more_rounded
                                             : Icons.chevron_right_rounded,
-                                        color: kAccent2,
+                                        color: kAccent1,
                                         size: 20,
                                       ),
                                     ),
@@ -239,7 +219,7 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                     isExpanded
                                         ? Icons.folder_open_rounded
                                         : Icons.folder_rounded,
-                                    color: kAccent1,
+                                    color: kAccent2,
                                     size: 24,
                                   ),
                                   const SizedBox(width: 12),
@@ -266,13 +246,13 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: kAccent2.withOpacity(0.2),
+                                      color: kAccent1.withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
                                       '${sections.length}',
                                       style: const TextStyle(
-                                          color: kAccent2,
+                                          color: kAccent1,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 12),
                                     ),
@@ -331,7 +311,7 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                                         horizontal: 12,
                                                         vertical: 10),
                                                     color: isSelected
-                                                        ? kAccent2.withOpacity(
+                                                        ? kAccent1.withOpacity(
                                                             0.15)
                                                         : null,
                                                     onTap: () =>
@@ -345,7 +325,7 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                                           height: 28,
                                                           decoration:
                                                               BoxDecoration(
-                                                            color: kAccent1
+                                                            color: kAccent2
                                                                 .withOpacity(0.2),
                                                             borderRadius:
                                                                 BorderRadius
@@ -353,9 +333,9 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                                           ),
                                                           child: Center(
                                                             child: Text(
-                                                              section.label,
+                                                              section.sectionLabel,
                                                               style: const TextStyle(
-                                                                  color: kAccent1,
+                                                                  color: kAccent2,
                                                                   fontWeight:
                                                                       FontWeight
                                                                           .bold,
@@ -372,7 +352,7 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                                                     .start,
                                                             children: [
                                                               Text(
-                                                                'Section ${section.label}',
+                                                                'Section ${section.sectionLabel}',
                                                                 style: TextStyle(
                                                                     color: context
                                                                         .textPrimary,
@@ -382,17 +362,14 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                                                     fontSize:
                                                                         13),
                                                               ),
-                                                              if (section
-                                                                  .roomNumber !=
-                                                                  null)
-                                                                Text(
-                                                                  'Room: ${section.roomNumber}',
-                                                                  style: TextStyle(
-                                                                      color: context
-                                                                          .textSecondary,
-                                                                      fontSize:
-                                                                          11),
-                                                                ),
+                                                              Text(
+                                                                'Room: ${section.roomNumber}',
+                                                                style: TextStyle(
+                                                                    color: context
+                                                                        .textSecondary,
+                                                                    fontSize:
+                                                                        11),
+                                                              ),
                                                             ],
                                                           ),
                                                         ),
@@ -408,9 +385,8 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                                                       .all(8),
                                                               decoration:
                                                                   BoxDecoration(
-                                                                color: kAccent2
-                                                                    .withOpacity(
-                                                                        0.3),
+                                                                color: kAccent1
+                                                                    .withValues(alpha: 0.3),
                                                                 borderRadius:
                                                                     BorderRadius
                                                                         .circular(
@@ -419,7 +395,7 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                                               child: const Icon(
                                                                 Icons
                                                                     .person_add_rounded,
-                                                                color: kAccent2,
+                                                                color: kAccent1,
                                                                 size: 18,
                                                               ),
                                                             ),
@@ -443,20 +419,20 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                                       onTap: () =>
                                                           _showAddStudentDialog(
                                                               section),
-                                                      child: Row(
+                                                      child: const Row(
                                                         children: [
-                                                          const Icon(
+                                                          Icon(
                                                             Icons
                                                                 .person_add_rounded,
-                                                            color: kAccent2,
+                                                            color: kAccent1,
                                                             size: 18,
                                                           ),
-                                                          const SizedBox(
+                                                          SizedBox(
                                                               width: 8),
                                                           Text(
                                                             'Add Student',
                                                             style: TextStyle(
-                                                                color: kAccent2,
+                                                                color: kAccent1,
                                                                 fontSize: 12,
                                                                 fontWeight:
                                                                     FontWeight

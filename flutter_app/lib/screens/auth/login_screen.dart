@@ -61,11 +61,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
+                      gradient: const LinearGradient(colors: [Color(0xFF555555), Color(0xFF333333)]),
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: kAccent1.withValues(alpha: 0.5),
+                          color: Colors.black.withValues(alpha: 0.3),
                           blurRadius: 24,
                           offset: const Offset(0, 8),
                         ),
@@ -189,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Text(
                           'Sign up',
                           style: TextStyle(
-                            color: kAccent2,
+                            color: kAccent1,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

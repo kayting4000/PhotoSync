@@ -102,12 +102,23 @@ class AppDrawer extends StatelessWidget {
                   const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                    child: Text('MANAGE',
+                    child: Text('WORKSPACE',
                         style: TextStyle(
                             color: ts,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 1.2)),
+                  ),
+                  _DrawerItem(
+                    icon: Icons.document_scanner_rounded,
+                    label: 'Scanner',
+                    route: '/scanner',
+                    currentRoute: currentRoute,
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/scanner');
+                    },
+                    isDark: isDark,
                   ),
                   _DrawerItem(
                     icon: Icons.people_rounded,
@@ -128,17 +139,6 @@ class AppDrawer extends StatelessWidget {
                     onTap: () {
                       Navigator.pop(context);
                       context.go('/subjects');
-                    },
-                    isDark: isDark,
-                  ),
-                  _DrawerItem(
-                    icon: Icons.folder_rounded,
-                    label: 'Course Structure',
-                    route: '/hierarchy',
-                    currentRoute: currentRoute,
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.go('/hierarchy');
                     },
                     isDark: isDark,
                   ),
@@ -165,13 +165,13 @@ class AppDrawer extends StatelessWidget {
                     isDark: isDark,
                   ),
                   _DrawerItem(
-                    icon: Icons.document_scanner_rounded,
-                    label: 'Scanner',
-                    route: '/scanner',
+                    icon: Icons.folder_rounded,
+                    label: 'Course Structure',
+                    route: '/hierarchy',
                     currentRoute: currentRoute,
                     onTap: () {
                       Navigator.pop(context);
-                      context.go('/scanner');
+                      context.go('/hierarchy');
                     },
                     isDark: isDark,
                   ),

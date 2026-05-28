@@ -2,37 +2,35 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-// ─── Dark Mode Colors ───────────────────────────────────────────────────
-const dBg1 = Color(0xFF0A0E27);
-const dBg2 = Color(0xFF0D1B4B);
-const dAccent1 = Color(0xFF6C63FF);
-const dAccent2 = Color(0xFF48CAE4);
-const dAccent3 = Color(0xFFFF6584);
-const dGlass = Color(0x1AFFFFFF);
-const dGlassBorder = Color(0x33FFFFFF);
+// ─── Dark Mode Colors (Purple Glassmorphism) ─────────────────────────────
+const dBg1 = Color(0xFF32157E);       // Deep purple
+const dBg2 = Color(0xFF5A2BCC);       // Medium purple
+const dAccent1 = Color(0xFF7C4DFF);   // Vibrant purple
+const dAccent2 = Color(0xFFB388FF);   // Light purple
+const dAccent3 = Color(0xFFE040FB);   // Magenta purple
+const dGlass = Color(0x22FFFFFF);
+const dGlassBorder = Color(0x40FFFFFF);
 const dTextPrimary = Colors.white;
-const dTextSecondary = Color(0xAAFFFFFF);
+const dTextSecondary = Color(0xCCFFFFFF);
 
-// ─── Light Mode Colors (Neumorphic Sky Blue Theme) ────────────────────
-// Neumorphic base background (light sky blue)
-const lBgBase = Color(0xFFE0F0FF);    // Soft light blue background
-const lBgStart = Color(0xFFB8D8F0);   // Slightly darker for shadows
-const lBgMid = Color(0xFFE0F0FF);     // Medium base
-const lBgEnd = Color(0xFFF5FBFF);     // Lighter for highlights
-const lSurface = Color(0xFFE0F0FF);   // Neumorphic surface color
-const lAccent1 = Color(0xFF6C63FF);
-const lAccent2 = Color(0xFF48CAE4);
-const lAccent3 = Color(0xFFFF6584);
-// Neumorphic glass/container colors
-const lGlass = Color(0xFFE0F0FF);     // Neumorphic surface base
-const lGlassBorder = Colors.transparent; // No borders for neumorphism
-const lTextPrimary = Color(0xFF2D3748);   // Dark gray (near-black) for readability
-const lTextSecondary = Color(0xFF4A5568); // Medium-dark gray for secondary text
+// ─── Light Mode Colors (Purple Glass) ──────────────────────────────────
+const lBgBase = Color(0xFFF2EDFF);    // Soft lavender
+const lBgStart = Color(0xFFEDE2FF);   // Warm violet
+const lBgMid = Color(0xFFF7F2FF);     // Pale glass
+const lBgEnd = Color(0xFFEFF7FF);     // Cool blue mist
+const lSurface = Color(0xFFF7F2FF);
+const lAccent1 = Color(0xFF7C4DFF);   // Purple
+const lAccent2 = Color(0xFFB388FF);   // Light purple
+const lAccent3 = Color(0xFFE040FB);   // Magenta
+const lGlass = Color(0x99FFFFFF);
+const lGlassBorder = Color(0x66FFFFFF);
+const lTextPrimary = Color(0xFF2D1B69);   // Deep dark purple
+const lTextSecondary = Color(0xFF6A5ACD); // Medium purple
 
 // ─── Shared constants ───────────────────────────────────────────────────
-const kAccent1 = Color(0xFF6C63FF);
-const kAccent2 = Color(0xFF48CAE4);
-const kAccent3 = Color(0xFFFF6584);
+const kAccent1 = Color(0xFF7C4DFF);   // Purple
+const kAccent2 = Color(0xFFB388FF);   // Light purple
+const kAccent3 = Color(0xFFE040FB);   // Magenta
 
 // Backward-compatible aliases
 const kBg1 = dBg1;
@@ -78,35 +76,26 @@ class AppBackground extends StatelessWidget {
               ? const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [dBg1, dBg2, Color(0xFF1A0533)],
-                  stops: [0.0, 0.5, 1.0],
+                  colors: [dBg1, dBg2, Color(0xFF190C3D)],
+                  stops: [0.0, 0.45, 1.0],
                 )
               : const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    lBgStart,
-                    lBgBase,
-                    lBgEnd,
-                  ],
-                  stops: [0.0, 0.5, 1.0],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [lBgStart, lBgMid, lBgEnd],
+                  stops: [0.0, 0.45, 1.0],
                 ),
         ),
         child: ClipRect(
           child: Stack(
             children: [
-              // Remove cloud texture and backdrop blur for clean neumorphic design in light mode
-              if (isDark)
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: _CloudTexturePainter(),
-                  ),
-                ),
-              if (isDark)
-                BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                  child: Container(color: Colors.black.withValues(alpha: 0)),
-                ),
+              Positioned.fill(
+                child: CustomPaint(painter: _CloudTexturePainter()),
+              ),
+              BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                child: Container(color: Colors.white.withValues(alpha: isDark ? 0.02 : 0.12)),
+              ),
               child,
             ],
           ),
@@ -116,13 +105,10 @@ class AppBackground extends StatelessWidget {
   }
 }
 
-// Cloud texture painter for light mode background
 class _CloudTexturePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..style = PaintingStyle.fill;
-    
-    // Soft white cloud-like patches
     for (int i = 0; i < 8; i++) {
       final x = (i * 0.137 + 0.3) * size.width;
       final y = (i * 0.124 + 0.1) * size.height;
@@ -130,8 +116,6 @@ class _CloudTexturePainter extends CustomPainter {
       paint.color = Colors.white.withValues(alpha: 0.12 - i * 0.01);
       canvas.drawCircle(Offset(x % size.width, y % size.height), radius, paint);
     }
-    
-    // Subtle wispy clouds
     for (int i = 0; i < 5; i++) {
       final x = (i * 0.2 + 0.1) * size.width;
       final y = (i * 0.18 + 0.6) * size.height;
@@ -144,7 +128,6 @@ class _CloudTexturePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// Glass card with support for both frosted glass (dark mode) and neumorphism (light mode)
 class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -152,7 +135,7 @@ class GlassCard extends StatelessWidget {
   final Color? color;
   final VoidCallback? onTap;
   final double blurIntensity;
-  final bool? flat; // Disable neumorphic shadows if needed
+  final bool? flat;
 
   const GlassCard({
     super.key,
@@ -168,60 +151,35 @@ class GlassCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = color ?? (isDark ? dGlass : lGlass);
-    final borderColor = isDark ? dGlassBorder : lGlassBorder;
+    final bgColor = color ?? (isDark ? dGlass : lGlass.withValues(alpha: 0.75));
+    final borderColor = color != null ? color!.withValues(alpha: 0.35) : (isDark ? dGlassBorder : lGlassBorder);
 
-    Widget card;
-
-    if (isDark) {
-      // Dark mode: keep original frosted glass effect
-      card = ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: blurIntensity,
-            sigmaY: blurIntensity,
-          ),
-          child: Container(
-            padding: padding ?? const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(borderRadius),
-              border: Border.all(color: borderColor, width: 1.2),
+    Widget card = ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: blurIntensity, sigmaY: blurIntensity),
+        child: Container(
+          padding: padding ?? const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [bgColor.withValues(alpha: 0.95), bgColor.withValues(alpha: 0.45)],
             ),
-            child: child,
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: Border.all(color: borderColor, width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: isDark ? Colors.black.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.08),
+                blurRadius: 28,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
+          child: child,
         ),
-      );
-    } else {
-      // Light mode: neumorphic design with soft shadows
-      List<BoxShadow> neumorphicShadows = flat! ? [] : [
-        // Darker blue shadow (bottom-right) - matches sky theme
-        BoxShadow(
-          color: const Color(0xFF90B8D8).withValues(alpha: 0.6),
-          offset: const Offset(8, 8),
-          blurRadius: 16,
-          spreadRadius: -4,
-        ),
-        // Lighter sky blue highlight (top-left)
-        BoxShadow(
-          color: Colors.white.withValues(alpha: 0.9),
-          offset: const Offset(-8, -8),
-          blurRadius: 16,
-          spreadRadius: -4,
-        ),
-      ];
-
-      card = Container(
-        padding: padding ?? const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(borderRadius),
-          boxShadow: neumorphicShadows,
-        ),
-        child: child,
-      );
-    }
+      ),
+    );
 
     if (onTap != null) {
       card = Material(
@@ -230,8 +188,8 @@ class GlassCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(borderRadius),
-          splashColor: isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFF3182CE).withValues(alpha: 0.08),
-          highlightColor: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFF3182CE).withValues(alpha: 0.05),
+          splashColor: isDark ? Colors.white.withValues(alpha: 0.1) : kAccent1.withValues(alpha: 0.12),
+          highlightColor: isDark ? Colors.white.withValues(alpha: 0.06) : kAccent1.withValues(alpha: 0.08),
           child: card,
         ),
       );
@@ -277,18 +235,9 @@ class GlassTextField extends StatelessWidget {
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: isDark ? dGlass : lGlass,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: isDark ? dGlassBorder : lGlassBorder),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: isDark ? dGlassBorder : lGlassBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: kAccent1, width: 1.5),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: isDark ? dGlassBorder : lGlassBorder)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: isDark ? dGlassBorder : lGlassBorder)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: kAccent1, width: 1.5)),
       ),
     );
   }
@@ -309,27 +258,28 @@ class GradientButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final disabled = onPressed == null;
+    final activeColors = disabled ? [Colors.grey.shade400, Colors.grey.shade300] : colors;
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: disabled
-              ? [Colors.grey.shade400, Colors.grey.shade300]
-              : colors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: activeColors,
         ),
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: disabled ? [] : [
-          BoxShadow(
-            color: colors.first.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: disabled
+            ? []
+            : [
+                BoxShadow(color: activeColors.first.withValues(alpha: 0.25), blurRadius: 22, offset: const Offset(0, 8)),
+              ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
+          splashColor: Colors.white.withValues(alpha: 0.18),
+          highlightColor: Colors.white.withValues(alpha: 0.08),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             alignment: Alignment.center,
@@ -360,14 +310,8 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    );
-    _scaleAnim = CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeOutBack,
-    );
+    _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
+    _scaleAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOutBack);
   }
 
   @override
@@ -407,7 +351,7 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
       return 'You can toggle between dark and light mode from the sidebar menu.';
     }
     if (q.contains('creator') || q.contains('who made') || q.contains('team') || q.contains('developer')) {
-      return 'PhotoSync was built by:\n• Habibun-najal Kayting (Lead Developer)\n• Hareeja Montenegro (Sub-dev & QA)\n• Mohd Shaffiqh (Sub-dev & Documentation)';
+      return 'PhotoSync was built by:\n\u2022 Habibun-najal Kayting (Lead Developer)\n\u2022 Hareeja Montenegro (Sub-dev & QA)\n\u2022 Mohd Shaffiqh (Sub-dev & Documentation)';
     }
     return 'Hi! I can help you navigate PhotoSync. Ask me about students, subjects, scanning, grades, or emails.';
   }
@@ -426,8 +370,7 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
             scale: _scaleAnim,
             alignment: Alignment.bottomRight,
             child: Container(
-              width: 300,
-              height: 380,
+              width: 300, height: 380,
               margin: const EdgeInsets.only(bottom: 72, right: 4),
               decoration: BoxDecoration(
                 color: chatBg,
@@ -446,32 +389,14 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
                       children: [
                         const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
                         const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text('PhotoSync AI',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        ),
-                        GestureDetector(
-                          onTap: _toggle,
-                          child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
-                        ),
+                        const Expanded(child: Text('PhotoSync AI', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                        GestureDetector(onTap: _toggle, child: const Icon(Icons.close_rounded, color: Colors.white, size: 18)),
                       ],
                     ),
                   ),
                   Expanded(
                     child: _messages.isEmpty
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Text(
-                              'Hi! Ask me anything about PhotoSync 👋',
-                                style: TextStyle(
-                                  color: isDark ? dTextSecondary : lTextSecondary,
-                                  fontSize: 13,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          )
+                        ? Center(child: Padding(padding: const EdgeInsets.all(16), child: Text('Hi! Ask me anything about PhotoSync \u{1F44B}', style: TextStyle(color: isDark ? dTextSecondary : lTextSecondary, fontSize: 13), textAlign: TextAlign.center)))
                         : ListView.builder(
                             padding: const EdgeInsets.all(12),
                             itemCount: _messages.length,
@@ -485,18 +410,12 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   constraints: const BoxConstraints(maxWidth: 220),
                                   decoration: BoxDecoration(
-                                    gradient: isUser
-                                        ? const LinearGradient(colors: [kAccent1, kAccent2])
-                                        : null,
+                                    gradient: isUser ? const LinearGradient(colors: [kAccent1, kAccent2]) : null,
                                     color: isUser ? null : msgBg,
                                     borderRadius: BorderRadius.circular(12),
                                     border: isUser ? null : Border.all(color: isDark ? dGlassBorder : lGlassBorder),
                                   ),
-                                  child: Text(msg['text']!,
-                                      style: TextStyle(
-                                        color: isUser ? Colors.white : (isDark ? dTextPrimary : lTextPrimary),
-                                        fontSize: 12,
-                                      )),
+                                  child: Text(msg['text']!, style: TextStyle(color: isUser ? Colors.white : (isDark ? dTextPrimary : lTextPrimary), fontSize: 12)),
                                 ),
                               );
                             },
@@ -509,31 +428,15 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
                         Expanded(
                           child: TextField(
                             controller: _controller,
-                            style: TextStyle(
-                              color: isDark ? dTextPrimary : lTextPrimary,
-                              fontSize: 13,
-                            ),
+                            style: TextStyle(color: isDark ? dTextPrimary : lTextPrimary, fontSize: 13),
                             decoration: InputDecoration(
                               hintText: 'Ask something...',
-                              hintStyle: TextStyle(
-                                color: isDark ? dTextSecondary : lTextSecondary,
-                                fontSize: 12,
-                              ),
-                              filled: true,
-                              fillColor: msgBg,
+                              hintStyle: TextStyle(color: isDark ? dTextSecondary : lTextSecondary, fontSize: 12),
+                              filled: true, fillColor: msgBg,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: isDark ? dGlassBorder : lGlassBorder),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: isDark ? dGlassBorder : lGlassBorder),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: kAccent1, width: 1.5),
-                              ),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? dGlassBorder : lGlassBorder)),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? dGlassBorder : lGlassBorder)),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: kAccent1, width: 1.5)),
                             ),
                             onSubmitted: (_) => _sendMessage(),
                           ),
@@ -560,18 +463,11 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
         GestureDetector(
           onTap: _toggle,
           child: Container(
-            width: 56,
-            height: 56,
+            width: 56, height: 56,
             decoration: BoxDecoration(
               gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: kAccent1.withValues(alpha: 0.4),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              boxShadow: [BoxShadow(color: kAccent1.withValues(alpha: 0.4), blurRadius: 12, offset: const Offset(0, 4))],
             ),
             child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 26),
           ),
@@ -584,21 +480,12 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
 ThemeData buildDarkTheme() {
   return ThemeData(
     brightness: Brightness.dark,
-    colorScheme: const ColorScheme.dark(
-      primary: kAccent1,
-      secondary: kAccent2,
-      surface: dBg1,
-    ),
+    colorScheme: const ColorScheme.dark(primary: kAccent1, secondary: kAccent2, surface: dBg1),
     useMaterial3: true,
     scaffoldBackgroundColor: Colors.transparent,
     appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      titleTextStyle: TextStyle(
-        color: dTextPrimary,
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-      ),
+      backgroundColor: Colors.transparent, elevation: 0,
+      titleTextStyle: TextStyle(color: dTextPrimary, fontSize: 20, fontWeight: FontWeight.w600),
       iconTheme: IconThemeData(color: dTextPrimary),
     ),
     textTheme: const TextTheme(
@@ -615,21 +502,12 @@ ThemeData buildDarkTheme() {
 ThemeData buildLightTheme() {
   return ThemeData(
     brightness: Brightness.light,
-    colorScheme: const ColorScheme.light(
-      primary: kAccent1,
-      secondary: kAccent2,
-      surface: lBgStart,
-    ),
+    colorScheme: const ColorScheme.light(primary: lAccent1, secondary: lAccent2, surface: lBgStart),
     useMaterial3: true,
     scaffoldBackgroundColor: Colors.transparent,
     appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      titleTextStyle: TextStyle(
-        color: lTextPrimary,
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-      ),
+      backgroundColor: Colors.transparent, elevation: 0,
+      titleTextStyle: TextStyle(color: lTextPrimary, fontSize: 20, fontWeight: FontWeight.w600),
       iconTheme: IconThemeData(color: lTextPrimary),
     ),
     textTheme: const TextTheme(

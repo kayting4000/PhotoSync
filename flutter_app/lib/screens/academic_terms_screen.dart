@@ -63,7 +63,7 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
                       child: DropdownButton<String>(
                         value: termType,
                         isExpanded: true,
-                        dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
+                        dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : lSurface,
                         style: TextStyle(color: context.textPrimary),
                         items: const [
                           DropdownMenuItem(
@@ -122,8 +122,8 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
                       Theme(
                         data: Theme.of(context).copyWith(
                           colorScheme: const ColorScheme.dark(
-                            primary: kAccent1,
-                            secondary: kAccent2,
+                            primary: Color(0xFF555555),
+                            secondary: Color(0xFF777777),
                           ),
                         ),
                         child: Checkbox(
@@ -149,7 +149,7 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
                           onTap: () => Navigator.pop(context),
                           child: const Center(
                             child: Text('Cancel',
-                                style: TextStyle(color: kAccent2)),
+                                style: TextStyle(color: kAccent1)),
                           ),
                         ),
                       ),
@@ -161,7 +161,7 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                     content: Text('Please enter a term name'),
-                                    backgroundColor: Colors.red),
+                                    backgroundColor: Color(0xFF444444)),
                               );
                               return;
                             }
@@ -183,7 +183,7 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
                               messenger.showSnackBar(
                                 const SnackBar(
                                     content: Text('Term added!'),
-                                    backgroundColor: kAccent1),
+                                    backgroundColor: kAccent2),
                               );
                             }
                           },
@@ -245,7 +245,7 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
                       child: DropdownButton<String>(
                         value: termType,
                         isExpanded: true,
-                        dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
+                        dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : lSurface,
                         style: TextStyle(color: context.textPrimary),
                         items: const [
                           DropdownMenuItem(
@@ -304,8 +304,8 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
                       Theme(
                         data: Theme.of(context).copyWith(
                           colorScheme: const ColorScheme.dark(
-                            primary: kAccent1,
-                            secondary: kAccent2,
+                            primary: Color(0xFF555555),
+                            secondary: Color(0xFF777777),
                           ),
                         ),
                         child: Checkbox(
@@ -331,7 +331,7 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
                           onTap: () => Navigator.pop(context),
                           child: const Center(
                             child: Text('Cancel',
-                                style: TextStyle(color: kAccent2)),
+                                style: TextStyle(color: kAccent1)),
                           ),
                         ),
                       ),
@@ -359,7 +359,7 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
                               messenger.showSnackBar(
                                 const SnackBar(
                                     content: Text('Term updated!'),
-                                    backgroundColor: kAccent1),
+                                    backgroundColor: kAccent2),
                               );
                             }
                           },
@@ -401,7 +401,7 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
                           padding: EdgeInsets.all(10),
                           borderRadius: 12,
                           child: Icon(Icons.menu_rounded,
-                              color: kAccent2, size: 20),
+                              color: kAccent1, size: 20),
                         ),
                       ),
                     ),
@@ -423,23 +423,23 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
                           child: CircularProgressIndicator(color: kAccent1));
                     }
                     if (provider.terms.isEmpty) {
-                      return Center(
+                      return const Center(
                         child: GlassCard(
-                          padding: const EdgeInsets.all(40),
-                          child: const Column(
+                          padding: EdgeInsets.all(40),
+                          child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.calendar_month_outlined,
-                                  size: 64, color: kAccent2),
+                                  size: 64, color: kAccent1),
                               SizedBox(height: 16),
                               Text('No academic terms yet',
                                   style: TextStyle(
-                                      color: kAccent2,
+                                      color: kAccent1,
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600)),
                               SizedBox(height: 8),
                               Text('Tap + to create a term',
-                                  style: TextStyle(color: kAccent2)),
+                                  style: TextStyle(color: kAccent1)),
                             ],
                           ),
                         ),
@@ -463,9 +463,9 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
                                   decoration: BoxDecoration(
                                     gradient: term.isCurrent
                                         ? const LinearGradient(
-                                            colors: [kAccent1, kAccent2])
+                                            colors: [Color(0xFF666666), Color(0xFF444444)])
                                         : const LinearGradient(
-                                            colors: [kAccent2, kAccent1]),
+                                            colors: [Color(0xFF555555), Color(0xFF777777)]),
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                   child: Icon(
@@ -523,13 +523,13 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
                                 ),
                                 PopupMenuButton(
                                   icon: const Icon(Icons.more_vert_rounded,
-                                      color: kAccent2),
-                                  color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
+                                      color: kAccent1),
+                                  color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : lSurface,
                                   itemBuilder: (_) => [
                                     PopupMenuItem(
                                       child: const Text('Edit',
                                           style:
-                                              TextStyle(color: kAccent2)),
+                                              TextStyle(color: kAccent1)),
                                       onTap: () => _showEditDialog(term),
                                     ),
                                     PopupMenuItem(
@@ -557,11 +557,11 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
       ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
+          gradient: const LinearGradient(colors: [Color(0xFF666666), Color(0xFF444444)]),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: kAccent1.withValues(alpha: 0.5),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 8)),
           ],

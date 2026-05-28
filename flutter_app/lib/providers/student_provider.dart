@@ -39,8 +39,12 @@ class StudentProvider extends ChangeNotifier {
       await api.post('/students/', {
         'student_id': student.studentId,
         'first_name': student.firstName,
+        if (student.middleInitial != null && student.middleInitial!.isNotEmpty)
+          'middle_initial': student.middleInitial,
         'last_name': student.lastName,
         'email': student.email,
+        if (student.parentGuardianEmail != null && student.parentGuardianEmail!.isNotEmpty)
+          'parent_guardian_email': student.parentGuardianEmail,
         'course': student.course,
         'year_level': student.yearLevel,
         if (student.sectionId != null) 'section_id': student.sectionId,
@@ -59,8 +63,12 @@ class StudentProvider extends ChangeNotifier {
       final body = <String, dynamic>{
         'student_id': student.studentId,
         'first_name': student.firstName,
+        if (student.middleInitial != null && student.middleInitial!.isNotEmpty)
+          'middle_initial': student.middleInitial,
         'last_name': student.lastName,
         'email': student.email,
+        if (student.parentGuardianEmail != null && student.parentGuardianEmail!.isNotEmpty)
+          'parent_guardian_email': student.parentGuardianEmail,
         'course': student.course,
         'year_level': student.yearLevel,
         if (student.sectionId != null) 'section_id': student.sectionId,

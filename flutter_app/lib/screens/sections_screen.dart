@@ -47,7 +47,6 @@ class _SectionsScreenState extends State<SectionsScreen> {
                 builder: (context, setState) => Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Subject dropdown
                     Consumer<SubjectProvider>(
                       builder: (context, subjectProvider, _) {
                         if (subjectProvider.isLoading) {
@@ -65,7 +64,7 @@ class _SectionsScreenState extends State<SectionsScreen> {
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.08),
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: kAccent2.withOpacity(0.3)),
+                              border: Border.all(color: kAccent1.withOpacity(0.3)),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,18 +86,18 @@ class _SectionsScreenState extends State<SectionsScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: kAccent2.withOpacity(0.3)),
+                            border: Border.all(color: kAccent1.withOpacity(0.3)),
                           ),
                           child: DropdownButton<String>(
                             isExpanded: true,
                             underline: const SizedBox(),
-                            hint: const Text('Select Subject', style: TextStyle(color: kAccent2)),
+                            hint: const Text('Select Subject', style: TextStyle(color: kAccent1)),
                             value: selectedSubjectId.isEmpty ? null : selectedSubjectId,
-                            dropdownColor: const Color(0xFF1a1a2e),
+                            dropdownColor: const Color(0xFF1A1A1A),
                             items: [
                               DropdownMenuItem(
                                 value: '',
-                                child: Text('Select Subject', style: TextStyle(color: kAccent2.withOpacity(0.9))),
+                                child: Text('Select Subject', style: TextStyle(color: kAccent1.withOpacity(0.9))),
                               ),
                               ...subjectProvider.subjects.map(
                                 (subject) => DropdownMenuItem(
@@ -120,19 +119,18 @@ class _SectionsScreenState extends State<SectionsScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    // Section label dropdown
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: kAccent2.withOpacity(0.3)),
+                        border: Border.all(color: kAccent1.withOpacity(0.3)),
                       ),
                       child: DropdownButton<String>(
                         isExpanded: true,
                         underline: const SizedBox(),
                         value: selectedSectionLabel,
-                        dropdownColor: const Color(0xFF1a1a2e),
+                        dropdownColor: const Color(0xFF1A1A1A),
                         items: ['A', 'B', 'C', 'D', 'E']
                             .map((label) => DropdownMenuItem(
                                   value: label,
@@ -147,7 +145,6 @@ class _SectionsScreenState extends State<SectionsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Room number input
                     GlassTextField(
                         controller: roomNumberController,
                         label: 'Room Number',
@@ -165,7 +162,7 @@ class _SectionsScreenState extends State<SectionsScreen> {
                       onTap: () => Navigator.pop(context),
                       child: const Center(
                         child: Text('Cancel',
-                            style: TextStyle(color: kAccent2)),
+                            style: TextStyle(color: kAccent1)),
                       ),
                     ),
                   ),
@@ -177,7 +174,7 @@ class _SectionsScreenState extends State<SectionsScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text('Please select a subject'),
-                                backgroundColor: Colors.red),
+                                backgroundColor: Color(0xFF444444)),
                           );
                           return;
                         }
@@ -185,7 +182,7 @@ class _SectionsScreenState extends State<SectionsScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text('Please enter a room number'),
-                                backgroundColor: Colors.red),
+                                backgroundColor: Color(0xFF444444)),
                           );
                           return;
                         }
@@ -203,13 +200,13 @@ class _SectionsScreenState extends State<SectionsScreen> {
                           messenger.showSnackBar(
                             const SnackBar(
                                 content: Text('Section added!'),
-                                backgroundColor: kAccent1),
+                                backgroundColor: kAccent2),
                           );
                         } else if (mounted) {
                           messenger.showSnackBar(
                             SnackBar(
                               content: Text(provider.errorMessage ?? 'Failed to add section'),
-                              backgroundColor: Colors.red,
+                              backgroundColor: const Color(0xFF444444),
                             ),
                           );
                         }
@@ -252,19 +249,18 @@ class _SectionsScreenState extends State<SectionsScreen> {
                 builder: (context, setState) => Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Section label dropdown
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: kAccent2.withOpacity(0.3)),
+                        border: Border.all(color: kAccent1.withOpacity(0.3)),
                       ),
                       child: DropdownButton<String>(
                         isExpanded: true,
                         underline: const SizedBox(),
                         value: selectedSectionLabel,
-                        dropdownColor: const Color(0xFF1a1a2e),
+                        dropdownColor: const Color(0xFF1A1A1A),
                         items: ['A', 'B', 'C', 'D', 'E']
                             .map((label) => DropdownMenuItem(
                                   value: label,
@@ -279,7 +275,6 @@ class _SectionsScreenState extends State<SectionsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Room number input
                     GlassTextField(
                         controller: roomNumberController,
                         label: 'Room Number',
@@ -297,7 +292,7 @@ class _SectionsScreenState extends State<SectionsScreen> {
                       onTap: () => Navigator.pop(context),
                       child: const Center(
                         child: Text('Cancel',
-                            style: TextStyle(color: kAccent2)),
+                            style: TextStyle(color: kAccent1)),
                       ),
                     ),
                   ),
@@ -321,13 +316,13 @@ class _SectionsScreenState extends State<SectionsScreen> {
                           messenger.showSnackBar(
                             const SnackBar(
                                 content: Text('Section updated!'),
-                                backgroundColor: kAccent1),
+                                backgroundColor: kAccent2),
                           );
                         } else if (mounted) {
                           messenger.showSnackBar(
                             SnackBar(
                               content: Text(provider.errorMessage ?? 'Failed to update section'),
-                              backgroundColor: Colors.red,
+                              backgroundColor: const Color(0xFF444444),
                             ),
                           );
                         }
@@ -368,7 +363,7 @@ class _SectionsScreenState extends State<SectionsScreen> {
                           padding: EdgeInsets.all(10),
                           borderRadius: 12,
                           child: Icon(Icons.menu_rounded,
-                              color: kAccent2, size: 20),
+                              color: kAccent1, size: 20),
                         ),
                       ),
                     ),
@@ -390,23 +385,23 @@ class _SectionsScreenState extends State<SectionsScreen> {
                           child: CircularProgressIndicator(color: kAccent1));
                     }
                     if (provider.sections.isEmpty) {
-                      return Center(
+                      return const Center(
                         child: GlassCard(
-                          padding: const EdgeInsets.all(40),
-                          child: const Column(
+                          padding: EdgeInsets.all(40),
+                          child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.group_outlined,
-                                  size: 64, color: kAccent2),
+                                  size: 64, color: kAccent1),
                               SizedBox(height: 16),
                               Text('No sections yet',
                                   style: TextStyle(
-                                      color: kAccent2,
+                                      color: kAccent1,
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600)),
                               SizedBox(height: 8),
                               Text('Tap + to create a section',
-                                  style: TextStyle(color: kAccent2)),
+                                  style: TextStyle(color: kAccent1)),
                             ],
                           ),
                         ),
@@ -428,7 +423,7 @@ class _SectionsScreenState extends State<SectionsScreen> {
                                   height: 48,
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
-                                        colors: [kAccent1, kAccent2]),
+                                        colors: [Color(0xFF666666), Color(0xFF444444)]),
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                   child: const Center(
@@ -457,13 +452,13 @@ class _SectionsScreenState extends State<SectionsScreen> {
                                 ),
                                 PopupMenuButton(
                                   icon: const Icon(Icons.more_vert_rounded,
-                                      color: kAccent2),
-                                  color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
+                                      color: kAccent1),
+                                  color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : lSurface,
                                   itemBuilder: (_) => [
                                     PopupMenuItem(
                                       child: const Text('Edit',
                                           style:
-                                              TextStyle(color: kAccent2)),
+                                              TextStyle(color: kAccent1)),
                                       onTap: () => _showEditDialog(section),
                                     ),
                                     PopupMenuItem(
@@ -491,11 +486,11 @@ class _SectionsScreenState extends State<SectionsScreen> {
       ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
+          gradient: const LinearGradient(colors: [Color(0xFF666666), Color(0xFF444444)]),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: kAccent1.withValues(alpha: 0.5),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 8)),
           ],
