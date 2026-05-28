@@ -261,10 +261,10 @@ class AppDrawer extends StatelessWidget {
                 ),
                 title: const Text('Logout',
                     style: TextStyle(color: kAccent3, fontWeight: FontWeight.w600)),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  context.read<AuthProvider>().logout();
-                  context.go('/login');
+                  await context.read<AuthProvider>().logout();
+                  if (context.mounted) context.go('/login');
                 },
               ),
             ),

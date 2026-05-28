@@ -12,3 +12,5 @@ from .student_subjects import router as student_subjects_router
 from .scoring_rules import router as scoring_rules_router
 from .sections import router as sections_router
 from .academic_terms import router as academic_terms_router
+from .attendance import router as attendance_router
+from .gpa_config import router as gpa_config_router
