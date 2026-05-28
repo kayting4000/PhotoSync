@@ -4,17 +4,19 @@ Run: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 """
 import os
 from contextlib import asynccontextmanager
+import logging
+from pathlib import Path
+from dotenv import load_dotenv
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from database import engine, Base
-from models import User, Student, Subject, Exam, ExamResult, StudentSubject, ScoringRule, Section, AcademicTerm  # noqa: F401 — register models
+from models import User, Student, Subject, Exam, ExamResult, StudentSubject, ScoringRule, Section, AcademicTerm, Attendance, GpaConfig  # noqa: F401
 
 from controllers import (
     auth_router,
-    students_router,
-    subjects_router,
     exams_router,
     results_router,
     dashboard_router,
@@ -22,17 +24,26 @@ from controllers import (
     scanner_router,
     scan_uploads_router,
     email_router,
-    student_subjects_router,
     scoring_rules_router,
-    sections_router,
     academic_terms_router,
+    attendance_router,
+    gpa_config_router,
 )
+from controllers.subjects import router as subjects_router
+from controllers.sections import router as sections_router
+from controllers.students import router as students_router
+
+# load backend/.env (explicit path ensures it's found when starting uvicorn from the backend folder)
+load_dotenv(Path(__file__).parent / ".env")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Create tables on startup (safe — uses IF NOT EXISTS)."""
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        logging.error("Database init failed at startup (continuing): %s", e)
     yield
 
 
@@ -54,8 +65,6 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
-app.include_router(students_router)
-app.include_router(subjects_router)
 app.include_router(exams_router)
 app.include_router(results_router)
 app.include_router(dashboard_router)
@@ -63,10 +72,13 @@ app.include_router(grades_router)
 app.include_router(scanner_router)
 app.include_router(scan_uploads_router)
 app.include_router(email_router)
-app.include_router(student_subjects_router)
 app.include_router(scoring_rules_router)
-app.include_router(sections_router)
 app.include_router(academic_terms_router)
+app.include_router(attendance_router)
+app.include_router(gpa_config_router)
+app.include_router(subjects_router)
+app.include_router(sections_router)
+app.include_router(students_router)
 
 # Serve uploaded scan images statically
 uploads_dir = os.path.join(os.path.dirname(__file__), "uploads")

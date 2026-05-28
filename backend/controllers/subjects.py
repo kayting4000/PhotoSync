@@ -48,16 +48,23 @@ def create_subject(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    name = (body or {}).get("name")
+    if not name:
+        raise HTTPException(status_code=400, detail="name is required")
     subject = Subject(
         user_id=current_user.id,
         code=body.code,
-        name=body.name,
+        name=name,
         units=body.units,
     )
     db.add(subject)
-    db.commit()
-    db.refresh(subject)
-    return _serialize(subject)
+    try:
+        db.commit()
+        db.refresh(subject)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"success": True, "subject": {"id": subject.id, "name": subject.name}}
 
 
 @router.put("/{subject_id}")

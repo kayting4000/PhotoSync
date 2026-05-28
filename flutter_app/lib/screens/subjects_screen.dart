@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/subject_provider.dart';
 import '../models/subject.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/fade_slide_in.dart';
+import '../api.dart'; // add this near the top with other imports
 
 class SubjectsScreen extends StatefulWidget {
   const SubjectsScreen({super.key});
@@ -13,6 +16,10 @@ class SubjectsScreen extends StatefulWidget {
 }
 
 class _SubjectsScreenState extends State<SubjectsScreen> {
+  // Add these state fields
+  bool _isLoading = false;
+  List<Map<String, dynamic>> subjectsList = [];
+
   @override
   void initState() {
     super.initState();
@@ -36,7 +43,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Add Subject',
+                Text('New Subject',
                     style: TextStyle(
                         color: context.textPrimary,
                         fontSize: 20,
@@ -63,7 +70,9 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                     child: DropdownButton<int>(
                       value: units,
                       isExpanded: true,
-                      dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
+                      dropdownColor: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF1A1A3E)
+                          : lSurface,
                       style: TextStyle(color: context.textPrimary),
                       items: List.generate(
                         5,
@@ -86,9 +95,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         onTap: () => Navigator.pop(context),
                         child: const Center(
-                          child: Text('Cancel',
-                              style: TextStyle(color: kAccent2)),
-                        ),
+                            child: Text('Cancel', style: TextStyle(color: kAccent2))),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -97,8 +104,8 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                         colors: const [kAccent2, kAccent1],
                         onPressed: () async {
                           final subject = Subject(
-                            code: codeController.text,
-                            name: nameController.text,
+                            code: codeController.text.trim(),
+                            name: nameController.text.trim(),
                             units: units,
                           );
                           final provider = context.read<SubjectProvider>();
@@ -107,17 +114,14 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                           final success = await provider.addSubject(subject);
                           if (success && mounted) {
                             nav.pop();
-                            messenger.showSnackBar(
-                              const SnackBar(
-                                  content: Text('Subject added!'),
-                                  backgroundColor: kAccent2),
-                            );
+                            messenger.showSnackBar(const SnackBar(
+                                content: Text('Subject created!'),
+                                backgroundColor: kAccent2));
                           }
                         },
-                        child: const Text('Add',
+                        child: const Text('Create',
                             style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold)),
+                                color: Colors.white, fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],
@@ -172,7 +176,9 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                     child: DropdownButton<int>(
                       value: units,
                       isExpanded: true,
-                      dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
+                      dropdownColor: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF1A1A3E)
+                          : lSurface,
                       style: TextStyle(color: context.textPrimary),
                       items: List.generate(
                         5,
@@ -195,9 +201,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         onTap: () => Navigator.pop(context),
                         child: const Center(
-                          child: Text('Cancel',
-                              style: TextStyle(color: kAccent2)),
-                        ),
+                            child: Text('Cancel', style: TextStyle(color: kAccent2))),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -206,28 +210,25 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                         colors: const [kAccent1, kAccent2],
                         onPressed: () async {
                           final updated = Subject(
-                            code: codeController.text,
-                            name: nameController.text,
+                            code: codeController.text.trim(),
+                            name: nameController.text.trim(),
                             units: units,
                           );
                           final provider = context.read<SubjectProvider>();
                           final messenger = ScaffoldMessenger.of(context);
                           final nav = Navigator.of(context);
-                          final success = await provider.updateSubject(
-                              subject.id!, updated);
+                          final success =
+                              await provider.updateSubject(subject.id!, updated);
                           if (success && mounted) {
                             nav.pop();
-                            messenger.showSnackBar(
-                              const SnackBar(
-                                  content: Text('Subject updated!'),
-                                  backgroundColor: kAccent1),
-                            );
+                            messenger.showSnackBar(const SnackBar(
+                                content: Text('Subject updated!'),
+                                backgroundColor: kAccent1));
                           }
                         },
                         child: const Text('Save',
                             style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold)),
+                                color: Colors.white, fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],
@@ -258,26 +259,36 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                child: Row(
-                  children: [
-                    Builder(
-                      builder: (context) => GestureDetector(
-                        onTap: () => Scaffold.of(context).openDrawer(),
-                        child: const GlassCard(
-                          padding: EdgeInsets.all(10),
-                          borderRadius: 12,
-                          child: Icon(Icons.menu_rounded,
-                              color: kAccent2, size: 20),
+                child: FadeSlideIn(
+                  child: Row(
+                    children: [
+                      Builder(
+                        builder: (context) => GestureDetector(
+                          onTap: () => Scaffold.of(context).openDrawer(),
+                          child: const GlassCard(
+                            padding: EdgeInsets.all(10),
+                            borderRadius: 12,
+                            child: Icon(Icons.menu_rounded, color: kAccent2, size: 20),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Text('Subjects',
-                        style: TextStyle(
-                            color: context.textPrimary,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold)),
-                  ],
+                      const SizedBox(width: 16),
+                      Text('Subjects',
+                          style: TextStyle(
+                              color: context.textPrimary,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: FadeSlideIn(
+                  delay: const Duration(milliseconds: 80),
+                  child: Text('Tap a subject to view its sections',
+                      style: TextStyle(color: context.textSecondary, fontSize: 12)),
                 ),
               ),
               const SizedBox(height: 16),
@@ -292,20 +303,20 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                       return Center(
                         child: GlassCard(
                           padding: const EdgeInsets.all(40),
-                          child: const Column(
+                          child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.menu_book_outlined,
+                              const Icon(Icons.folder_open_rounded,
                                   size: 64, color: kAccent2),
-                              SizedBox(height: 16),
-                              Text('No subjects yet',
+                              const SizedBox(height: 16),
+                              const Text('No subjects yet',
                                   style: TextStyle(
                                       color: kAccent2,
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600)),
-                              SizedBox(height: 8),
-                              Text('Tap + to add a subject',
-                                  style: TextStyle(color: kAccent2)),
+                              const SizedBox(height: 8),
+                              Text('Tap + to create your first subject',
+                                  style: TextStyle(color: context.textSecondary)),
                             ],
                           ),
                         ),
@@ -317,87 +328,84 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                       itemBuilder: (context, index) {
                         final subject = provider.subjects[index];
                         final grad = _gradients[index % _gradients.length];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: GlassCard(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(colors: grad),
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      subject.code.length >= 2
-                                          ? subject.code.substring(0, 2)
-                                          : subject.code,
-                                      style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14),
+                        return FadeSlideIn(
+                          delay: Duration(milliseconds: 60 * index),
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: GlassCard(
+                              padding: const EdgeInsets.all(16),
+                              onTap: () => context.push(
+                                  '/subjects/${subject.id}/sections',
+                                  extra: subject),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(colors: grad),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: const Center(
+                                      child: Icon(Icons.folder_rounded,
+                                          color: Colors.white, size: 26),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(subject.name,
-                                          style: TextStyle(
-                                              color: context.textPrimary,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 15)),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                          '${subject.code} \u2022 ${subject.units} unit(s)',
-                                          style: TextStyle(
-                                              color: context.textSecondary,
-                                              fontSize: 12)),
-                                    ],
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(subject.name,
+                                            style: TextStyle(
+                                                color: context.textPrimary,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 15)),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                            '${subject.code} • ${subject.units} unit(s)',
+                                            style: TextStyle(
+                                                color: context.textSecondary,
+                                                fontSize: 12)),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                PopupMenuButton(
-                                  icon: const Icon(Icons.more_vert_rounded,
+                                  const Icon(Icons.chevron_right_rounded,
                                       color: kAccent2),
-                                  color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
-                                  itemBuilder: (_) => [
-                                    PopupMenuItem(
-                                      child: const Row(
-                                        children: [
+                                  PopupMenuButton(
+                                    icon: const Icon(Icons.more_vert_rounded,
+                                        color: kAccent2),
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? const Color(0xFF1A1A3E)
+                                        : lSurface,
+                                    itemBuilder: (_) => [
+                                      PopupMenuItem(
+                                        child: const Row(children: [
                                           Icon(Icons.edit_rounded,
                                               color: kAccent2, size: 18),
                                           SizedBox(width: 8),
                                           Text('Edit',
-                                              style: TextStyle(
-                                                  color: kAccent2)),
-                                        ],
+                                              style: TextStyle(color: kAccent2)),
+                                        ]),
+                                        onTap: () => _showEditDialog(subject),
                                       ),
-                                      onTap: () => _showEditDialog(subject),
-                                    ),
-                                    PopupMenuItem(
-                                      child: const Row(
-                                        children: [
+                                      PopupMenuItem(
+                                        child: const Row(children: [
                                           Icon(Icons.delete_rounded,
                                               color: kAccent3, size: 18),
                                           SizedBox(width: 8),
                                           Text('Delete',
-                                              style: TextStyle(
-                                                  color: kAccent3)),
-                                        ],
+                                              style: TextStyle(color: kAccent3)),
+                                        ]),
+                                        onTap: () => context
+                                            .read<SubjectProvider>()
+                                            .deleteSubject(subject.id!),
                                       ),
-                                      onTap: () => context
-                                          .read<SubjectProvider>()
-                                          .deleteSubject(subject.id!),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -430,4 +438,53 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
       ),
     );
   }
+
+  Future<void> _createSubjectAndRefresh(String name) async {
+    if (name.trim().isEmpty) return;
+    setState(() { _isLoading = true; });
+    try {
+      final res = await createSubject(name);
+      // guard against widget disposed while awaiting
+      if (!mounted) return;
+      if (res['success'] == true && res['subject'] != null) {
+        setState(() {
+          // keep local list in sync for UI – adapt if you use Provider instead
+          subjectsList.insert(0, Map<String, dynamic>.from(res['subject']));
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Subject created'), backgroundColor: Colors.green),
+        );
+      } else {
+        final msg = res['detail'] ?? 'Unknown server response';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Create failed: $e')));
+    } finally {
+      if (!mounted) return;
+      setState(() { _isLoading = false; });
+    }
+  }
+}
+
+class _CloudTexturePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Guard: if size is zero, don't paint (avoids NaN from modulo/division)
+    if (size.isEmpty || size.width == 0.0 || size.height == 0.0) {
+      return;
+    }
+    final paint = Paint()..style = PaintingStyle.fill;
+    // Soft white cloud-like patches
+    for (int i = 0; i < 8; i++) {
+      final x = (i * 0.137 + 0.3) * size.width;
+      final y = (i * 0.124 + 0.1) * size.height;
+      final radius = size.width * (0.15 + i * 0.02);
+      paint.color = Colors.white.withValues(alpha: 0.06);
+      canvas.drawOval(Rect.fromCenter(center: Offset(x % size.width, y % size.height), width: size.width * 0.4, height: size.height * 0.12), paint);
+    }
+  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -72,7 +72,12 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 1200));
     if (!mounted) return;
     final auth = context.read<AuthProvider>();
-    context.go(auth.isAuthenticated ? '/dashboard' : '/login');
+    // Wait until session restore is complete
+    while (!auth.initialized) {
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+    if (!mounted) return;
+    context.go(auth.isAuthenticated ? '/subjects' : '/login');
   }
 
   @override

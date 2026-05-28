@@ -1,13 +1,13 @@
 """
 Sections controller — CRUD operations via SQLAlchemy ORM (Neon PostgreSQL).
 """
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query, Depends, Path
 from typing import Optional
 from sqlalchemy.orm import Session
 
 from database import get_db
 from controllers.auth import get_current_user
-from models.section import Section
+from models import Section, Subject
 from models.user import User
 from schemas import SectionCreate, SectionUpdate
 
@@ -101,3 +101,27 @@ def delete_section(
     db.delete(section)
     db.commit()
     return {"message": "Section deleted"}
+
+
+@router.post("/subjects/{subject_id}/sections")
+def create_section(
+    subject_id: int = Path(...),
+    payload: dict = None,
+    db: Session = Depends(get_db),
+):
+    payload = payload or {}
+    name = payload.get("name")
+    if not name:
+        raise HTTPException(status_code=400, detail="name is required")
+    subject = db.get(Subject, subject_id)
+    if not subject:
+        raise HTTPException(status_code=404, detail="subject not found")
+    section = Section(name=name, subject_id=subject_id)
+    db.add(section)
+    try:
+        db.commit()
+        db.refresh(section)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"success": True, "section": {"id": section.id, "name": section.name, "subject_id": subject_id}}
