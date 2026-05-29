@@ -109,13 +109,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
       );
       if (pickedFile != null) {
         // Validate file type: allow PNG, JPG, JPEG
-        final ext = pickedFile.path.split('.').last.toLowerCase();
-        final allowedTypes = ['png', 'jpg', 'jpeg'];
-        if (!allowedTypes.contains(ext)) {
+        // On web, use pickedFile.name (path may be a blob URL)
+        final fileName = pickedFile.name.toLowerCase();
+        final ext = fileName.contains('.') ? fileName.split('.').last : '';
+        final allowedExts = ['png', 'jpg', 'jpeg'];
+        // If we can determine the extension and it's not allowed, reject
+        if (ext.isNotEmpty && !allowedExts.contains(ext)) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Only PNG, JPG, and JPEG images are supported'),
+              SnackBar(
+                content: Text('Only PNG, JPG, and JPEG images are supported (got .$ext)'),
                 backgroundColor: kAccent3,
               ),
             );
