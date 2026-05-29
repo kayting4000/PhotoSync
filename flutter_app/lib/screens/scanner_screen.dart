@@ -651,65 +651,76 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 // Buttons
                 FadeSlideIn(
                   delay: const Duration(milliseconds: 200),
-                  child: Column(
-                    children: [
-                      Row(
-                      children: [
-                          Expanded(
-                            child: GradientButton(
-                              onPressed: _pageBytes.length >= 5 ? null : () => _addPage(ImageSource.camera),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.camera_alt_rounded, color: Colors.white, size: 18),
-                                  SizedBox(width: 8),
-                                  Text('Camera', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: GradientButton(
-                              onPressed: _pageBytes.length >= 5 ? null : () => _addPage(ImageSource.gallery),
-                              colors: const [kAccent3, kAccent2],
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.photo_library_rounded, color: Colors.white, size: 18),
-                                  SizedBox(width: 8),
-                                  Text('Gallery / Files', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (_pageBytes.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: GradientButton(
-                            onPressed: (_isAnalyzing || _isUploading) ? null : _scanAllPages,
-                            colors: const [Color(0xFF555555), Color(0xFF777777)],
-                            child: _isAnalyzing
-                              ? const SizedBox(height: 20, width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Scan ${_pageBytes.length > 1 ? 'All ${_pageBytes.length} Pages' : 'Page'}',
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
-                                    ),
-                                  ],
+                  child: Builder(
+                    builder: (context) {
+                      final isReady = _selectedStudentId != null &&
+                          _selectedSubjectId != null &&
+                          _selectedExamId != null &&
+                          _pageBytes.isNotEmpty;
+                      final scanColors = isReady
+                          ? [const Color(0xFF2E7D32), const Color(0xFF43A047)]
+                          : const [Color(0xFF555555), Color(0xFF777777)];
+                      return Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GradientButton(
+                                  onPressed: _pageBytes.length >= 5 ? null : () => _addPage(ImageSource.camera),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.camera_alt_rounded, color: Colors.white, size: 18),
+                                      SizedBox(width: 8),
+                                      Text('Camera', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
                                 ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: GradientButton(
+                                  onPressed: _pageBytes.length >= 5 ? null : () => _addPage(ImageSource.gallery),
+                                  colors: const [kAccent3, kAccent2],
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.photo_library_rounded, color: Colors.white, size: 18),
+                                      SizedBox(width: 8),
+                                      Text('Gallery / Files', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ],
+                          if (_pageBytes.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: GradientButton(
+                                onPressed: (_isAnalyzing || _isUploading) ? null : _scanAllPages,
+                                colors: scanColors,
+                                child: _isAnalyzing
+                                    ? const SizedBox(height: 20, width: 20,
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                    : Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Scan ${_pageBytes.length > 1 ? 'All ${_pageBytes.length} Pages' : 'Page'}',
+                                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
                   ),
                 ),
 
