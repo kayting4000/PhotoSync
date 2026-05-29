@@ -17,6 +17,13 @@
 /// IMPORTANT: The backend server must be running with `--host 0.0.0.0`
 ///   so it accepts connections from other devices on your network.
 ///   Run: `cd backend && uvicorn main:app --host 0.0.0.0 --port 8000 --reload`
+// Quick top-level config values used by the app and by api.dart
+const bool useLocalBackend = true; // set to false to use production backend
+const String localHost = '192.168.180.53'; // replace with your PC IPv4 when using a phone
+const String prodHost = 'https://your-production-backend.example.com';
+
+String get API_BASE => useLocalBackend ? 'http://$localHost:8000' : prodHost;
+
 class AppConfig {
   /// Set to `true` to use the local backend, `false` for production (Render)
   static const bool useLocalBackend = true;

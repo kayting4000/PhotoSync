@@ -6,10 +6,11 @@ import os
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
+import uuid
 
 from database import get_db
 from models.user import User
@@ -54,14 +55,54 @@ def decode_token(token: str) -> str:
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    token: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db),
-) -> User:
-    """FastAPI dependency: returns the authenticated User from JWT."""
-    user_id = decode_token(credentials.credentials)
+):
+    """
+    Validate token payload and return a User instance.
+    Defensive checks prevent invalid types (e.g. {} or str) from reaching SQLAlchemy.
+    """
+    # decode the JWT from the HTTPBearer credentials
+    try:
+        payload = jwt.decode(
+            token.credentials,
+            JWT_SECRET,
+            algorithms=[JWT_ALGORITHM],
+        )
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+
+    user_id = payload.get("sub") or payload.get("user_id") or payload.get("id")
+
+    # Reject missing/invalid user id early
+    if not user_id or isinstance(user_id, dict):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid authentication token",
+        )
+
+    # Normalize user_id to int or uuid.UUID before querying DB
+    try:
+        if isinstance(user_id, str):
+            if "-" in user_id:
+                user_id = uuid.UUID(user_id)
+            else:
+                user_id = int(user_id)
+        elif isinstance(user_id, float):
+            user_id = int(user_id)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user id in token",
+        )
+
+    # safe DB lookup
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
 
 
