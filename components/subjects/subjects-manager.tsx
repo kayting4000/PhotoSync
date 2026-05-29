@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { apiClient } from "@/lib/api-client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -34,7 +34,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2 } from "lucide-react"
 import type { Subject, Exam } from "@/lib/types"
-import { useRouter } from "next/navigation"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,16 +47,16 @@ import {
 
 interface SubjectsManagerProps {
   subjects: Subject[]
-  exams: (Exam & { subject: Subject })[]
+  exams: (Exam & { subject?: Subject })[]
+  onRefresh?: () => void
 }
 
-export function SubjectsManager({ subjects, exams }: SubjectsManagerProps) {
+export function SubjectsManager({ subjects, exams, onRefresh }: SubjectsManagerProps) {
   const [subjectDialogOpen, setSubjectDialogOpen] = useState(false)
   const [examDialogOpen, setExamDialogOpen] = useState(false)
   const [deleteSubjectId, setDeleteSubjectId] = useState<string | null>(null)
   const [deleteExamId, setDeleteExamId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
 
   const handleAddSubject = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -65,18 +64,16 @@ export function SubjectsManager({ subjects, exams }: SubjectsManagerProps) {
     const formData = new FormData(e.currentTarget)
 
     try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("Not authenticated")
-
-      await supabase.from("subjects").insert({
-        user_id: user.id,
-        code: formData.get("code") as string,
-        name: formData.get("name") as string,
-        units: parseInt(formData.get("units") as string),
+      await apiClient("/subjects/", {
+        method: "POST",
+        body: JSON.stringify({
+          code: formData.get("code") as string,
+          name: formData.get("name") as string,
+          units: parseInt(formData.get("units") as string),
+        }),
       })
       setSubjectDialogOpen(false)
-      router.refresh()
+      onRefresh?.()
     } finally {
       setIsLoading(false)
     }
@@ -88,21 +85,19 @@ export function SubjectsManager({ subjects, exams }: SubjectsManagerProps) {
     const formData = new FormData(e.currentTarget)
 
     try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("Not authenticated")
-
-      await supabase.from("exams").insert({
-        user_id: user.id,
-        subject_id: formData.get("subject_id") as string,
-        name: formData.get("name") as string,
-        exam_type: formData.get("exam_type") as string,
-        total_items: parseInt(formData.get("total_items") as string),
-        points_per_item: parseFloat(formData.get("points_per_item") as string),
-        passing_score: parseFloat(formData.get("passing_score") as string) || null,
+      await apiClient("/exams/", {
+        method: "POST",
+        body: JSON.stringify({
+          subject_id: formData.get("subject_id") as string,
+          name: formData.get("name") as string,
+          component_type: formData.get("exam_type") as string,
+          total_items: parseInt(formData.get("total_items") as string),
+          points_per_item: parseFloat(formData.get("points_per_item") as string),
+          passing_score: parseFloat(formData.get("passing_score") as string) || null,
+        }),
       })
       setExamDialogOpen(false)
-      router.refresh()
+      onRefresh?.()
     } finally {
       setIsLoading(false)
     }
@@ -110,18 +105,24 @@ export function SubjectsManager({ subjects, exams }: SubjectsManagerProps) {
 
   const handleDeleteSubject = async () => {
     if (!deleteSubjectId) return
-    const supabase = createClient()
-    await supabase.from("subjects").delete().eq("id", deleteSubjectId)
+    try {
+      await apiClient(`/subjects/${deleteSubjectId}`, { method: "DELETE" })
+    } catch {
+      // ignore
+    }
     setDeleteSubjectId(null)
-    router.refresh()
+    onRefresh?.()
   }
 
   const handleDeleteExam = async () => {
     if (!deleteExamId) return
-    const supabase = createClient()
-    await supabase.from("exams").delete().eq("id", deleteExamId)
+    try {
+      await apiClient(`/exams/${deleteExamId}`, { method: "DELETE" })
+    } catch {
+      // ignore
+    }
     setDeleteExamId(null)
-    router.refresh()
+    onRefresh?.()
   }
 
   const examTypeColors: Record<string, string> = {
@@ -334,8 +335,8 @@ export function SubjectsManager({ subjects, exams }: SubjectsManagerProps) {
                       <TableCell className="font-medium">{exam.subject?.code}</TableCell>
                       <TableCell>{exam.name}</TableCell>
                       <TableCell>
-                        <Badge className={examTypeColors[exam.exam_type]} variant="secondary">
-                          {exam.exam_type}
+                        <Badge className={examTypeColors[exam.component_type]} variant="secondary">
+                          {exam.component_type}
                         </Badge>
                       </TableCell>
                       <TableCell>{exam.total_items}</TableCell>

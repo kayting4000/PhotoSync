@@ -1,28 +1,39 @@
-import { createClient } from "@/lib/supabase/server"
+"use client"
+
+import { useEffect, useState } from "react"
+import { apiClient } from "@/lib/api-client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, BookOpen, FileText, TrendingUp, ArrowRight, ChevronRight } from "lucide-react"
+import { Users, BookOpen, FileText, TrendingUp, ChevronRight } from "lucide-react"
 import Link from "next/link"
 
-export default async function DashboardPage() {
-  const supabase = await createClient()
+interface DashboardStats {
+  total_students: number
+  total_subjects: number
+  total_exams: number
+  total_results: number
+}
 
-  const [
-    { count: studentsCount },
-    { count: subjectsCount },
-    { count: examsCount },
-    { count: resultsCount }
-  ] = await Promise.all([
-    supabase.from("students").select("*", { count: "exact", head: true }),
-    supabase.from("subjects").select("*", { count: "exact", head: true }),
-    supabase.from("exams").select("*", { count: "exact", head: true }),
-    supabase.from("exam_results").select("*", { count: "exact", head: true }),
-  ])
+export default function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStats>({
+    total_students: 0,
+    total_subjects: 0,
+    total_exams: 0,
+    total_results: 0,
+  })
+  const [loading, setLoading] = useState(true)
 
-  const stats = [
-    { label: "Total Students", value: studentsCount ?? 0, icon: Users, href: "/dashboard/students", color: "text-blue-600" },
-    { label: "Subjects", value: subjectsCount ?? 0, icon: BookOpen, href: "/dashboard/subjects", color: "text-emerald-600" },
-    { label: "Exams Created", value: examsCount ?? 0, icon: FileText, href: "/dashboard/subjects", color: "text-amber-600" },
-    { label: "Results Recorded", value: resultsCount ?? 0, icon: TrendingUp, href: "/dashboard/grades", color: "text-purple-600" },
+  useEffect(() => {
+    apiClient<DashboardStats>("/dashboard/")
+      .then(setStats)
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const statCards = [
+    { label: "Total Students", value: stats.total_students, icon: Users, href: "/dashboard/students", color: "text-blue-600" },
+    { label: "Subjects", value: stats.total_subjects, icon: BookOpen, href: "/dashboard/subjects", color: "text-emerald-600" },
+    { label: "Exams Created", value: stats.total_exams, icon: FileText, href: "/dashboard/subjects", color: "text-amber-600" },
+    { label: "Results Recorded", value: stats.total_results, icon: TrendingUp, href: "/dashboard/grades", color: "text-purple-600" },
   ]
 
   const quickActions = [
@@ -42,7 +53,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
+        {statCards.map((stat) => {
           const Icon = stat.icon
           return (
             <Link key={stat.label} href={stat.href}>
@@ -52,7 +63,9 @@ export default async function DashboardPage() {
                   <Icon className={`h-4 w-4 ${stat.color}`} />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stat.value}</div>
+                  <div className="text-2xl font-bold">
+                    {loading ? "—" : stat.value}
+                  </div>
                 </CardContent>
               </Card>
             </Link>

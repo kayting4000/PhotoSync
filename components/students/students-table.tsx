@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { apiClient } from "@/lib/api-client"
 import {
   Table,
   TableBody,
@@ -30,16 +30,19 @@ import {
 } from "@/components/ui/alert-dialog"
 import { MoreHorizontal, Pencil, Trash2, Search } from "lucide-react"
 import type { Student } from "@/lib/types"
-import { useRouter } from "next/navigation"
 import { EditStudentDialog } from "./edit-student-dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
-export function StudentsTable({ students }: { students: Student[] }) {
+interface StudentsTableProps {
+  students: Student[]
+  onRefresh?: () => void
+}
+
+export function StudentsTable({ students, onRefresh }: StudentsTableProps) {
   const [search, setSearch] = useState("")
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [editStudent, setEditStudent] = useState<Student | null>(null)
-  const router = useRouter()
 
   const filteredStudents = students.filter(
     (student) =>
@@ -51,10 +54,13 @@ export function StudentsTable({ students }: { students: Student[] }) {
 
   const handleDelete = async () => {
     if (!deleteId) return
-    const supabase = createClient()
-    await supabase.from("students").delete().eq("id", deleteId)
+    try {
+      await apiClient(`/students/${deleteId}`, { method: "DELETE" })
+    } catch {
+      // ignore
+    }
     setDeleteId(null)
-    router.refresh()
+    onRefresh?.()
   }
 
   return (
@@ -157,6 +163,7 @@ export function StudentsTable({ students }: { students: Student[] }) {
           student={editStudent}
           open={!!editStudent}
           onOpenChange={() => setEditStudent(null)}
+          onUpdated={onRefresh}
         />
       )}
     </Card>

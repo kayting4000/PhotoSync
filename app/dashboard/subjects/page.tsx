@@ -1,13 +1,45 @@
-import { createClient } from "@/lib/supabase/server"
-import { SubjectsManager } from "@/components/subjects/subjects-manager"
+"use client"
 
-export default async function SubjectsPage() {
-  const supabase = await createClient()
-  
-  const [{ data: subjects }, { data: exams }] = await Promise.all([
-    supabase.from("subjects").select("*").order("code"),
-    supabase.from("exams").select("*, subject:subjects(*)").order("created_at", { ascending: false }),
-  ])
+import { useEffect, useState } from "react"
+import { apiClient } from "@/lib/api-client"
+import { SubjectsManager } from "@/components/subjects/subjects-manager"
+import type { Subject, Exam } from "@/lib/types"
+
+interface ExamWithSubject extends Exam {
+  subject?: Subject
+}
+
+export default function SubjectsPage() {
+  const [subjects, setSubjects] = useState<Subject[]>([])
+  const [exams, setExams] = useState<ExamWithSubject[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const [subRes, exRes] = await Promise.all([
+        apiClient<{ items: Subject[] }>("/subjects/"),
+        apiClient<{ items: Exam[] }>("/exams/"),
+      ])
+
+      const subjectMap = new Map(subRes.items.map((s) => [s.id, s]))
+      const examsWithSubject = exRes.items.map((e) => ({
+        ...e,
+        subject: subjectMap.get(e.subject_id),
+      }))
+
+      setSubjects(subRes.items)
+      setExams(examsWithSubject)
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -18,7 +50,11 @@ export default async function SubjectsPage() {
         </p>
       </div>
 
-      <SubjectsManager subjects={subjects ?? []} exams={exams ?? []} />
+      {loading ? (
+        <p className="text-muted-foreground">Loading…</p>
+      ) : (
+        <SubjectsManager subjects={subjects} exams={exams} onRefresh={fetchData} />
+      )}
     </div>
   )
 }

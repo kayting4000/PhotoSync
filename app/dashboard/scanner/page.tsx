@@ -1,16 +1,33 @@
-import { Suspense } from "react"
-import { createClient } from "@/lib/supabase/server"
+"use client"
+
+import { useEffect, useState } from "react"
+import { apiClient } from "@/lib/api-client"
 import { Skeleton } from "@/components/ui/skeleton"
 import ClientScannerWrapper from "@/components/scanner/client-scanner-wrapper"
+import type { Student, Exam, Subject } from "@/lib/types"
 
-export default async function ScannerPage() {
-  const supabase = await createClient()
-  
-  const [{ data: students }, { data: exams }] = await Promise.all([
-    supabase.from("students").select("*").order("student_id"),
-    supabase.from("exams").select("*, subject:subjects(*)").order("created_at", { ascending: false }),
-  ])
-  
+interface ExamWithSubject extends Exam {
+  subject?: Subject
+}
+
+export default function ScannerPage() {
+  const [students, setStudents] = useState<Student[]>([])
+  const [exams, setExams] = useState<ExamWithSubject[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([
+      apiClient<{ items: Student[] }>("/students/"),
+      apiClient<{ items: ExamWithSubject[] }>("/exams/"),
+    ])
+      .then(([s, e]) => {
+        setStudents(s.items)
+        setExams(e.items)
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
   return (
     <div className="space-y-6">
       <div>
@@ -20,14 +37,14 @@ export default async function ScannerPage() {
         </p>
       </div>
 
-      <Suspense fallback={
+      {loading ? (
         <div className="grid gap-6 lg:grid-cols-2">
           <Skeleton className="h-[500px]" />
           <Skeleton className="h-[500px]" />
         </div>
-      }>
-        <ClientScannerWrapper students={students ?? []} exams={exams ?? []} />
-      </Suspense>
+      ) : (
+        <ClientScannerWrapper students={students} exams={exams} />
+      )}
     </div>
   )
 }

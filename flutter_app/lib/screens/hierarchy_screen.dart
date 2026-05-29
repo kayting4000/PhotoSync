@@ -133,10 +133,9 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                     ),
                     const SizedBox(width: 16),
                     Text('Course Structure',
-                        style: TextStyle(
+                        style: AppTypography.subheading.copyWith(
                             color: context.textPrimary,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold)),
+                            fontSize: 22)),
                   ],
                 ),
               ),

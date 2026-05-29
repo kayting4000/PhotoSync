@@ -1,28 +1,39 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { DashboardNav } from "@/components/dashboard/nav"
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const router = useRouter()
+  const [user, setUser] = useState<{ id: string; email: string } | null>(null)
+  const [ready, setReady] = useState(false)
 
-  if (!user) {
-    redirect("/auth/login")
-  }
+  useEffect(() => {
+    const token = localStorage.getItem("access_token")
+    const raw = localStorage.getItem("user")
+    if (!token || !raw) {
+      router.replace("/auth/login")
+      return
+    }
+    try {
+      setUser(JSON.parse(raw))
+    } catch {
+      router.replace("/auth/login")
+      return
+    }
+    setReady(true)
+  }, [router])
 
-  // Transform user to match expected type
-  const safeUser = {
-    id: user.id,
-    email: user.email ?? "",
-  }
+  if (!ready) return null
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardNav user={safeUser} />
+      <DashboardNav user={user!} />
       <main className="container mx-auto px-4 py-6">
         {children}
       </main>

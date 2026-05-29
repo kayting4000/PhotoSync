@@ -48,20 +48,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       drawer: const AppDrawer(currentRoute: '/dashboard'),
-      appBar: AppBar(
-        backgroundColor: isDark ? dBg2.withOpacity(0.96) : Colors.white.withOpacity(0.92),
-        elevation: 0,
-        iconTheme: IconThemeData(color: tp),
-        title: Text('Dashboard', style: TextStyle(color: tp, fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.notifications_rounded, color: tp),
-            tooltip: 'Notifications',
-          ),
-        ],
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: FrostedAppBar(
+          title: Text('Dashboard', style: AppTypography.subheading.copyWith(color: kTextWhite)),
+          actions: [
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.notifications_rounded, color: kTextWhite),
+              tooltip: 'Notifications',
+            ),
+          ],
+        ),
       ),
       body: AppBackground(
+        showOrbs: true,
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
@@ -74,14 +75,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: GlassCard(
                     padding: const EdgeInsets.all(20),
                     blurIntensity: 5,
+                    elevation: 0.8,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Good morning,', style: TextStyle(color: ts, fontSize: 14)),
+                        Text('Good morning,', style: AppTypography.body.copyWith(color: ts, fontSize: 14)),
                         const SizedBox(height: 8),
-                        Text('Welcome back to PhotoSync', style: TextStyle(color: tp, fontSize: 22, fontWeight: FontWeight.bold)),
+                        Text('Welcome back to PhotoSync',
+                            style: AppTypography.heading.copyWith(color: tp, fontSize: 22)),
                         const SizedBox(height: 12),
-                        Text('Monitor progress, scan papers, and manage your students from one place.', style: TextStyle(color: ts, fontSize: 13, height: 1.5)),
+                        Text('Monitor progress, scan papers, and manage your students from one place.',
+                            style: AppTypography.body.copyWith(color: ts, fontSize: 13, height: 1.5)),
                       ],
                     ),
                   ),
@@ -110,8 +114,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Quick links', style: TextStyle(color: tp, fontSize: 18, fontWeight: FontWeight.w700)),
-                      Text('Tap to jump', style: TextStyle(color: ts, fontSize: 12)),
+                      Text('Quick links', style: AppTypography.subheading.copyWith(color: tp, fontSize: 18)),
+                      Text('Tap to jump', style: AppTypography.caption.copyWith(color: ts, fontSize: 12)),
                     ],
                   ),
                 ),
@@ -137,14 +141,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: GlassCard(
                     padding: const EdgeInsets.all(16),
                     blurIntensity: 3,
+                    elevation: 0.6,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(children: [const Icon(Icons.groups_rounded, color: kAccent1, size: 16), const SizedBox(width: 8), Text('Team', style: TextStyle(color: tp, fontWeight: FontWeight.bold, fontSize: 14))]),
+                        Row(children: [Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(gradient: const LinearGradient(colors: [kAccent1, kAccent2]), borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.groups_rounded, color: Colors.white, size: 14)), const SizedBox(width: 10), Text('Team', style: AppTypography.subheading.copyWith(color: tp, fontSize: 14))]),
                         const SizedBox(height: 14),
                         const _TeamMember(name: 'Habibun-najal Kayting', role: 'Lead Developer', email: 'kayting4k@gmail.com', colors: [kAccent1, kAccent2], icon: Icons.code_rounded),
+                        const PremiumDivider(indent: 0, endIndent: 0),
                         const SizedBox(height: 10),
                         const _TeamMember(name: 'Hareeja Montenegro', role: 'QA & Support', colors: [Color(0xFFE040FB), kAccent1], icon: Icons.verified_rounded),
+                        const PremiumDivider(indent: 0, endIndent: 0),
                         const SizedBox(height: 10),
                         const _TeamMember(name: 'Mohd Shaffiqh Anang', role: 'Docs & Testing', colors: [Color(0xFFB388FF), Color(0xFF7C4DFF)], icon: Icons.description_rounded),
                       ],
@@ -168,9 +175,9 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tp = context.textPrimary; final ts = context.textSecondary;
-    return GlassCard(padding: const EdgeInsets.all(14), blurIntensity: 3, onTap: onTap, child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+    return GlassCard(padding: const EdgeInsets.all(14), blurIntensity: 3, elevation: 0.8, onTap: onTap, child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(gradient: LinearGradient(colors: colors), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: Colors.white, size: 18)),
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(value, style: TextStyle(color: tp, fontSize: 24, fontWeight: FontWeight.bold)), Text(title, style: TextStyle(color: ts, fontSize: 11))]),
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(value, style: AppTypography.heading.copyWith(color: tp, fontSize: 24)), Text(title, style: AppTypography.caption.copyWith(color: ts, fontSize: 11))]),
     ]));
   }
 }
@@ -185,7 +192,11 @@ class _TeamMember extends StatelessWidget {
     return Row(children: [
       Container(padding: const EdgeInsets.all(7), decoration: BoxDecoration(gradient: LinearGradient(colors: colors), borderRadius: BorderRadius.circular(8)), child: Icon(icon, color: Colors.white, size: 14)),
       const SizedBox(width: 10),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(name, style: TextStyle(color: tp, fontWeight: FontWeight.w600, fontSize: 12)), Text(role, style: TextStyle(color: ts, fontSize: 10)), if (email != null) Text(email!, style: const TextStyle(color: kAccent1, fontSize: 10))])),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(name, style: AppTypography.bodyBold.copyWith(color: tp, fontSize: 12)),
+        Text(role, style: AppTypography.caption.copyWith(color: ts, fontSize: 10)),
+        if (email != null) Text(email!, style: AppTypography.caption.copyWith(color: kAccent1, fontSize: 10)),
+      ])),
     ]);
   }
 }
@@ -197,10 +208,10 @@ class _ActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tp = context.textPrimary; final ts = context.textSecondary;
-    return Padding(padding: const EdgeInsets.only(bottom: 10), child: GlassCard(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12), blurIntensity: 3, onTap: onTap, child: Row(children: [
+    return Padding(padding: const EdgeInsets.only(bottom: 10), child: GlassCard(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12), blurIntensity: 3, elevation: 0.6, onTap: onTap, child: Row(children: [
       Container(padding: const EdgeInsets.all(9), decoration: BoxDecoration(gradient: LinearGradient(colors: gradient), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: Colors.white, size: 20)),
       const SizedBox(width: 14),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: TextStyle(color: tp, fontWeight: FontWeight.w600, fontSize: 14)), Text(subtitle, style: TextStyle(color: ts, fontSize: 11))])),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: AppTypography.bodyBold.copyWith(color: tp, fontSize: 14)), Text(subtitle, style: AppTypography.caption.copyWith(color: ts, fontSize: 11))])),
       Icon(Icons.arrow_forward_ios_rounded, color: ts, size: 12),
     ])));
   }

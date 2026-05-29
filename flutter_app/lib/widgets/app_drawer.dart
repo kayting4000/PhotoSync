@@ -60,21 +60,22 @@ class AppDrawer extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
                       borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(color: kAccent1.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4)),
+                      ],
                     ),
                     child: const Icon(Icons.document_scanner_rounded,
                         color: Colors.white, size: 28),
                   ),
                   const SizedBox(height: 14),
                   Text('PhotoSync',
-                      style: TextStyle(
+                      style: AppTypography.heading.copyWith(
                           color: tp,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1)),
+                          fontSize: 20)),
                   if (auth.userEmail != null) ...[
                     const SizedBox(height: 4),
                     Text(auth.userEmail!,
-                        style: TextStyle(
+                        style: AppTypography.caption.copyWith(
                           color: ts,
                           fontSize: 12,
                         )),

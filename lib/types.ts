@@ -22,7 +22,10 @@ export interface Exam {
   id: string
   subject_id: string
   name: string
-  exam_type: 'quiz' | 'midterm' | 'final' | 'assignment'
+  /** The backend API returns this field as `component_type` */
+  component_type: string
+  /** Legacy alias kept for backwards-compat */
+  exam_type?: string
   total_items: number
   points_per_item: number
   passing_score: number | null

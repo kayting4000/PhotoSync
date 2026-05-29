@@ -1,6 +1,7 @@
 """
 Students controller — CRUD operations via SQLAlchemy ORM (Neon PostgreSQL).
 """
+import uuid
 from fastapi import APIRouter, HTTPException, Query, Depends, Path
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -8,7 +9,7 @@ from sqlalchemy import or_
 
 from database import get_db
 from controllers.auth import get_current_user
-from models import Student, Section
+from models import Student, Section, User
 from schemas import StudentCreate, StudentUpdate
 
 router = APIRouter(prefix="/students", tags=["Students"])
@@ -84,7 +85,7 @@ def create_student(
         parent_guardian_email=body.parent_guardian_email,
         course=body.course,
         year_level=body.year_level,
-        section_id=body.section_id,
+        section_id=uuid.UUID(body.section_id) if body.section_id else None,
     )
     db.add(student)
     db.commit()
@@ -128,28 +129,8 @@ def delete_student(
     return {"message": "Student deleted"}
 
 
-@router.post("/sections/{section_id}/students")
-def create_student(
-    section_id: int = Path(...),
-    payload: dict = None,
-    db: Session = Depends(get_db),
-):
-    payload = payload or {}
-    name = payload.get("name")
-    email = payload.get("email")
-    if not name or not email:
-        raise HTTPException(status_code=400, detail="name and email are required")
-    section = db.get(Section, section_id)
-    if not section:
-        raise HTTPException(status_code=404, detail="section not found")
-    student = Student(name=name, email=email, section_id=section_id)
-    db.add(student)
-    try:
-        db.commit()
-        db.refresh(student)
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-    # NOTE: to add default exam/attendance placeholders, extend here (safe to add after commit)
-    return {"success": True, "student": {"id": student.id, "name": student.name, "email": student.email, "section_id": section_id}}
+# The POST /students/ endpoint is defined above by the first create_student.
+# The duplicate create_student below was removed because it:
+#   1. Overwrote the proper POST /students/ endpoint
+#   2. Used incorrect model fields (Student has no "name" column)
+#   3. Used int instead of UUID for section_id

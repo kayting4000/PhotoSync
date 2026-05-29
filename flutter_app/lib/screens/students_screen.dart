@@ -354,10 +354,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
                     ),
                     const SizedBox(width: 16),
                     Text('Students',
-                        style: TextStyle(
-                            color: tp,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold)),
+                        style: AppTypography.subheading.copyWith(
+                          color: tp,
+                          fontSize: 22,
+                        )),
                   ],
                 ),
               ),
@@ -403,24 +403,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                             padding: const EdgeInsets.all(16),
                             child: Row(
                               children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                        colors: [Color(0xFF666666), Color(0xFF444444)]),
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      student.firstName[0].toUpperCase(),
-                                      style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18),
-                                    ),
-                                  ),
-                                ),
+                                DynamicAvatar(text: student.fullName, size: 48),
                                 const SizedBox(width: 14),
                                 Expanded(
                                   child: Column(
@@ -428,16 +411,13 @@ class _StudentsScreenState extends State<StudentsScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(student.fullName,
-                                          style: TextStyle(
-                                              color: tp,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 15)),
+                                          style: AppTypography.bodyBold.copyWith(
+                                              color: tp, fontSize: 15)),
                                       const SizedBox(height: 4),
                                       Text(
                                           '${student.studentId} \u2022 ${student.course}',
-                                          style: TextStyle(
-                                              color: ts,
-                                              fontSize: 12)),
+                                          style: AppTypography.caption.copyWith(
+                                              color: ts, fontSize: 12)),
                                     ],
                                   ),
                                 ),
@@ -475,23 +455,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
           ),
         ),
       ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Color(0xFF666666), Color(0xFF444444)]),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 8)),
-          ],
-        ),
-        child: FloatingActionButton(
-          onPressed: _showAddDialog,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: const Icon(Icons.add_rounded, color: Colors.white),
-        ),
+      floatingActionButton: PremiumFAB(
+        onPressed: _showAddDialog,
+        icon: Icons.add_rounded,
       ),
     );
   }

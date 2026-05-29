@@ -510,10 +510,9 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                     ),
                     const SizedBox(width: 16),
                     Text('Subjects',
-                        style: TextStyle(
+                        style: AppTypography.subheading.copyWith(
                             color: context.textPrimary,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold)),
+                            fontSize: 22)),
                   ],
                 ),
               ),
@@ -581,10 +580,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                                       height: 40,
                                       decoration: BoxDecoration(
                                         gradient: const LinearGradient(
-                                            colors: [
-                                              Color(0xFF555555),
-                                              Color(0xFF777777)
-                                            ]),
+                                            colors: [kAccent1, kAccent2]),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Center(
@@ -993,24 +989,9 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
         ),
       ),
       // FAB to add subject
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-              colors: [Color(0xFF666666), Color(0xFF444444)]),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 8)),
-          ],
-        ),
-        child: FloatingActionButton(
-          onPressed: _showAddSubjectDialog,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: const Icon(Icons.add_rounded, color: Colors.white),
-        ),
+      floatingActionButton: PremiumFAB(
+        onPressed: _showAddSubjectDialog,
+        icon: Icons.add_rounded,
       ),
     );
   }

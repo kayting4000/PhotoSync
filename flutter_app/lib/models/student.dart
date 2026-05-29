@@ -59,6 +59,6 @@ class Student {
   }
 
   String get fullName => middleInitial != null && middleInitial!.isNotEmpty
-      ? '$firstName ${middleInitial}. $lastName'
+      ? '$firstName $middleInitial. $lastName'
       : '$firstName $lastName';
 }

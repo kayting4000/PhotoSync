@@ -19,7 +19,7 @@
 ///   Run: `cd backend && uvicorn main:app --host 0.0.0.0 --port 8000 --reload`
 // Quick top-level config values used by the app and by api.dart
 const bool useLocalBackend = true; // set to false to use production backend
-const String localHost = '192.168.180.53'; // replace with your PC IPv4 when using a phone
+const String localHost = 'localhost'; // use localhost for web/desktop, change to your PC IPv4 when using a phone
 const String prodHost = 'https://your-production-backend.example.com';
 
 String get API_BASE => useLocalBackend ? 'http://$localHost:8000' : prodHost;
@@ -29,8 +29,8 @@ class AppConfig {
   static const bool useLocalBackend = true;
 
   /// Your laptop's local IP address (only used when [useLocalBackend] is true)
-  /// Use localhost for local development.
-  static const String localHost = '192.168.180.53';
+  /// Use localhost for local development (web/desktop).
+  static const String localHost = 'localhost';
 
   /// Production backend URL (Render)
   static const String productionUrl = 'https://photosync-4pj7.onrender.com';

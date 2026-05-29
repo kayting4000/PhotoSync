@@ -1,6 +1,7 @@
 """
 Sections controller — CRUD operations via SQLAlchemy ORM (Neon PostgreSQL).
 """
+import uuid
 from fastapi import APIRouter, HTTPException, Query, Depends, Path
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -57,7 +58,7 @@ def create_section(
 ):
     section = Section(
         user_id=current_user.id,
-        subject_id=body.subject_id,
+        subject_id=uuid.UUID(body.subject_id),
         section_label=body.section_label,
         room_number=body.room_number,
     )
@@ -103,25 +104,8 @@ def delete_section(
     return {"message": "Section deleted"}
 
 
-@router.post("/subjects/{subject_id}/sections")
-def create_section(
-    subject_id: int = Path(...),
-    payload: dict = None,
-    db: Session = Depends(get_db),
-):
-    payload = payload or {}
-    name = payload.get("name")
-    if not name:
-        raise HTTPException(status_code=400, detail="name is required")
-    subject = db.get(Subject, subject_id)
-    if not subject:
-        raise HTTPException(status_code=404, detail="subject not found")
-    section = Section(name=name, subject_id=subject_id)
-    db.add(section)
-    try:
-        db.commit()
-        db.refresh(section)
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    return {"success": True, "section": {"id": section.id, "name": section.name, "subject_id": subject_id}}
+# The POST /sections/ endpoint is defined above at the first create_section.
+# The duplicate create_section below was removed because it:
+#   1. Overwrote the proper POST /sections/ endpoint
+#   2. Used incorrect model fields (Section has no "name" column)
+#   3. Used int instead of UUID for subject_id

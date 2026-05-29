@@ -48,7 +48,7 @@ def create_subject(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    name = (body or {}).get("name")
+    name = body.name
     if not name:
         raise HTTPException(status_code=400, detail="name is required")
     subject = Subject(

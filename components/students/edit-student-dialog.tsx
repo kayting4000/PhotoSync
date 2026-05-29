@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { apiClient } from "@/lib/api-client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import type { Student } from "@/lib/types"
-import { useRouter } from "next/navigation"
 
 const courses = [
   "BSIT",
@@ -39,12 +38,12 @@ interface EditStudentDialogProps {
   student: Student
   open: boolean
   onOpenChange: (open: boolean) => void
+  onUpdated?: () => void
 }
 
-export function EditStudentDialog({ student, open, onOpenChange }: EditStudentDialogProps) {
+export function EditStudentDialog({ student, open, onOpenChange, onUpdated }: EditStudentDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -56,21 +55,18 @@ export function EditStudentDialog({ student, open, onOpenChange }: EditStudentDi
       student_id: formData.get("student_id") as string,
       first_name: formData.get("first_name") as string,
       last_name: formData.get("last_name") as string,
-      email: formData.get("email") as string || null,
+      email: (formData.get("email") as string) || null,
       course: formData.get("course") as string,
       year_level: parseInt(formData.get("year_level") as string),
-      updated_at: new Date().toISOString(),
     }
 
     try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from("students")
-        .update(data)
-        .eq("id", student.id)
-      if (error) throw error
+      await apiClient(`/students/${student.id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      })
       onOpenChange(false)
-      router.refresh()
+      onUpdated?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update student")
     } finally {
@@ -85,7 +81,7 @@ export function EditStudentDialog({ student, open, onOpenChange }: EditStudentDi
           <DialogHeader>
             <DialogTitle>Edit Student</DialogTitle>
             <DialogDescription>
-              Update the student&apos;s information.
+              Update the student's information.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

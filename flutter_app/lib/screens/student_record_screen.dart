@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../models/subject.dart';
 import '../models/section.dart';
@@ -33,9 +32,6 @@ class _StudentRecordScreenState extends State<StudentRecordScreen>
   List<dynamic> _attendanceRecords = [];
   bool _loading = true;
 
-  final List<String> _componentTypes = [
-    'exam', 'quiz', 'assignment', 'performance_task'
-  ];
   final List<String> _tabLabels = [
     'Exams', 'Quizzes', 'Assignments', 'Performance', 'Attendance'
   ];
