@@ -1,15 +1,14 @@
 """
 Students controller — CRUD operations via SQLAlchemy ORM (Neon PostgreSQL).
 """
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query, Depends, Path
 from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from database import get_db
 from controllers.auth import get_current_user
-from models.student import Student
-from models.user import User
+from models import Student, Section
 from schemas import StudentCreate, StudentUpdate
 
 router = APIRouter(prefix="/students", tags=["Students"])
@@ -123,3 +122,30 @@ def delete_student(
     db.delete(student)
     db.commit()
     return {"message": "Student deleted"}
+
+
+@router.post("/sections/{section_id}/students")
+def create_student(
+    section_id: int = Path(...),
+    payload: dict = None,
+    db: Session = Depends(get_db),
+):
+    payload = payload or {}
+    name = payload.get("name")
+    email = payload.get("email")
+    if not name or not email:
+        raise HTTPException(status_code=400, detail="name and email are required")
+    section = db.get(Section, section_id)
+    if not section:
+        raise HTTPException(status_code=404, detail="section not found")
+    student = Student(name=name, email=email, section_id=section_id)
+    db.add(student)
+    try:
+        db.commit()
+        db.refresh(student)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+    # NOTE: to add default exam/attendance placeholders, extend here (safe to add after commit)
+    return {"success": True, "student": {"id": student.id, "name": student.name, "email": student.email, "section_id": section_id}}
