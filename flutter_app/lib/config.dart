@@ -22,7 +22,7 @@ const bool useLocalBackend = true; // set to false to use production backend
 const String localHost = 'localhost'; // use localhost for web/desktop, change to your PC IPv4 when using a phone
 const String prodHost = 'https://your-production-backend.example.com';
 
-String get API_BASE => useLocalBackend ? 'http://$localHost:8000' : prodHost;
+String get apiBase => useLocalBackend ? 'http://$localHost:8000' : prodHost;
 
 class AppConfig {
   /// Set to `true` to use the local backend, `false` for production (Render)

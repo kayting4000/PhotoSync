@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { apiClient } from "@/lib/api-client"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, BookOpen, FileText, TrendingUp, ChevronRight } from "lucide-react"
+import { Users, BookOpen, FileText, TrendingUp, ChevronRight, ScanLine, Calculator, Mail, UserPlus } from "lucide-react"
 import Link from "next/link"
 
 interface DashboardStats {
@@ -30,65 +29,81 @@ export default function DashboardPage() {
   }, [])
 
   const statCards = [
-    { label: "Total Students", value: stats.total_students, icon: Users, href: "/dashboard/students", color: "text-blue-600" },
-    { label: "Subjects", value: stats.total_subjects, icon: BookOpen, href: "/dashboard/subjects", color: "text-emerald-600" },
-    { label: "Exams Created", value: stats.total_exams, icon: FileText, href: "/dashboard/subjects", color: "text-amber-600" },
-    { label: "Results Recorded", value: stats.total_results, icon: TrendingUp, href: "/dashboard/grades", color: "text-purple-600" },
+    { label: "Total Students", value: stats.total_students, icon: Users, href: "/dashboard/students", color: "text-blue-500", bg: "from-blue-500/10 to-blue-600/5" },
+    { label: "Subjects", value: stats.total_subjects, icon: BookOpen, href: "/dashboard/subjects", color: "text-emerald-500", bg: "from-emerald-500/10 to-emerald-600/5" },
+    { label: "Exams Created", value: stats.total_exams, icon: FileText, href: "/dashboard/subjects", color: "text-amber-500", bg: "from-amber-500/10 to-amber-600/5" },
+    { label: "Results Recorded", value: stats.total_results, icon: TrendingUp, href: "/dashboard/grades", color: "text-purple-500", bg: "from-purple-500/10 to-purple-600/5" },
   ]
 
   const quickActions = [
-    { title: "Add Student", description: "Register a new student", href: "/dashboard/students?action=add" },
-    { title: "Scan Test Paper", description: "Scan and score test papers", href: "/dashboard/scanner" },
-    { title: "Calculate GPA", description: "View and calculate student GPA", href: "/dashboard/grades" },
-    { title: "Send Results", description: "Email grades to students", href: "/dashboard/email" },
+    { title: "Add Student", description: "Register a new student", href: "/dashboard/students?action=add", icon: UserPlus, color: "text-blue-500" },
+    { title: "Scan Test Paper", description: "Scan and score test papers", href: "/dashboard/scanner", icon: ScanLine, color: "text-emerald-500" },
+    { title: "Calculate GPA", description: "View and calculate student GPA", href: "/dashboard/grades", icon: Calculator, color: "text-amber-500" },
+    { title: "Send Results", description: "Email grades to students", href: "/dashboard/email", icon: Mail, color: "text-purple-500" },
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome to PhotoSync - Test Paper Scanner and Student Information Management System
+        <h1 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
+          Dashboard
+        </h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-1">
+          Welcome to PhotoSync — Test Paper Scanner and Student Information Management System
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Grid */}
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat) => {
           const Icon = stat.icon
           return (
             <Link key={stat.label} href={stat.href}>
-              <Card className="hover:bg-muted/50 transition-colors">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{stat.label}</CardTitle>
-                  <Icon className={`h-4 w-4 ${stat.color}`} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {loading ? "—" : stat.value}
+              <div className="neu-stat p-5 cursor-pointer group">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    {stat.label}
+                  </span>
+                  <div className={`p-2 rounded-xl bg-gradient-to-br ${stat.bg}`}>
+                    <Icon className={`h-4 w-4 ${stat.color}`} />
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+                  {loading ? "—" : stat.value}
+                </div>
+              </div>
             </Link>
           )
         })}
       </div>
 
+      {/* Quick Actions */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+        <h2 className="text-xl font-semibold mb-4 text-slate-800 dark:text-slate-100">
+          Quick Actions
+        </h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {quickActions.map((action) => (
-            <Link key={action.title} href={action.href}>
-              <Card className="h-full hover:bg-muted/50 transition-colors cursor-pointer group">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{action.title}</CardTitle>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+          {quickActions.map((action) => {
+            const Icon = action.icon
+            return (
+              <Link key={action.title} href={action.href}>
+                <div className="neu-card p-5 h-full cursor-pointer group">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className={`p-2 rounded-xl neu-inset`}>
+                      <Icon className={`h-5 w-5 ${action.color}`} />
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
                   </div>
-                  <CardDescription>{action.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
-          ))}
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-1">
+                    {action.title}
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {action.description}
+                  </p>
+                </div>
+              </Link>
+            )
+          })}
         </div>
       </div>
     </div>

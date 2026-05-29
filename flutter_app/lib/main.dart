@@ -25,6 +25,7 @@ import 'screens/hierarchy_screen.dart';
 import 'screens/subject_sections_screen.dart';
 import 'screens/section_students_screen.dart';
 import 'screens/student_record_screen.dart';
+import 'screens/exams_screen.dart';
 import 'models/subject.dart';
 import 'models/section.dart';
 import 'models/student.dart';
@@ -164,6 +165,10 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/academic-terms',
           pageBuilder: (_, __) => _slideUpPage(const AcademicTermsScreen()),
+        ),
+        GoRoute(
+          path: '/exams',
+          pageBuilder: (_, __) => _slideUpPage(const ExamsScreen()),
         ),
         GoRoute(
           path: '/hierarchy',

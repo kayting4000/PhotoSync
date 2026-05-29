@@ -144,6 +144,17 @@ class AppDrawer extends StatelessWidget {
                     isDark: isDark,
                   ),
                   _DrawerItem(
+                    icon: Icons.quiz_rounded,
+                    label: 'Exams & Quizzes',
+                    route: '/exams',
+                    currentRoute: currentRoute,
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go('/exams');
+                    },
+                    isDark: isDark,
+                  ),
+                  _DrawerItem(
                     icon: Icons.group_rounded,
                     label: 'Sections',
                     route: '/sections',

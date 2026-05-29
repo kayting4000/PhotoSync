@@ -37,157 +37,177 @@ class _StudentsScreenState extends State<StudentsScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => Dialog(
           backgroundColor: Colors.transparent,
-          child: GlassCard(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Add Student',
-                    style: TextStyle(
-                        color: context.textPrimary,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 20),
-                GlassTextField(
-                    controller: studentIdController,
-                    label: 'Student ID',
-                    prefixIcon: Icons.badge_outlined),
-                const SizedBox(height: 12),
-                GlassTextField(
-                    controller: firstNameController,
-                    label: 'First Name',
-                    prefixIcon: Icons.person_outline),
-                const SizedBox(height: 12),
-                GlassTextField(
-                    controller: lastNameController,
-                    label: 'Last Name',
-                    prefixIcon: Icons.person_outline),
-                const SizedBox(height: 12),
-                GlassTextField(
-                    controller: emailController,
-                    label: 'Email',
-                    prefixIcon: Icons.email_outlined,
-                    keyboardType: TextInputType.emailAddress),
-                const SizedBox(height: 12),
-                GlassTextField(
-                    controller: courseController,
-                    label: 'Course',
-                    prefixIcon: Icons.school_outlined),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: kGlass,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: kGlassBorder),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: yearLevel,
-                      isExpanded: true,
-                      dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : lSurface,
-                      style: TextStyle(color: context.textPrimary),
-                      items: List.generate(
-                        4,
-                        (i) => DropdownMenuItem(
-                          value: i + 1,
-                          child: Text('Year ${i + 1}'),
-                        ),
-                      ),
-                      onChanged: (v) {
-                        if (v != null) setState(() => yearLevel = v);
-                      },
+          child: SingleChildScrollView(
+            child: GlassCard(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Add Student',
+                      style: TextStyle(
+                          color: context.textPrimary,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 20),
+                  GlassTextField(
+                      controller: studentIdController,
+                      label: 'Student ID',
+                      prefixIcon: Icons.badge_outlined),
+                  const SizedBox(height: 12),
+                  GlassTextField(
+                      controller: firstNameController,
+                      label: 'First Name',
+                      prefixIcon: Icons.person_outline),
+                  const SizedBox(height: 12),
+                  GlassTextField(
+                      controller: lastNameController,
+                      label: 'Last Name',
+                      prefixIcon: Icons.person_outline),
+                  const SizedBox(height: 12),
+                  GlassTextField(
+                      controller: emailController,
+                      label: 'Email (optional)',
+                      prefixIcon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress),
+                  const SizedBox(height: 12),
+                  GlassTextField(
+                      controller: courseController,
+                      label: 'Course',
+                      prefixIcon: Icons.school_outlined),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: kGlass,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: kGlassBorder),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Consumer<SectionProvider>(
-                  builder: (context, sectionProvider, _) {
-                    final sections = sectionProvider.sections;
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: kGlass,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: kGlassBorder),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String?>(
-                          value: selectedSectionId,
-                          isExpanded: true,
-                          hint: Text('Select Section (Optional)',
-                              style: TextStyle(color: context.textSecondary)),
-                          dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : lSurface,
-                          style: TextStyle(color: context.textPrimary),
-                          items: [
-                            DropdownMenuItem<String?>(
-                              value: null,
-                              child: Text('No Section',
-                                  style: TextStyle(color: context.textSecondary)),
-                            ),
-                            ...sections.map((section) =>
-                                DropdownMenuItem<String?>(
-                                  value: section.id,
-                                  child: Text(section.displayName,
-                                      style: TextStyle(color: context.textPrimary)),
-                                )),
-                          ],
-                          onChanged: (v) {
-                            setState(() => selectedSectionId = v);
-                          },
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: yearLevel,
+                        isExpanded: true,
+                        dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : lSurface,
+                        style: TextStyle(color: context.textPrimary),
+                        items: List.generate(
+                          4,
+                          (i) => DropdownMenuItem(
+                            value: i + 1,
+                            child: Text('Year ${i + 1}'),
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GlassCard(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        onTap: () => Navigator.pop(context),
-                        child: const Center(
-                          child: Text('Cancel',
-                              style: TextStyle(color: kAccent1)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GradientButton(
-                        onPressed: () async {
-                          final student = Student(
-                            studentId: studentIdController.text,
-                            firstName: firstNameController.text,
-                            lastName: lastNameController.text,
-                            email: emailController.text,
-                            course: courseController.text,
-                            yearLevel: yearLevel,
-                            sectionId: selectedSectionId,
-                          );
-                          final provider = context.read<StudentProvider>();
-                          final messenger = ScaffoldMessenger.of(context);
-                          final nav = Navigator.of(context);
-                          final success = await provider.addStudent(student);
-                          if (success && mounted) {
-                            nav.pop();
-                            messenger.showSnackBar(
-                              const SnackBar(
-                                  content: Text('Student added!'),
-                                  backgroundColor: kAccent2),
-                            );
-                          }
+                        onChanged: (v) {
+                          if (v != null) setState(() => yearLevel = v);
                         },
-                        child: const Text('Add',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold)),
                       ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 12),
+                  Consumer<SectionProvider>(
+                    builder: (context, sectionProvider, _) {
+                      final sections = sectionProvider.sections;
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: kGlass,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: kGlassBorder),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String?>(
+                            value: selectedSectionId,
+                            isExpanded: true,
+                            hint: Text('Select Section (Optional)',
+                                style: TextStyle(color: context.textSecondary)),
+                            dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : lSurface,
+                            style: TextStyle(color: context.textPrimary),
+                            items: [
+                              DropdownMenuItem<String?>(
+                                value: null,
+                                child: Text('No Section',
+                                    style: TextStyle(color: context.textSecondary)),
+                              ),
+                              ...sections.map((section) =>
+                                  DropdownMenuItem<String?>(
+                                    value: section.id,
+                                    child: Text(section.displayName,
+                                        style: TextStyle(color: context.textPrimary)),
+                                  )),
+                            ],
+                            onChanged: (v) {
+                              setState(() => selectedSectionId = v);
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GlassCard(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          onTap: () => Navigator.pop(context),
+                          child: const Center(
+                            child: Text('Cancel',
+                                style: TextStyle(color: kAccent1)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GradientButton(
+                          onPressed: () async {
+                            final student = Student(
+                              studentId: studentIdController.text.trim(),
+                              firstName: firstNameController.text.trim(),
+                              lastName: lastNameController.text.trim(),
+                              email: emailController.text.trim().isEmpty
+                                  ? null
+                                  : emailController.text.trim(),
+                              course: courseController.text.trim(),
+                              yearLevel: yearLevel,
+                              sectionId: selectedSectionId,
+                            );
+                            final provider = context.read<StudentProvider>();
+                            final messenger = ScaffoldMessenger.of(context);
+                            final nav = Navigator.of(context);
+                            try {
+                              final success = await provider.addStudent(student);
+                              if (success && mounted) {
+                                nav.pop();
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Student added!'),
+                                      backgroundColor: kAccent2),
+                                );
+                              } else if (!success && mounted) {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                      content: Text(provider.errorMessage ?? 'Failed to add student'),
+                                      backgroundColor: Colors.red),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                      content: Text('Error: $e'),
+                                      backgroundColor: Colors.red),
+                                );
+                              }
+                            }
+                          },
+                          child: const Text('Add',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -208,118 +228,139 @@ class _StudentsScreenState extends State<StudentsScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => Dialog(
           backgroundColor: Colors.transparent,
-          child: GlassCard(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Edit Student',
-                    style: TextStyle(
-                        color: context.textPrimary,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 20),
-                GlassTextField(
-                    controller: studentIdController,
-                    label: 'Student ID',
-                    prefixIcon: Icons.badge_outlined),
-                const SizedBox(height: 12),
-                GlassTextField(
-                    controller: firstNameController,
-                    label: 'First Name',
-                    prefixIcon: Icons.person_outline),
-                const SizedBox(height: 12),
-                GlassTextField(
-                    controller: lastNameController,
-                    label: 'Last Name',
-                    prefixIcon: Icons.person_outline),
-                const SizedBox(height: 12),
-                GlassTextField(
-                    controller: emailController,
-                    label: 'Email',
-                    prefixIcon: Icons.email_outlined,
-                    keyboardType: TextInputType.emailAddress),
-                const SizedBox(height: 12),
-                GlassTextField(
-                    controller: courseController,
-                    label: 'Course',
-                    prefixIcon: Icons.school_outlined),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: kGlass,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: kGlassBorder),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: yearLevel,
-                      isExpanded: true,
-                      dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : lSurface,
-                      style: TextStyle(color: context.textPrimary),
-                      items: List.generate(
-                        4,
-                        (i) => DropdownMenuItem(
-                          value: i + 1,
-                          child: Text('Year ${i + 1}'),
-                        ),
-                      ),
-                      onChanged: (v) {
-                        if (v != null) setState(() => yearLevel = v);
-                      },
+          child: SingleChildScrollView(
+            child: GlassCard(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Edit Student',
+                      style: TextStyle(
+                          color: context.textPrimary,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 20),
+                  GlassTextField(
+                      controller: studentIdController,
+                      label: 'Student ID',
+                      prefixIcon: Icons.badge_outlined),
+                  const SizedBox(height: 12),
+                  GlassTextField(
+                      controller: firstNameController,
+                      label: 'First Name',
+                      prefixIcon: Icons.person_outline),
+                  const SizedBox(height: 12),
+                  GlassTextField(
+                      controller: lastNameController,
+                      label: 'Last Name',
+                      prefixIcon: Icons.person_outline),
+                  const SizedBox(height: 12),
+                  GlassTextField(
+                      controller: emailController,
+                      label: 'Email (optional)',
+                      prefixIcon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress),
+                  const SizedBox(height: 12),
+                  GlassTextField(
+                      controller: courseController,
+                      label: 'Course',
+                      prefixIcon: Icons.school_outlined),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: kGlass,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: kGlassBorder),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GlassCard(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        onTap: () => Navigator.pop(context),
-                        child: const Center(
-                          child: Text('Cancel',
-                              style: TextStyle(color: kAccent1)),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: yearLevel,
+                        isExpanded: true,
+                        dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : lSurface,
+                        style: TextStyle(color: context.textPrimary),
+                        items: List.generate(
+                          4,
+                          (i) => DropdownMenuItem(
+                            value: i + 1,
+                            child: Text('Year ${i + 1}'),
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GradientButton(
-                        onPressed: () async {
-                          final updated = Student(
-                            id: student.id,
-                            studentId: studentIdController.text,
-                            firstName: firstNameController.text,
-                            lastName: lastNameController.text,
-                            email: emailController.text,
-                            course: courseController.text,
-                            yearLevel: yearLevel,
-                          );
-                          final provider = context.read<StudentProvider>();
-                          final messenger = ScaffoldMessenger.of(context);
-                          final nav = Navigator.of(context);
-                          final success =
-                              await provider.updateStudent(student.id!, updated);
-                          if (success && mounted) {
-                            nav.pop();
-                            messenger.showSnackBar(
-                              const SnackBar(
-                                  content: Text('Student updated!'),
-                                  backgroundColor: kAccent2),
-                            );
-                          }
+                        onChanged: (v) {
+                          if (v != null) setState(() => yearLevel = v);
                         },
-                        child: const Text('Save',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold)),
                       ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GlassCard(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          onTap: () => Navigator.pop(context),
+                          child: const Center(
+                            child: Text('Cancel',
+                                style: TextStyle(color: kAccent1)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GradientButton(
+                          onPressed: () async {
+                            final updated = Student(
+                              id: student.id,
+                              studentId: studentIdController.text.trim(),
+                              firstName: firstNameController.text.trim(),
+                              lastName: lastNameController.text.trim(),
+                              email: emailController.text.trim().isEmpty
+                                  ? null
+                                  : emailController.text.trim(),
+                              course: courseController.text.trim(),
+                              yearLevel: yearLevel,
+                              sectionId: student.sectionId,
+                            );
+                            final provider = context.read<StudentProvider>();
+                            final messenger = ScaffoldMessenger.of(context);
+                            final nav = Navigator.of(context);
+                            try {
+                              final success =
+                                  await provider.updateStudent(student.id!, updated);
+                              if (success && mounted) {
+                                nav.pop();
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Student updated!'),
+                                      backgroundColor: kAccent2),
+                                );
+                              } else if (!success && mounted) {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                      content: Text(provider.errorMessage ?? 'Failed to update student'),
+                                      backgroundColor: Colors.red),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                      content: Text('Error: $e'),
+                                      backgroundColor: Colors.red),
+                                );
+                              }
+                            }
+                          },
+                          child: const Text('Save',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

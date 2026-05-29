@@ -32,7 +32,7 @@ export default function DashboardLayout({
   if (!ready) return null
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen neu-page-bg">
       <DashboardNav user={user!} />
       <main className="container mx-auto px-4 py-6">
         {children}

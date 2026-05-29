@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 
 from database import engine, Base
 from models import User, Student, Subject, Exam, ExamResult, StudentSubject, ScoringRule, Section, AcademicTerm, Attendance, GpaConfig  # noqa: F401
+from scripts.ensure_columns import ensure_columns
 
 from controllers import (
     auth_router,
@@ -39,11 +40,15 @@ load_dotenv(Path(__file__).parent / ".env")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Create tables on startup (safe — uses IF NOT EXISTS)."""
+    """Create tables on startup (safe — uses IF NOT EXISTS) and ensure columns."""
     try:
         Base.metadata.create_all(bind=engine)
     except Exception as e:
         logging.error("Database init failed at startup (continuing): %s", e)
+    try:
+        ensure_columns()
+    except Exception as e:
+        logging.error("Column migration failed at startup (continuing): %s", e)
     yield
 
 

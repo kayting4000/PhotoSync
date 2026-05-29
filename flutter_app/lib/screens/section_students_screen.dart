@@ -135,11 +135,28 @@ class _SectionStudentsScreenState extends State<SectionStudentsScreen> {
                               sectionId: widget.section.id,
                             );
                             final provider = context.read<StudentProvider>();
-                            final success = await provider.addStudent(student);
-                            if (success && mounted) {
-                              Navigator.pop(ctx);
-                              provider.fetchStudents(
-                                  sectionId: widget.section.id);
+                            final messenger = ScaffoldMessenger.of(context);
+                            try {
+                              final success = await provider.addStudent(student);
+                              if (success && mounted) {
+                                Navigator.pop(ctx);
+                                provider.fetchStudents(
+                                    sectionId: widget.section.id);
+                              } else if (!success && mounted) {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                      content: Text(provider.errorMessage ?? 'Failed to add student'),
+                                      backgroundColor: Colors.red),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                      content: Text('Error: $e'),
+                                      backgroundColor: Colors.red),
+                                );
+                              }
                             }
                           },
                           child: const Text('Add',

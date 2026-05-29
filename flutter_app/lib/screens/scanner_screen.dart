@@ -87,7 +87,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  /// Pick an image and add it as a new page
+  /// Pick an image and add it as a new page.
+  /// Supports PNG, JPG, and JPEG formats.
   Future<void> _addPage(ImageSource source) async {
     try {
       if (_pageBytes.length >= 5) {
@@ -107,6 +108,20 @@ class _ScannerScreenState extends State<ScannerScreen> {
         imageQuality: 85,
       );
       if (pickedFile != null) {
+        // Validate file type: allow PNG, JPG, JPEG
+        final ext = pickedFile.path.split('.').last.toLowerCase();
+        final allowedTypes = ['png', 'jpg', 'jpeg'];
+        if (!allowedTypes.contains(ext)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Only PNG, JPG, and JPEG images are supported'),
+                backgroundColor: kAccent3,
+              ),
+            );
+          }
+          return;
+        }
         final bytes = await pickedFile.readAsBytes();
         setState(() {
           _pageBytes.add(bytes);
@@ -446,7 +461,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             value: type,
                             child: Text(type, style: TextStyle(color: tp)),
                           )).toList(),
-                          onChanged: (v) => setState(() => _selectedPaperType = v ?? 'All'),
+                          onChanged: (v) => setState(() {
+                            _selectedPaperType = v ?? 'All';
+                            _selectedExamId = null; // reset exam selection when paper type changes
+                          }),
                         ),
                         const SizedBox(height: 16),
                         const Text('Select Exam', style: TextStyle(color: kAccent1, fontSize: 13)),
@@ -479,26 +497,30 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               children: [
                                 dropdown,
                                 const SizedBox(height: 8),
-                                if (exams.isEmpty || filtered.isEmpty)
-                                  Row(
-                                    children: [
-                                      ElevatedButton.icon(
-                                        onPressed: () {
-                                          if (_selectedSubjectId == null) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(content: Text('Please select a subject first'), backgroundColor: kAccent3),
-                                            );
-                                            return;
-                                          }
-                                          _showCreateExamDialog(context);
-                                        },
-                                        icon: const Icon(Icons.add_rounded, size: 16),
-                                        label: const Text('Create Exam'),
-                                        style: ElevatedButton.styleFrom(elevation: 0, backgroundColor: kAccent1),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text('or choose an existing exam', style: TextStyle(color: ts, fontSize: 12)),
-                                    ],
+                                if (exams.isEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: ElevatedButton.icon(
+                                      onPressed: () {
+                                        if (_selectedSubjectId == null) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Please select a subject first'), backgroundColor: kAccent3),
+                                          );
+                                          return;
+                                        }
+                                        _showCreateExamDialog(context);
+                                      },
+                                      icon: const Icon(Icons.add_rounded, size: 16),
+                                      label: const Text('Create Exam'),
+                                      style: ElevatedButton.styleFrom(elevation: 0, backgroundColor: kAccent1),
+                                    ),
+                                  ),
+                                if (exams.isNotEmpty && filtered.isEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text(
+                                        'No exams match "${_selectedPaperType}" — change paper type or create a new one',
+                                        style: TextStyle(color: ts, fontSize: 12)),
                                   ),
                                 // Exam metadata + Final scan toggle
                                 if (_selectedExamId != null) ...[
@@ -632,7 +654,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   child: Column(
                     children: [
                       Row(
-                        children: [
+                      children: [
                           Expanded(
                             child: GradientButton(
                               onPressed: _pageBytes.length >= 5 ? null : () => _addPage(ImageSource.camera),
@@ -641,7 +663,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                 children: [
                                   Icon(Icons.camera_alt_rounded, color: Colors.white, size: 18),
                                   SizedBox(width: 8),
-                                  Text('Add Page', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  Text('Camera', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ),
@@ -656,7 +678,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                 children: [
                                   Icon(Icons.photo_library_rounded, color: Colors.white, size: 18),
                                   SizedBox(width: 8),
-                                  Text('From Gallery', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  Text('Gallery / Files', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ),
@@ -910,9 +932,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           const SizedBox(height: 20),
                           Icon(Icons.document_scanner_rounded, size: 48, color: kAccent1.withValues(alpha: 0.5)),
                           const SizedBox(height: 12),
-                          Text('Tap the buttons above to add pages', style: TextStyle(color: ts, fontSize: 13)),
+                          Text('Tap Camera or Gallery to add pages', style: TextStyle(color: ts, fontSize: 13)),
                           const SizedBox(height: 4),
-                          Text('Supports 1-5 page exam papers', style: TextStyle(color: ts, fontSize: 12)),
+                          Text('Supports PNG, JPG, JPEG — up to 5 pages', style: TextStyle(color: ts, fontSize: 12)),
                           const SizedBox(height: 20),
                         ],
                       ),
@@ -936,16 +958,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final tp = context.textPrimary;
     final ts = context.textSecondary;
+
+    // Ensure the current value matches one of the items; reset if not
+    final validValues = items.map((item) => item.value).toList();
+    final safeValue = (value != null && validValues.contains(value)) ? value : null;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(color: kGlass, borderRadius: BorderRadius.circular(14), border: Border.all(color: kGlassBorder)),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: value,
+          value: safeValue,
           isExpanded: true,
           dropdownColor: isDark ? const Color(0xFF1A1A1A) : lSurface,
           style: TextStyle(color: tp),
-          hint: Text(hint, style: TextStyle(color: ts)),
+          hint: Text(hint, style: TextStyle(color: ts, fontSize: 14)),
           items: items.isEmpty
               ? [DropdownMenuItem(value: null, enabled: false, child: Text('No items available', style: TextStyle(color: Colors.grey[500], fontSize: 13)))]
               : items,
@@ -964,40 +991,42 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
     await showDialog<void>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Create Exam'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Exam name')),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                initialValue: compType,
-                items: const [
-                  DropdownMenuItem(value: 'exam', child: Text('Exam')),
-                  DropdownMenuItem(value: 'quiz', child: Text('Quiz')),
-                  DropdownMenuItem(value: 'assignment', child: Text('Assignment')),
-                ],
-                onChanged: (v) => compType = v ?? 'exam',
-                decoration: const InputDecoration(labelText: 'Type'),
-              ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              title: const Text('Create Exam'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Exam name')),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: compType,
+                    items: const [
+                      DropdownMenuItem(value: 'exam', child: Text('Exam')),
+                      DropdownMenuItem(value: 'quiz', child: Text('Quiz')),
+                      DropdownMenuItem(value: 'assignment', child: Text('Assignment')),
+                    ],
+                    onChanged: (v) => setDialogState(() => compType = v ?? 'exam'),
+                    decoration: const InputDecoration(labelText: 'Type'),
+                  ),
               const SizedBox(height: 8),
               TextField(controller: totalCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Total items')),
             ],
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+              actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final name = nameCtrl.text.trim();
                 final total = int.tryParse(totalCtrl.text.trim()) ?? 0;
                 if (name.isEmpty || total <= 0) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid name and total items'), backgroundColor: kAccent3));
+                  ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Enter a valid name and total items'), backgroundColor: kAccent3));
                   return;
                 }
 
-                Navigator.of(context).pop();
+                Navigator.of(ctx).pop();
 
                 final exam = Exam(subjectId: _selectedSubjectId!, name: name, componentType: compType, totalItems: total);
                 final ok = await provider.addExam(exam);
@@ -1005,14 +1034,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   await provider.fetchExams(subjectId: _selectedSubjectId);
                   final newExam = provider.exams.firstWhere((e) => (e.name == name && e.subjectId == _selectedSubjectId), orElse: () => provider.exams.isNotEmpty ? provider.exams.first : exam);
                   setState(() => _selectedExamId = newExam.id ?? _selectedExamId);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Exam created'), backgroundColor: kAccent1));
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Exam created'), backgroundColor: kAccent1));
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to create exam'), backgroundColor: kAccent3));
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to create exam'), backgroundColor: kAccent3));
                 }
               },
               child: const Text('Create'),
             ),
           ],
+        );
+          },
         );
       },
     );

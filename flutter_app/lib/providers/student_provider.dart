@@ -42,14 +42,16 @@ class StudentProvider extends ChangeNotifier {
         if (student.middleInitial != null && student.middleInitial!.isNotEmpty)
           'middle_initial': student.middleInitial,
         'last_name': student.lastName,
-        'email': student.email,
+        if (student.email != null && student.email!.isNotEmpty)
+          'email': student.email,
         if (student.parentGuardianEmail != null && student.parentGuardianEmail!.isNotEmpty)
           'parent_guardian_email': student.parentGuardianEmail,
         'course': student.course,
         'year_level': student.yearLevel,
         if (student.sectionId != null) 'section_id': student.sectionId,
       });
-      await fetchStudents();
+      // Preserve the current section filter when re-fetching
+      await fetchStudents(sectionId: student.sectionId);
       return true;
     } catch (e) {
       _errorMessage = e.toString();
@@ -66,7 +68,8 @@ class StudentProvider extends ChangeNotifier {
         if (student.middleInitial != null && student.middleInitial!.isNotEmpty)
           'middle_initial': student.middleInitial,
         'last_name': student.lastName,
-        'email': student.email,
+        if (student.email != null && student.email!.isNotEmpty)
+          'email': student.email,
         if (student.parentGuardianEmail != null && student.parentGuardianEmail!.isNotEmpty)
           'parent_guardian_email': student.parentGuardianEmail,
         'course': student.course,

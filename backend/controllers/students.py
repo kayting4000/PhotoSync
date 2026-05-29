@@ -127,10 +127,3 @@ def delete_student(
     db.delete(student)
     db.commit()
     return {"message": "Student deleted"}
-
-
-# The POST /students/ endpoint is defined above by the first create_student.
-# The duplicate create_student below was removed because it:
-#   1. Overwrote the proper POST /students/ endpoint
-#   2. Used incorrect model fields (Student has no "name" column)
-#   3. Used int instead of UUID for section_id

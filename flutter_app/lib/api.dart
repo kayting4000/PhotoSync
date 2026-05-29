@@ -4,7 +4,7 @@ import 'config.dart';
 
 Future<Map<String, dynamic>> createSubject(String name) async {
   final res = await http.post(
-    Uri.parse('$API_BASE/subjects/'),
+    Uri.parse('$apiBase/subjects/'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({'name': name}),
   );
@@ -16,7 +16,7 @@ Future<Map<String, dynamic>> createSubject(String name) async {
 
 Future<Map<String, dynamic>> createSection(int subjectId, String name) async {
   final res = await http.post(
-    Uri.parse('$API_BASE/subjects/$subjectId/sections'),
+    Uri.parse('$apiBase/subjects/$subjectId/sections'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({'name': name}),
   );
@@ -28,7 +28,7 @@ Future<Map<String, dynamic>> createSection(int subjectId, String name) async {
 
 Future<Map<String, dynamic>> createStudent(int sectionId, String name, String email) async {
   final res = await http.post(
-    Uri.parse('$API_BASE/sections/$sectionId/students'),
+    Uri.parse('$apiBase/sections/$sectionId/students'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({'name': name, 'email': email}),
   );
