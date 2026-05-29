@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/academic_term_provider.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
@@ -35,7 +36,7 @@ class _GradesScreenState extends State<GradesScreen> {
 
   Future<void> _fetchData({String? termId}) async {
     try {
-      final url = termId != null ? '/exam-results/?term_id=$termId' : '/exam-results/';
+      final url = termId != null ? '/results/?term_id=$termId' : '/results/';
       final results = await api.get(url);
       double totalPercentage = 0;
       double highest = 0;
@@ -124,12 +125,12 @@ class _GradesScreenState extends State<GradesScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: Padding(
+          leading: Padding(
           padding: const EdgeInsets.only(left: 10),
           child: GlassCard(
             padding: const EdgeInsets.all(8),
             borderRadius: 12,
-            onTap: () => Navigator.of(context).pop(),
+            onTap: () => context.go('/dashboard'),
             child: const Icon(Icons.arrow_back_ios_rounded, color: kTextPrimary, size: 20),
           ),
         ),
