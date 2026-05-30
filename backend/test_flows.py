@@ -85,10 +85,12 @@ try:
         subject = resp.json()
         subject_id = subject["id"]
         print(f"[OK] Subject created")
+        print(f"     ID: {subject_id}")
         print(f"     Code: {subject['code']}")
         print(f"     Name: {subject['name']}")
     else:
         print(f"[FAIL] Subject creation failed: {resp.status_code}")
+        print(f"     Response: {resp.text}")
         subject_id = None
 except Exception as e:
     print(f"[FAIL] Subject error: {e}")
@@ -97,24 +99,31 @@ except Exception as e:
 # 5. CREATE SECTION
 print("\n[5] Create Section...")
 try:
-    resp = requests.post(
-        f"{BASE_URL}/sections",
-        json={
-            "code": "A",
-            "name": "Section A"
-        },
-        headers=headers,
-        timeout=10
-    )
-    if resp.status_code == 200:
-        section = resp.json()
-        section_id = section["id"]
-        print(f"[OK] Section created")
-        print(f"     Code: {section['code']}")
-        print(f"     Name: {section['name']}")
-    else:
-        print(f"[FAIL] Section creation failed: {resp.status_code}")
+    if not subject_id:
+        print(f"[SKIP] Cannot create section without subject_id")
         section_id = None
+    else:
+        resp = requests.post(
+            f"{BASE_URL}/sections",
+            json={
+                "subject_id": subject_id,
+                "section_label": "A",
+                "room_number": "Room 101"
+            },
+            headers=headers,
+            timeout=10
+        )
+        if resp.status_code == 200:
+            section = resp.json()
+            section_id = section["id"]
+            print(f"[OK] Section created")
+            print(f"     ID: {section_id}")
+            print(f"     Label: {section['section_label']}")
+            print(f"     Room: {section['room_number']}")
+        else:
+            print(f"[FAIL] Section creation failed: {resp.status_code}")
+            print(f"     Response: {resp.text}")
+            section_id = None
 except Exception as e:
     print(f"[FAIL] Section error: {e}")
     section_id = None
@@ -178,7 +187,8 @@ try:
         timeout=10
     )
     if resp.status_code == 200:
-        students = resp.json()
+        data = resp.json()
+        students = data.get("items", []) if isinstance(data, dict) else data
         print(f"[OK] Students retrieved: {len(students)} total")
         if students:
             print(f"     First student: {students[0]['first_name']} {students[0]['last_name']}")
@@ -196,7 +206,8 @@ try:
         timeout=10
     )
     if resp.status_code == 200:
-        subjects = resp.json()
+        data = resp.json()
+        subjects = data.get("items", []) if isinstance(data, dict) else data
         print(f"[OK] Subjects retrieved: {len(subjects)} total")
         if subjects:
             print(f"     First subject: {subjects[0]['name']}")
@@ -214,10 +225,11 @@ try:
         timeout=10
     )
     if resp.status_code == 200:
-        sections = resp.json()
+        data = resp.json()
+        sections = data.get("items", []) if isinstance(data, dict) else data
         print(f"[OK] Sections retrieved: {len(sections)} total")
         if sections:
-            print(f"     First section: {sections[0]['name']}")
+            print(f"     First section: {sections[0]['section_label']}")
     else:
         print(f"[FAIL] Sections list failed: {resp.status_code}")
 except Exception as e:
