@@ -44,12 +44,14 @@ const kBgDeep1 = Color(0xFF0B0813);
 const kBgDeep2 = Color(0xFF1A0B2E);
 const kBgDeep3 = Color(0xFF11081E);
 
-// Purple accents
+// Purple accents - Enhanced vibrant palette
 const kAccentVivid = Color(0xFF9D4EDD);
 const kAccentAmethyst = Color(0xFFC77DFF);
 const kAccentMagenta = Color(0xFFE040FB);
+const kAccentIndigo = Color(0xFF7C3AED);
+const kAccentViolet = Color(0xFFA855F7);
 
-// Glass layer colors
+// Glass layer colors - Enhanced transparency
 const kGlassBg = Color(0x1AFFFFFF);     // 10% white for deep glass
 const kGlassBgLighter = Color(0x29FFFFFF); // 16% white for lighter glass
 const kGlassBorder = Color(0x14FFFFFF);   // 8% white border
@@ -68,6 +70,8 @@ const kIconGreen = Color(0xFF4ADE80);
 const kIconOrange = Color(0xFFFF8A65);
 const kIconPink = Color(0xFFFF4081);
 const kIconTeal = Color(0xFF26C6DA);
+const kIconRed = Color(0xFFFF6B6B);
+const kIconYellow = Color(0xFFFFD93D);
 
 // Dynamic avatar colors
 const List<Color> avatarColors = [
@@ -220,9 +224,9 @@ class AppBackground extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// PREMIUM GLASS CONTAINER
+// PREMIUM GLASS CONTAINER with ENHANCED ANIMATIONS
 // ═══════════════════════════════════════════════════════════════════════
-class GlassCard extends StatelessWidget {
+class GlassCard extends StatefulWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final double borderRadius;
@@ -247,49 +251,96 @@ class GlassCard extends StatelessWidget {
   });
 
   @override
+  State<GlassCard> createState() => _GlassCardState();
+}
+
+class _GlassCardState extends State<GlassCard> with SingleTickerProviderStateMixin {
+  late AnimationController _hoverController;
+  late Animation<double> _hoverAnim;
+  bool _isHovered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _hoverController = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    _hoverAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _hoverController, curve: Curves.easeOutCubic),
+    );
+  }
+
+  @override
+  void dispose() {
+    _hoverController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final bgColor = color ?? kGlassBg;
+    final bgColor = widget.color ?? kGlassBg;
     final borderColor = kGlassBorder;
 
-    Widget card = ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blurIntensity, sigmaY: blurIntensity),
-        child: Container(
-          padding: padding ?? const EdgeInsets.all(22),
-          decoration: BoxDecoration(
-            gradient: gradientColors != null
-                ? LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: gradientColors!)
-                : LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [bgColor, bgColor.withValues(alpha: 0.3)],
-                  ),
-            borderRadius: BorderRadius.circular(borderRadius),
-            border: Border.all(color: borderColor, width: 1.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3 * elevation),
-                blurRadius: 30 * elevation,
-                offset: Offset(0, 10 * elevation),
+    Widget card = AnimatedBuilder(
+      animation: _hoverAnim,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: 1.0 + (_hoverAnim.value * 0.02),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: widget.blurIntensity, sigmaY: widget.blurIntensity),
+              child: Container(
+                padding: widget.padding ?? const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  gradient: widget.gradientColors != null
+                      ? LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: widget.gradientColors!)
+                      : LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [bgColor, bgColor.withValues(alpha: 0.3)],
+                        ),
+                  borderRadius: BorderRadius.circular(widget.borderRadius),
+                  border: Border.all(color: borderColor.withValues(alpha: 0.5 + _hoverAnim.value * 0.5), width: 1.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2 * widget.elevation),
+                      blurRadius: 20 * widget.elevation,
+                      offset: Offset(0, 5 * widget.elevation),
+                    ),
+                    BoxShadow(
+                      color: kAccentVivid.withValues(alpha: 0.1 * _hoverAnim.value),
+                      blurRadius: 30 * _hoverAnim.value,
+                      offset: Offset(0, 10 * _hoverAnim.value),
+                    ),
+                  ],
+                ),
+                child: widget.child,
               ),
-            ],
+            ),
           ),
-          child: child,
-        ),
-      ),
+        );
+      },
     );
 
-    if (onTap != null) {
-      card = Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(borderRadius),
-          splashColor: Colors.white.withValues(alpha: 0.08),
-          highlightColor: Colors.white.withValues(alpha: 0.04),
-          child: card,
+    if (widget.onTap != null) {
+      card = MouseRegion(
+        onEnter: (_) {
+          setState(() => _isHovered = true);
+          _hoverController.forward();
+        },
+        onExit: (_) {
+          setState(() => _isHovered = false);
+          _hoverController.reverse();
+        },
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+          child: InkWell(
+            onTap: widget.onTap,
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            splashColor: Colors.white.withValues(alpha: 0.08),
+            highlightColor: Colors.white.withValues(alpha: 0.04),
+            child: card,
+          ),
         ),
       );
     }
@@ -387,7 +438,7 @@ class _GlassTextFieldState extends State<GlassTextField> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// PREMIUM GRADIENT BUTTON with GLOW
+// PREMIUM GRADIENT BUTTON with ENHANCED GLOW & RIPPLE
 // ═══════════════════════════════════════════════════════════════════════
 class GradientButton extends StatefulWidget {
   final VoidCallback? onPressed;
@@ -413,6 +464,7 @@ class _GradientButtonState extends State<GradientButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnim;
+  bool _isPressed = false;
 
   @override
   void initState() {
@@ -435,45 +487,60 @@ class _GradientButtonState extends State<GradientButton>
     final disabled = widget.onPressed == null;
     final activeColors = disabled ? [Colors.grey.shade600, Colors.grey.shade500] : widget.colors;
 
-    return Container(
-      height: widget.height,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: activeColors),
-        borderRadius: BorderRadius.circular(widget.borderRadius),
-        boxShadow: disabled ? [] : [
-          BoxShadow(color: activeColors.first.withValues(alpha: 0.4), blurRadius: 24, offset: const Offset(0, 8)),
-        ],
-      ),
-      child: AnimatedBuilder(
-        animation: _pulseAnim,
-        builder: (context, child) {
-          return Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(widget.borderRadius),
-              boxShadow: disabled ? [] : [
-                BoxShadow(
-                  color: activeColors.first.withValues(alpha: 0.25 * _pulseAnim.value),
-                  blurRadius: 35,
-                  offset: const Offset(0, 15),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: widget.onPressed,
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.onPressed,
+      child: Container(
+        height: widget.height,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: activeColors),
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+          boxShadow: disabled ? [] : [
+            BoxShadow(color: activeColors.first.withValues(alpha: 0.4), blurRadius: 24, offset: const Offset(0, 8)),
+          ],
+        ),
+        child: AnimatedBuilder(
+          animation: _pulseAnim,
+          builder: (context, child) {
+            return Container(
+              decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(widget.borderRadius),
-                splashColor: Colors.white.withValues(alpha: 0.15),
-                highlightColor: Colors.white.withValues(alpha: 0.08),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  alignment: Alignment.center,
-                  child: widget.child,
+                boxShadow: disabled ? [] : [
+                  BoxShadow(
+                    color: activeColors.first.withValues(alpha: 0.25 * _pulseAnim.value),
+                    blurRadius: 35,
+                    offset: const Offset(0, 15),
+                  ),
+                  if (_isPressed)
+                    BoxShadow(
+                      color: activeColors.first.withValues(alpha: 0.15),
+                      blurRadius: 15,
+                      offset: const Offset(0, 4),
+                    ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: widget.onPressed,
+                  borderRadius: BorderRadius.circular(widget.borderRadius),
+                  splashColor: Colors.white.withValues(alpha: 0.2),
+                  highlightColor: Colors.white.withValues(alpha: 0.1),
+                  child: Transform.scale(
+                    scale: _isPressed ? 0.98 : 1.0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      alignment: Alignment.center,
+                      child: widget.child,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -512,7 +579,7 @@ class PremiumFAB extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// DYNAMIC AVATAR
+// DYNAMIC AVATAR with ENHANCED STYLING
 // ═══════════════════════════════════════════════════════════════════════
 class DynamicAvatar extends StatelessWidget {
   final String text;
@@ -533,15 +600,39 @@ class DynamicAvatar extends StatelessWidget {
     final gradientColors = colors ?? [avatarColor, avatarColor.withValues(alpha: 0.6)];
 
     return Container(
-      width: size, height: size,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: gradientColors),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradientColors,
+        ),
         borderRadius: BorderRadius.circular(size * 0.3),
-        boxShadow: [BoxShadow(color: gradientColors.first.withValues(alpha: 0.25), blurRadius: 8, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: gradientColors.first.withValues(alpha: 0.35),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+          BoxShadow(
+            color: gradientColors.first.withValues(alpha: 0.15),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
       ),
       child: Center(
-        child: Text(text[0].toUpperCase(),
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: size * 0.42, fontFamily: 'Poppins')),
+        child: Text(
+          text[0].toUpperCase(),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: size * 0.42,
+            fontFamily: 'Poppins',
+            letterSpacing: -0.5,
+          ),
+        ),
       ),
     );
   }

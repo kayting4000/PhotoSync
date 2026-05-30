@@ -70,8 +70,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 FadeSlideIn(
-                  delay: const Duration(milliseconds: 100),
-                  beginOffset: const Offset(0, -0.05),
+                  delay: const Duration(milliseconds: 50),
+                  duration: const Duration(milliseconds: 150),
+                  beginOffset: const Offset(0, -0.02),
                   child: GlassCard(
                     padding: const EdgeInsets.all(20),
                     blurIntensity: 5,
@@ -92,7 +93,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 20),
                 FadeSlideIn(
-                  delay: const Duration(milliseconds: 200),
+                  delay: const Duration(milliseconds: 100),
+                  duration: const Duration(milliseconds: 150),
                   child: GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,
@@ -110,7 +112,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 24),
                 FadeSlideIn(
-                  delay: const Duration(milliseconds: 300),
+                  delay: const Duration(milliseconds: 150),
+                  duration: const Duration(milliseconds: 150),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -121,7 +124,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 12),
                 FadeSlideIn(
-                  delay: const Duration(milliseconds: 350),
+                  delay: const Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 150),
                   child: Wrap(
                     runSpacing: 12,
                     spacing: 12,
@@ -137,7 +141,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 24),
                 FadeSlideIn(
-                  delay: const Duration(milliseconds: 400),
+                  delay: const Duration(milliseconds: 250),
+                  duration: const Duration(milliseconds: 150),
                   child: GlassCard(
                     padding: const EdgeInsets.all(16),
                     blurIntensity: 3,
@@ -158,7 +163,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                 ),
-              ],
+            ],
             ),
           ),
         ),

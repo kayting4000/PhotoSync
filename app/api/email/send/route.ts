@@ -129,13 +129,17 @@ export async function POST(request: NextRequest) {
     // Check if RESEND_API_KEY is configured
     const resend = getResendClient()
     if (!resend) {
-      // Return success for demo purposes
-      console.log("[v0] Email would be sent to:", to)
-      console.log("[v0] Subject:", `Grade Report - ${subjectCode}`)
-      return NextResponse.json({ 
-        success: true, 
-        message: "Email simulated (RESEND_API_KEY not configured)" 
-      })
+      // Return error so UI knows email wasn't sent
+      console.warn("[v0] RESEND_API_KEY not configured. Email not sent.")
+      console.log("[v0] Would send to:", to)
+      return NextResponse.json(
+        { 
+          success: false,
+          error: "RESEND_API_KEY_MISSING",
+          message: "Email service not configured. Please set RESEND_API_KEY environment variable to enable email sending."
+        },
+        { status: 503 }
+      )
     }
 
     const { data, error } = await resend.emails.send({

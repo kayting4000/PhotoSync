@@ -69,7 +69,7 @@ class _EmailScreenState extends State<EmailScreen> {
         if (student.id == null) continue;
 
         try {
-          final results = await api.get('/exam-results/?student_id=${student.id}');
+          final results = await api.get('/results/?student_id=${student.id}');
           if (results.isNotEmpty) {
             final latest = results.first as Map<String, dynamic>;
 
@@ -247,8 +247,8 @@ class _EmailScreenState extends State<EmailScreen> {
                               child: GradientButton(
                                 onPressed: _isSending ? null : _sendEmails,
                                 colors: const [
-                                  Color(0xFF555555),
-                                  Color(0xFF777777)
+                                  kAccent1,
+                                  kAccent2
                                 ],
                                 child: _isSending
                                     ? const SizedBox(
