@@ -85,13 +85,16 @@ const List<Color> avatarColors = [
   Color(0xFFFF4081),
 ];
 
-// ─── Light mode (kept minimal for quick toggle) ──────────────────────
-const lTextPrimary = Color(0xFF1A0A3E);
-const lTextSecondary = Color(0xFF6A5ACD);
-const lTextTertiary = Color(0xFF9E9E9E);
-const lSurface = Color(0xFFF7F2FF);
-const lGlass = Color(0xCCFFFFFF);
-const lGlassBorder = Color(0x88FFFFFF);
+// ─── Light mode - Pure Neumorphism ──────────────────────────────────
+const lBgBase = Color(0xFFF0F0F5);
+const lTextPrimary = Color(0xFF2D2D3D);
+const lTextSecondary = Color(0xFF6B6B7D);
+const lTextTertiary = Color(0xFF9B9BAD);
+const lSurface = Color(0xFFF0F0F5);
+const lGlass = Color(0xFFFAFAFC);
+const lGlassBorder = Color(0xFFE0E0E8);
+const lShadowDark = Color(0x1A000000);
+const lShadowLight = Color(0x4DFFFFFF);
 
 // ─── Backward-compatible aliases for existing screens ───────────────
 const kAccent1 = kAccentVivid;
