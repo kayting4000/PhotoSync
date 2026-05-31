@@ -45,6 +45,14 @@ dependencies:
   # Premium fonts
   google_fonts: ^6.0.0
 
+  # Local storage (Hive)
+  hive: ^2.2.0
+  hive_flutter: ^1.1.0
+
+  # Push notifications
+  firebase_core: ^2.24.0
+  firebase_messaging: ^14.6.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

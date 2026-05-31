@@ -33,6 +33,7 @@ from controllers import (
 from controllers.subjects import router as subjects_router
 from controllers.sections import router as sections_router
 from controllers.students import router as students_router
+from controllers.search import router as search_router
 
 # load backend/.env (explicit path ensures it's found when starting uvicorn from the backend folder)
 load_dotenv(Path(__file__).parent / ".env")
@@ -84,6 +85,7 @@ app.include_router(gpa_config_router)
 app.include_router(subjects_router)
 app.include_router(sections_router)
 app.include_router(students_router)
+app.include_router(search_router)
 
 # Serve uploaded scan images statically
 uploads_dir = os.path.join(os.path.dirname(__file__), "uploads")

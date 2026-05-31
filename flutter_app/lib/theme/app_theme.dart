@@ -260,7 +260,6 @@ class GlassCard extends StatefulWidget {
 class _GlassCardState extends State<GlassCard> with SingleTickerProviderStateMixin {
   late AnimationController _hoverController;
   late Animation<double> _hoverAnim;
-  bool _isHovered = false;
 
   @override
   void initState() {
@@ -327,11 +326,9 @@ class _GlassCardState extends State<GlassCard> with SingleTickerProviderStateMix
     if (widget.onTap != null) {
       card = MouseRegion(
         onEnter: (_) {
-          setState(() => _isHovered = true);
           _hoverController.forward();
         },
         onExit: (_) {
-          setState(() => _isHovered = false);
           _hoverController.reverse();
         },
         child: Material(
