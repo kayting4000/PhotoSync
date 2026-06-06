@@ -1,6 +1,7 @@
 """
 Students controller — CRUD operations via SQLAlchemy ORM (Neon PostgreSQL).
 """
+import uuid
 from fastapi import APIRouter, HTTPException, Query, Depends, Path
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -48,7 +49,7 @@ def get_students(
     if year_level is not None:
         q = q.filter(Student.year_level == year_level)
     if section_id:
-        q = q.filter(Student.section_id == section_id)
+        q = q.filter(Student.section_id == (uuid.UUID(section_id) if isinstance(section_id, str) and len(section_id) == 36 else section_id))
     if search:
         q = q.filter(
             or_(
@@ -96,8 +97,12 @@ def update_student(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    try:
+        student_uuid = uuid.UUID(student_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid student ID format")
     student = db.query(Student).filter(
-        Student.id == student_id, Student.user_id == current_user.id
+        Student.id == student_uuid, Student.user_id == current_user.id
     ).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
@@ -115,8 +120,12 @@ def delete_student(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    try:
+        student_uuid = uuid.UUID(student_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid student ID format")
     student = db.query(Student).filter(
-        Student.id == student_id, Student.user_id == current_user.id
+        Student.id == student_uuid, Student.user_id == current_user.id
     ).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")

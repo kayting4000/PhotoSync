@@ -1,6 +1,7 @@
 """
 Exam Results controller — CRUD operations via SQLAlchemy ORM (Neon PostgreSQL).
 """
+import uuid
 from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -65,9 +66,15 @@ def get_results(
 ):
     q = db.query(ExamResult).filter(ExamResult.user_id == current_user.id)
     if student_id:
-        q = q.filter(ExamResult.student_id == student_id)
+        try:
+            q = q.filter(ExamResult.student_id == uuid.UUID(student_id))
+        except ValueError:
+            q = q.filter(ExamResult.student_id == student_id)
     if exam_id:
-        q = q.filter(ExamResult.exam_id == exam_id)
+        try:
+            q = q.filter(ExamResult.exam_id == uuid.UUID(exam_id))
+        except ValueError:
+            q = q.filter(ExamResult.exam_id == exam_id)
     total = q.count()
     q = q.order_by(ExamResult.created_at.desc()).offset(skip).limit(limit)
     return {

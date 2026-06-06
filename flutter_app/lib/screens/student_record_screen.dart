@@ -260,6 +260,74 @@ class _StudentRecordScreenState extends State<StudentRecordScreen>
     );
   }
 
+  /// Send grade report email for this student
+  Future<void> _sendGradeEmail() async {
+    if (widget.student.email == null || widget.student.email!.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Student has no email address'), backgroundColor: kAccent3),
+        );
+      }
+      return;
+    }
+
+    // Get the latest result to send
+    if (_results.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No exam results to send'), backgroundColor: kAccent3),
+        );
+      }
+      return;
+    }
+
+    final latestResult = _results.last;
+    final examId = latestResult['exam_id'];
+    Map<String, dynamic>? exam;
+    try {
+      exam = _exams.firstWhere((e) => e['id'] == examId);
+    } catch (_) {}
+
+    final percentage = (latestResult['percentage'] ?? 0.0).toDouble();
+    final correctAnswers = (latestResult['correct_answers'] ?? latestResult['score'] ?? 0).toDouble();
+    final totalScore = (latestResult['total_score'] ?? 100).toDouble();
+
+    try {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sending grade email...'), backgroundColor: kAccent1),
+        );
+      }
+
+      await api.post('/email/send-grade-report', {
+        'student_id': widget.student.id,
+        'exam_name': exam != null ? exam['name'] : (latestResult['exam_name'] ?? 'Exam'),
+        'subject_code': widget.subject.code,
+        'subject_name': widget.subject.name,
+        'percentage': percentage > 0 ? percentage : (correctAnswers / totalScore * 100),
+        'grade': latestResult['grade'] ?? 'TBD',
+        'grade_point': (latestResult['grade_point'] ?? 0.0).toDouble(),
+        'remarks': latestResult['remarks'] ?? 'Passed',
+        'custom_message': 'Grade report for ${widget.student.fullName} — ${widget.subject.name}',
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ Grade sent to ${widget.student.email}'),
+            backgroundColor: const Color(0xFF43E97B),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Email failed: $e'), backgroundColor: kAccent3),
+        );
+      }
+    }
+  }
+
   String _labelFor(String type) {
     switch (type) {
       case 'exam': return 'Exam';
@@ -526,34 +594,67 @@ class _StudentRecordScreenState extends State<StudentRecordScreen>
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                 child: FadeSlideIn(
-                  child: Row(
+                  child: Column(
                     children: [
-                      GestureDetector(
-                        onTap: () => context.pop(),
-                        child: const GlassCard(
-                          padding: EdgeInsets.all(10),
-                          borderRadius: 12,
-                          child: Icon(Icons.arrow_back_rounded,
-                              color: kAccent2, size: 20),
-                        ),
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => context.pop(),
+                            child: const GlassCard(
+                              padding: EdgeInsets.all(10),
+                              borderRadius: 12,
+                              child: Icon(Icons.arrow_back_rounded,
+                                  color: kAccent2, size: 20),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(widget.student.fullName,
+                                    style: TextStyle(
+                                        color: context.textPrimary,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold)),
+                                Text(
+                                    '${widget.student.studentId} • ${widget.subject.name}',
+                                    style: TextStyle(
+                                        color: context.textSecondary,
+                                        fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                          // Send Grade Email Button
+                          GestureDetector(
+                            onTap: _sendGradeEmail,
+                            child: GlassCard(
+                              padding: const EdgeInsets.all(10),
+                              borderRadius: 12,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF43E97B), Color(0xFF38F9D7)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.all(6),
+                                child: const Icon(Icons.email_rounded,
+                                    color: Colors.white, size: 18),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(widget.student.fullName,
-                                style: TextStyle(
-                                    color: context.textPrimary,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold)),
-                            Text(
-                                '${widget.student.studentId} • ${widget.subject.name}',
-                                style: TextStyle(
-                                    color: context.textSecondary,
-                                    fontSize: 12)),
-                          ],
-                        ),
+                      const SizedBox(height: 8),
+                      // Send grade label
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text('Send Grade Email',
+                              style: TextStyle(
+                                  color: context.textSecondary, fontSize: 10)),
+                        ],
                       ),
                     ],
                   ),

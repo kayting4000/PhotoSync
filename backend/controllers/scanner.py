@@ -1,9 +1,14 @@
 import httpx
 import os
+import json
 import hashlib
+import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("scanner")
 
 load_dotenv()
 
@@ -45,6 +50,112 @@ _scan_cache: dict[str, dict] = {}
 _MAX_CACHE_SIZE = 50
 
 
+def _recursive_search(obj, target_key: str, depth=0):
+    """Recursively search for a key in nested dict/list structures."""
+    if depth > 10:
+        return None
+    if isinstance(obj, dict):
+        # Direct match
+        if target_key in obj:
+            return obj[target_key]
+        # Recurse into values
+        for v in obj.values():
+            result = _recursive_search(v, target_key, depth + 1)
+            if result is not None:
+                return result
+        # Also check nested under "outputs" if present
+        if "outputs" in obj and isinstance(obj["outputs"], list):
+            for item in obj["outputs"]:
+                result = _recursive_search(item, target_key, depth + 1)
+                if result is not None:
+                    return result
+    elif isinstance(obj, list):
+        for item in obj:
+            result = _recursive_search(item, target_key, depth + 1)
+            if result is not None:
+                return result
+    return None
+
+
+def _extract_count(data: dict) -> int:
+    """Extract count of detected items from Roboflow workflow response."""
+    # Log the raw response structure (first 2KB)
+    raw_preview = json.dumps(data, indent=2)[:2000]
+    logger.info(f"Raw response preview:\n{raw_preview}")
+
+    # Strategy 1: Look for "count_objects" (our workflow uses this key)
+    count_val = _recursive_search(data, "count_objects")
+    if count_val is not None and isinstance(count_val, (int, float)):
+        logger.info(f"Found count_objects: {count_val}")
+        return int(count_val)
+
+    # Strategy 2: Look for "count" anywhere in the response
+    count_val = _recursive_search(data, "count")
+    if count_val is not None and isinstance(count_val, (int, float)):
+        logger.info(f"Found count via recursive search: {count_val}")
+        return int(count_val)
+
+    # Strategy 3: Look for predictions array
+    predictions = _recursive_search(data, "predictions")
+    if isinstance(predictions, list) and len(predictions) > 0:
+        logger.info(f"Found predictions list with {len(predictions)} items")
+        return len(predictions)
+    if isinstance(predictions, dict):
+        preds_list = predictions.get("predictions", [])
+        if isinstance(preds_list, list) and len(preds_list) > 0:
+            logger.info(f"Found nested predictions with {len(preds_list)} items")
+            return len(preds_list)
+
+    # Strategy 4: Look for any numeric score/confidence that indicates detection
+    scores = _recursive_search(data, "confidence")
+    if isinstance(scores, list) and len(scores) > 0:
+        logger.info(f"Found confidence list with {len(scores)} entries")
+        return len(scores)
+    if isinstance(scores, (int, float)) and scores > 0:
+        logger.info(f"Found single confidence: {scores}")
+        return 1
+
+    # Strategy 5: Look for "detections" key
+    detections = _recursive_search(data, "detections")
+    if isinstance(detections, list) and len(detections) > 0:
+        logger.info(f"Found detections list with {len(detections)} items")
+        return len(detections)
+
+    # Strategy 6: Count any prediction-like objects (objects with confidence + class)
+    def count_predictions(obj, depth=0):
+        if depth > 10:
+            return 0
+        total = 0
+        if isinstance(obj, dict):
+            if "confidence" in obj and "class" in obj:
+                return 1
+            if "x" in obj and "y" in obj and "width" in obj and "height" in obj:
+                return 1
+            for v in obj.values():
+                total += count_predictions(v, depth + 1)
+        elif isinstance(obj, list):
+            for item in obj:
+                total += count_predictions(item, depth + 1)
+        return total
+
+    pred_count = count_predictions(data)
+    if pred_count > 0:
+        logger.info(f"Found {pred_count} prediction-like objects")
+        return pred_count
+
+    return 0
+
+
+def _extract_visualization(data: dict) -> str | None:
+    """Extract visualization URL from Roboflow workflow response."""
+    viz = _recursive_search(data, "visualization")
+    if viz:
+        if isinstance(viz, dict):
+            return viz.get("url") or str(viz.get("value", ""))
+        return str(viz)
+    return None
+
+
 @router.post("/scan")
 async def scan_image(body: ScanRequest):
     if not all([ROBOFLOW_API_KEY, ROBOFLOW_WORKSPACE, ROBOFLOW_WORKFLOW_ID]):
@@ -76,24 +187,10 @@ async def scan_image(body: ScanRequest):
             raise HTTPException(status_code=res.status_code, detail=res.text)
 
         data = res.json()
-        count = 0
-        visualization_url = None
+        count = _extract_count(data)
+        visualization_url = _extract_visualization(data)
 
-        try:
-            if isinstance(data, list) and data:
-                result = data[0]
-                if result.get("predictions", {}).get("predictions"):
-                    count = len(result["predictions"]["predictions"])
-                if result.get("visualization"):
-                    visualization_url = result["visualization"].get("url")
-            elif isinstance(data, dict):
-                outputs = data.get("outputs", data)
-                if outputs.get("count") is not None:
-                    count = int(outputs["count"])
-                if outputs.get("visualization"):
-                    visualization_url = outputs["visualization"].get("url") or str(outputs["visualization"])
-        except Exception:
-            pass
+        logger.info(f"Final result - count: {count}, viz: {bool(visualization_url)}")
 
         result = {"count": count, "visualization_url": visualization_url}
 

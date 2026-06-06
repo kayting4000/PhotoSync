@@ -1,7 +1,6 @@
 fastapi
 uvicorn[standard]
 python-dotenv
-httpx
 pydantic[email]
 python-multipart
 sqlalchemy

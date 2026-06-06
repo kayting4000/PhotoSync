@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../config.dart';
+import '../services/api_service.dart';
 import '../providers/student_provider.dart';
 import '../providers/exam_provider.dart';
 import '../theme/app_theme.dart';
@@ -134,6 +135,40 @@ class _ScannerScreenState extends State<ScannerScreen> {
         setState(() {
           _detectedCount = totalDetected;
         });
+      }
+
+      // Auto-save the scan result as an exam grade
+      if (_detectedCount > 0 && _selectedStudentId != null && _selectedExamId != null) {
+        final totalItems = 50; // Default total items
+        final percentage = (_detectedCount / totalItems * 100).clamp(0, 100);
+
+        debugPrint('Saving exam result: $_detectedCount/$totalItems = ${percentage.toStringAsFixed(1)}%');
+
+        await ApiService().post('/results/', {
+          'student_id': _selectedStudentId!,
+          'exam_id': _selectedExamId!,
+          'correct_answers': _detectedCount,
+          'total_score': totalItems,
+          'percentage': percentage,
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✅ Result saved: ${percentage.toStringAsFixed(1)}% ($_detectedCount correct out of $totalItems)'),
+              backgroundColor: const Color(0xFF43E97B),
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No checkmarks detected. Try a different image.'),
+              backgroundColor: kAccent3,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

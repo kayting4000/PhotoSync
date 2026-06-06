@@ -1,11 +1,14 @@
 """
 Email controller — sends grade report emails (results only, no attachments).
-Uses Resend API for email delivery.
+Uses Gmail SMTP for email delivery.
 """
 import os
-import httpx
+import uuid
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
@@ -17,8 +20,8 @@ from models.student import Student
 
 load_dotenv()
 
-RESEND_API_KEY = os.getenv("RESEND_API_KEY")
-RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "PhotoSync <onboarding@resend.dev>")
+GMAIL_USER = os.getenv("GMAIL_USER")
+GMAIL_PASSWORD = os.getenv("GMAIL_PASSWORD")
 
 router = APIRouter(prefix="/email", tags=["Email"])
 
@@ -35,6 +38,38 @@ class GradeReportEmailRequest(BaseModel):
     custom_message: Optional[str] = None
 
 
+def send_email_smtp(to_email: str, subject: str, html_content: str):
+    """Send an email using Gmail SMTP."""
+    if not GMAIL_USER or not GMAIL_PASSWORD:
+        raise HTTPException(
+            status_code=500,
+            detail="Email service not configured. Please set GMAIL_USER and GMAIL_PASSWORD environment variables.",
+        )
+
+    msg = MIMEMultipart("alternative")
+    msg["From"] = GMAIL_USER
+    msg["To"] = to_email
+    msg["Subject"] = subject
+
+    msg.attach(MIMEText(html_content, "html"))
+
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(GMAIL_USER, GMAIL_PASSWORD)
+            server.send_message(msg)
+    except smtplib.SMTPAuthenticationError:
+        raise HTTPException(
+            status_code=500,
+            detail="Gmail authentication failed. Check your GMAIL_USER and GMAIL_PASSWORD.",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Email send failed: {str(e)}",
+        )
+
+
 @router.post("/send-grade-report")
 async def send_grade_report(
     body: GradeReportEmailRequest,
@@ -42,16 +77,14 @@ async def send_grade_report(
     current_user: User = Depends(get_current_user),
 ):
     """Send a grade report email to a student (results only, no attachments)."""
-    if not RESEND_API_KEY:
-        return {
-            "success": False,
-            "message": "Email service not configured. Please set RESEND_API_KEY environment variable to enable email sending.",
-            "error": "RESEND_API_KEY_MISSING"
-        }
+    # Get student info (convert string IDs to UUID for PostgreSQL compatibility)
+    try:
+        student_uuid = uuid.UUID(body.student_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid student ID format")
 
-    # Get student info
     student = db.query(Student).filter(
-        Student.id == body.student_id,
+        Student.id == student_uuid,
         Student.user_id == current_user.id,
     ).first()
     if not student:
@@ -88,26 +121,11 @@ async def send_grade_report(
     </html>
     """
 
-    # Send via Resend
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        payload = {
-            "from": RESEND_FROM_EMAIL,
-            "to": [student.email],
-            "subject": f"Grade Report - {body.subject_code} {body.subject_name}",
-            "html": html,
-        }
-
-        res = await client.post(
-            "https://api.resend.com/emails",
-            headers={
-                "Authorization": f"Bearer {RESEND_API_KEY}",
-                "Content-Type": "application/json",
-            },
-            json=payload,
-        )
-
-    if res.status_code != 200:
-        raise HTTPException(status_code=500, detail=f"Email send failed: {res.text}")
+    send_email_smtp(
+        to_email=student.email,
+        subject=f"Grade Report - {body.subject_code} {body.subject_name}",
+        html_content=html,
+    )
 
     return {
         "success": True,

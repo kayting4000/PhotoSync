@@ -49,7 +49,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="PhotoSync API",
-    description="Backend API for PhotoSync — Test Paper Scanner & Grade Management (Neon PostgreSQL)",
+    description="Backend API for PhotoSync — Test Paper Scanner & Grade Management",
     version="37.1.0",
     lifespan=lifespan,
     contact={"name": "Habibun-najal K. Kayting", "email": "kayting4k@gmail.com"},
