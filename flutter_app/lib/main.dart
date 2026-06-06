@@ -21,11 +21,9 @@ import 'screens/email_screen.dart';
 import 'screens/subjects_screen.dart';
 import 'screens/sections_screen.dart';
 import 'screens/academic_terms_screen.dart';
-import 'screens/hierarchy_screen.dart';
 import 'screens/subject_sections_screen.dart';
 import 'screens/section_students_screen.dart';
 import 'screens/student_record_screen.dart';
-import 'screens/exams_screen.dart';
 import 'models/subject.dart';
 import 'models/section.dart';
 import 'models/student.dart';
@@ -165,14 +163,6 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/academic-terms',
           pageBuilder: (_, __) => _slideUpPage(const AcademicTermsScreen()),
-        ),
-        GoRoute(
-          path: '/exams',
-          pageBuilder: (_, __) => _slideUpPage(const ExamsScreen()),
-        ),
-        GoRoute(
-          path: '/hierarchy',
-          pageBuilder: (_, __) => _slideUpPage(const HierarchyScreen()),
         ),
       ],
     );

@@ -31,8 +31,6 @@ router = APIRouter(prefix="/scanner", tags=["Scanner"])
 
 class ScanRequest(BaseModel):
     image_base64: str
-    page_number: int = 1
-    total_pages: int = 1
 
 
 def _image_hash(image_base64: str) -> str:
@@ -48,10 +46,7 @@ _MAX_CACHE_SIZE = 50
 @router.post("/scan")
 async def scan_image(body: ScanRequest):
     if not all([ROBOFLOW_API_KEY, ROBOFLOW_WORKSPACE, ROBOFLOW_WORKFLOW_ID]):
-        # Return a mock response for development when Roboflow is not configured
-        import random
-        mock_count = random.randint(5, 25)
-        return {"count": mock_count, "visualization_url": None}
+        raise HTTPException(status_code=500, detail="Roboflow credentials not configured")
 
     # Check in-memory cache first
     cache_key = _image_hash(body.image_base64)

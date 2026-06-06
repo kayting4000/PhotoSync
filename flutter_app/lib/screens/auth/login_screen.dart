@@ -44,8 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tp = context.textPrimary;
-    final ts = context.textSecondary;
     return Scaffold(
       body: AppBackground(
         child: SafeArea(
@@ -67,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: kAccent1.withValues(alpha: 0.4),
+                          color: kAccent1.withValues(alpha: 0.5),
                           blurRadius: 24,
                           offset: const Offset(0, 8),
                         ),
@@ -82,9 +80,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   delay: const Duration(milliseconds: 200),
                   child: Text(
                     'PhotoSync',
-                    style: AppTypography.heading.copyWith(
-                      color: tp,
+                    style: TextStyle(
+                      color: context.textPrimary,
                       fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
                     ),
                   ),
                 ),
@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   delay: const Duration(milliseconds: 300),
                   child: Text(
                     'Test Paper Scanner & Grade Management',
-                    style: AppTypography.body.copyWith(color: ts, fontSize: 13),
+                    style: TextStyle(color: context.textSecondary, fontSize: 13),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -107,9 +107,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           alignment: Alignment.centerLeft,
                           child: Text(
                             'Welcome back',
-                            style: AppTypography.subheading.copyWith(
-                              color: tp,
+                            style: TextStyle(
+                              color: context.textPrimary,
                               fontSize: 22,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -118,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           alignment: Alignment.centerLeft,
                           child: Text(
                             'Sign in to continue',
-                            style: AppTypography.body.copyWith(color: ts, fontSize: 13),
+                            style: TextStyle(color: context.textSecondary, fontSize: 13),
                           ),
                         ),
                         const SizedBox(height: 28),
@@ -139,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               _isPasswordVisible
                                   ? Icons.visibility
                                   : Icons.visibility_off,
-                              color: ts,
+                              color: kTextSecondary,
                             ),
                             onPressed: () => setState(
                                 () => _isPasswordVisible = !_isPasswordVisible),
@@ -160,10 +161,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                         color: Colors.white,
                                       ),
                                     )
-                                  : Text(
+                                  : const Text(
                                       'Sign In',
-                                      style: AppTypography.label.copyWith(
+                                      style: TextStyle(
                                         color: Colors.white,
+                                        fontWeight: FontWeight.bold,
                                         fontSize: 16,
                                       ),
                                     ),
@@ -180,15 +182,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Don't have an account? ",
-                          style: AppTypography.body.copyWith(color: ts)),
+                      const Text("Don't have an account? ",
+                          style: TextStyle(color: kTextSecondary)),
                       GestureDetector(
                         onTap: () => context.go('/signup'),
-                        child: Text(
+                        child: const Text(
                           'Sign up',
-                          style: AppTypography.label.copyWith(
-                            color: kAccent1,
-                            fontSize: 14,
+                          style: TextStyle(
+                            color: kAccent2,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),

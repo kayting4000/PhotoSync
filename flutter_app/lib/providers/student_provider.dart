@@ -39,19 +39,13 @@ class StudentProvider extends ChangeNotifier {
       await api.post('/students/', {
         'student_id': student.studentId,
         'first_name': student.firstName,
-        if (student.middleInitial != null && student.middleInitial!.isNotEmpty)
-          'middle_initial': student.middleInitial,
         'last_name': student.lastName,
-        if (student.email != null && student.email!.isNotEmpty)
-          'email': student.email,
-        if (student.parentGuardianEmail != null && student.parentGuardianEmail!.isNotEmpty)
-          'parent_guardian_email': student.parentGuardianEmail,
+        'email': student.email,
         'course': student.course,
         'year_level': student.yearLevel,
         if (student.sectionId != null) 'section_id': student.sectionId,
       });
-      // Preserve the current section filter when re-fetching
-      await fetchStudents(sectionId: student.sectionId);
+      await fetchStudents();
       return true;
     } catch (e) {
       _errorMessage = e.toString();
@@ -65,13 +59,8 @@ class StudentProvider extends ChangeNotifier {
       final body = <String, dynamic>{
         'student_id': student.studentId,
         'first_name': student.firstName,
-        if (student.middleInitial != null && student.middleInitial!.isNotEmpty)
-          'middle_initial': student.middleInitial,
         'last_name': student.lastName,
-        if (student.email != null && student.email!.isNotEmpty)
-          'email': student.email,
-        if (student.parentGuardianEmail != null && student.parentGuardianEmail!.isNotEmpty)
-          'parent_guardian_email': student.parentGuardianEmail,
+        'email': student.email,
         'course': student.course,
         'year_level': student.yearLevel,
         if (student.sectionId != null) 'section_id': student.sectionId,

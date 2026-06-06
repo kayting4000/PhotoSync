@@ -9,13 +9,13 @@ class SearchWidget extends StatefulWidget {
   final bool showFilters;
 
   const SearchWidget({
-    Key? key,
+    super.key,
     required this.onSearch,
     this.onSort,
     this.sortOptions = const ['Name', 'Date', 'Grade'],
     this.placeholder = 'Search...',
     this.showFilters = true,
-  }) : super(key: key);
+  });
 
   @override
   State<SearchWidget> createState() => _SearchWidgetState();
@@ -63,7 +63,7 @@ class _SearchWidgetState extends State<SearchWidget> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),

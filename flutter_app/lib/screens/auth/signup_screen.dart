@@ -75,11 +75,11 @@ class _SignupScreenState extends State<SignupScreen> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [Color(0xFF555555), Color(0xFF333333)]),
+                      gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
+                          color: kAccent1.withValues(alpha: 0.5),
                           blurRadius: 24,
                           offset: const Offset(0, 8),
                         ),
@@ -153,7 +153,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               _isPasswordVisible
                                   ? Icons.visibility
                                   : Icons.visibility_off,
-                              color: kAccent1,
+                              color: kAccent2,
                             ),
                             onPressed: () => setState(
                                 () => _isPasswordVisible = !_isPasswordVisible),
@@ -170,7 +170,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               _isConfirmPasswordVisible
                                   ? Icons.visibility
                                   : Icons.visibility_off,
-                              color: kAccent1,
+                              color: kAccent2,
                             ),
                             onPressed: () => setState(() =>
                                 _isConfirmPasswordVisible = !_isConfirmPasswordVisible),
@@ -219,7 +219,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         child: const Text(
                           'Sign in',
                           style: TextStyle(
-                            color: kAccent1,
+                            color: kAccent2,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

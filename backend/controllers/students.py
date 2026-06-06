@@ -1,7 +1,6 @@
 """
 Students controller — CRUD operations via SQLAlchemy ORM (Neon PostgreSQL).
 """
-import uuid
 from fastapi import APIRouter, HTTPException, Query, Depends, Path
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -9,7 +8,7 @@ from sqlalchemy import or_
 
 from database import get_db
 from controllers.auth import get_current_user
-from models import Student, Section, User
+from models import Student, Section
 from schemas import StudentCreate, StudentUpdate
 
 router = APIRouter(prefix="/students", tags=["Students"])
@@ -21,10 +20,8 @@ def _serialize(s: Student) -> dict:
         "user_id": str(s.user_id),
         "student_id": s.student_id,
         "first_name": s.first_name,
-        "middle_initial": s.middle_initial,
         "last_name": s.last_name,
         "email": s.email,
-        "parent_guardian_email": s.parent_guardian_email,
         "course": s.course,
         "year_level": s.year_level,
         "section_id": str(s.section_id) if s.section_id else None,
@@ -79,13 +76,11 @@ def create_student(
         user_id=current_user.id,
         student_id=body.student_id,
         first_name=body.first_name,
-        middle_initial=body.middle_initial,
         last_name=body.last_name,
         email=body.email,
-        parent_guardian_email=body.parent_guardian_email,
         course=body.course,
         year_level=body.year_level,
-        section_id=uuid.UUID(body.section_id) if body.section_id else None,
+        section_id=body.section_id,
     )
     db.add(student)
     db.commit()
@@ -127,3 +122,30 @@ def delete_student(
     db.delete(student)
     db.commit()
     return {"message": "Student deleted"}
+
+
+@router.post("/sections/{section_id}/students")
+def create_student(
+    section_id: int = Path(...),
+    payload: dict = None,
+    db: Session = Depends(get_db),
+):
+    payload = payload or {}
+    name = payload.get("name")
+    email = payload.get("email")
+    if not name or not email:
+        raise HTTPException(status_code=400, detail="name and email are required")
+    section = db.get(Section, section_id)
+    if not section:
+        raise HTTPException(status_code=404, detail="section not found")
+    student = Student(name=name, email=email, section_id=section_id)
+    db.add(student)
+    try:
+        db.commit()
+        db.refresh(student)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+    # NOTE: to add default exam/attendance placeholders, extend here (safe to add after commit)
+    return {"success": True, "student": {"id": student.id, "name": student.name, "email": student.email, "section_id": section_id}}

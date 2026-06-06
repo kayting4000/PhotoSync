@@ -42,7 +42,7 @@ ThemeData buildLightTheme() {
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(24))),
     ),
-    dialogBackgroundColor: Colors.transparent,
+    
     popupMenuTheme: PopupMenuThemeData(
       color: lGlass,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

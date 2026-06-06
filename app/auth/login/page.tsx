@@ -1,6 +1,13 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
@@ -46,75 +53,61 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center neu-page-bg p-6 md:p-10">
+    <div className="flex min-h-svh w-full items-center justify-center bg-muted/30 p-6 md:p-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
-          <div className="flex items-center justify-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 neu-card">
-              <GraduationCap className="h-8 w-8 text-primary" />
-            </div>
-            <span className="text-2xl font-bold text-slate-800 dark:text-slate-100">PhotoSync</span>
+          <div className="flex items-center justify-center gap-2 text-primary">
+            <GraduationCap className="h-8 w-8" />
+            <span className="text-xl font-bold">PhotoSync</span>
           </div>
-          <div className="neu-card p-6">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Login</h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">Login</CardTitle>
+              <CardDescription>
                 Enter your credentials to access the system
-              </p>
-            </div>
-            <form onSubmit={handleLogin}>
-              <div className="flex flex-col gap-5">
-                <div className="grid gap-2">
-                  <Label htmlFor="email" className="text-slate-700 dark:text-slate-300 font-medium">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="teacher@school.edu"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="neu-inset border-0 rounded-xl"
-                  />
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleLogin}>
+                <div className="flex flex-col gap-6">
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="teacher@school.edu"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
+                  {error && <p className="text-sm text-destructive">{error}</p>}
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Signing in...' : 'Sign In'}
+                  </Button>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="password" className="text-slate-700 dark:text-slate-300 font-medium">
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="neu-inset border-0 rounded-xl"
-                  />
+                <div className="mt-4 text-center text-sm">
+                  Don&apos;t have an account?{' '}
+                  <Link
+                    href="/auth/sign-up"
+                    className="underline underline-offset-4"
+                  >
+                    Sign up
+                  </Link>
                 </div>
-                {error && (
-                  <p className="text-sm text-destructive bg-destructive/10 p-2 rounded-lg">
-                    {error}
-                  </p>
-                )}
-                <Button 
-                  type="submit" 
-                  className="w-full rounded-xl font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Signing in...' : 'Sign In'}
-                </Button>
-              </div>
-              <div className="mt-5 text-center text-sm text-slate-500 dark:text-slate-400">
-                Don't have an account?{' '}
-                <Link
-                  href="/auth/sign-up"
-                  className="underline underline-offset-4 text-primary font-medium hover:text-primary/80 transition-colors"
-                >
-                  Sign up
-                </Link>
-              </div>
-            </form>
-          </div>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

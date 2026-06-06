@@ -245,7 +245,7 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: kAccent1.withOpacity(0.2),
+                                      color: kAccent1.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
@@ -310,8 +310,7 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                                         horizontal: 12,
                                                         vertical: 10),
                                                     color: isSelected
-                                                        ? kAccent1.withOpacity(
-                                                            0.15)
+                                                        ? kAccent1.withValues(alpha: 0.15)
                                                         : null,
                                                     onTap: () =>
                                                         _selectSection(section.id!),
@@ -325,7 +324,7 @@ class _HierarchyScreenState extends State<HierarchyScreen> {
                                                           decoration:
                                                               BoxDecoration(
                                                             color: kAccent2
-                                                                .withOpacity(0.2),
+                                                                .withValues(alpha: 0.2),
                                                             borderRadius:
                                                                 BorderRadius
                                                                     .circular(6),

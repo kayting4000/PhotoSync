@@ -60,22 +60,21 @@ class AppDrawer extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
                       borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(color: kAccent1.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4)),
-                      ],
                     ),
                     child: const Icon(Icons.document_scanner_rounded,
                         color: Colors.white, size: 28),
                   ),
                   const SizedBox(height: 14),
                   Text('PhotoSync',
-                      style: AppTypography.heading.copyWith(
+                      style: TextStyle(
                           color: tp,
-                          fontSize: 20)),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1)),
                   if (auth.userEmail != null) ...[
                     const SizedBox(height: 4),
                     Text(auth.userEmail!,
-                        style: AppTypography.caption.copyWith(
+                        style: TextStyle(
                           color: ts,
                           fontSize: 12,
                         )),
@@ -103,23 +102,12 @@ class AppDrawer extends StatelessWidget {
                   const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                    child: Text('WORKSPACE',
+                    child: Text('MANAGE',
                         style: TextStyle(
                             color: ts,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 1.2)),
-                  ),
-                  _DrawerItem(
-                    icon: Icons.document_scanner_rounded,
-                    label: 'Scanner',
-                    route: '/scanner',
-                    currentRoute: currentRoute,
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.go('/scanner');
-                    },
-                    isDark: isDark,
                   ),
                   _DrawerItem(
                     icon: Icons.people_rounded,
@@ -140,17 +128,6 @@ class AppDrawer extends StatelessWidget {
                     onTap: () {
                       Navigator.pop(context);
                       context.go('/subjects');
-                    },
-                    isDark: isDark,
-                  ),
-                  _DrawerItem(
-                    icon: Icons.quiz_rounded,
-                    label: 'Exams & Quizzes',
-                    route: '/exams',
-                    currentRoute: currentRoute,
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.go('/exams');
                     },
                     isDark: isDark,
                   ),
@@ -177,13 +154,13 @@ class AppDrawer extends StatelessWidget {
                     isDark: isDark,
                   ),
                   _DrawerItem(
-                    icon: Icons.folder_rounded,
-                    label: 'Course Structure',
-                    route: '/hierarchy',
+                    icon: Icons.document_scanner_rounded,
+                    label: 'Scanner',
+                    route: '/scanner',
                     currentRoute: currentRoute,
                     onTap: () {
                       Navigator.pop(context);
-                      context.go('/hierarchy');
+                      context.go('/scanner');
                     },
                     isDark: isDark,
                   ),

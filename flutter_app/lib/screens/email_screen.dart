@@ -69,7 +69,7 @@ class _EmailScreenState extends State<EmailScreen> {
         if (student.id == null) continue;
 
         try {
-          final results = await api.get('/results/?student_id=${student.id}');
+          final results = await api.get('/exam-results/?student_id=${student.id}');
           if (results.isNotEmpty) {
             final latest = results.first as Map<String, dynamic>;
 
@@ -111,7 +111,7 @@ class _EmailScreenState extends State<EmailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Emails sent to $sentCount students'),
-            backgroundColor: kAccent2,
+            backgroundColor: kAccent1,
           ),
         );
         _messageController.clear();
@@ -155,7 +155,7 @@ class _EmailScreenState extends State<EmailScreen> {
                                 padding: EdgeInsets.all(10),
                                 borderRadius: 12,
                                 child: Icon(Icons.menu_rounded,
-                                    color: kAccent1, size: 20),
+                                    color: kAccent2, size: 20),
                               ),
                             ),
                           ),
@@ -188,7 +188,7 @@ class _EmailScreenState extends State<EmailScreen> {
                                 child: DropdownButton<String>(
                                   value: _selectedSubject,
                                   isExpanded: true,
-                                  dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : lSurface,
+                                  dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
                                   style: TextStyle(color: tp),
                                   hint: Text('Choose a subject',
                                       style: TextStyle(color: ts)),
@@ -247,8 +247,8 @@ class _EmailScreenState extends State<EmailScreen> {
                               child: GradientButton(
                                 onPressed: _isSending ? null : _sendEmails,
                                 colors: const [
-                                  kAccent1,
-                                  kAccent2
+                                  Color(0xFFF7971E),
+                                  Color(0xFFFFD200)
                                 ],
                                 child: _isSending
                                     ? const SizedBox(
@@ -280,7 +280,7 @@ class _EmailScreenState extends State<EmailScreen> {
 
                       // Preview card
                       GlassCard(
-                        color: const Color(0x0D555555),
+                        color: const Color(0x0D6C63FF),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [

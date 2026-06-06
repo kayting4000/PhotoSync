@@ -48,7 +48,7 @@ def create_subject(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    name = body.name
+    name = (body or {}).get("name")
     if not name:
         raise HTTPException(status_code=400, detail="name is required")
     subject = Subject(
@@ -64,7 +64,7 @@ def create_subject(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    return _serialize(subject)
+    return {"success": True, "subject": {"id": subject.id, "name": subject.name}}
 
 
 @router.put("/{subject_id}")

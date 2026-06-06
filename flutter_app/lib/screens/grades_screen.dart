@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import '../providers/academic_term_provider.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
@@ -36,7 +35,7 @@ class _GradesScreenState extends State<GradesScreen> {
 
   Future<void> _fetchData({String? termId}) async {
     try {
-      final url = termId != null ? '/results/?term_id=$termId' : '/results/';
+      final url = termId != null ? '/exam-results/?term_id=$termId' : '/exam-results/';
       final results = await api.get(url);
       double totalPercentage = 0;
       double highest = 0;
@@ -100,10 +99,10 @@ class _GradesScreenState extends State<GradesScreen> {
 
   List<Color> _gradeColors(String? grade) {
     switch (grade) {
-      case 'A+': case 'A': return [const Color(0xFF555555), const Color(0xFF777777)];
-      case 'B+': case 'B': return [const Color(0xFF666666), const Color(0xFF444444)];
-      case 'C+': case 'C': return [const Color(0xFF777777), const Color(0xFF555555)];
-      default: return [const Color(0xFF444444), const Color(0xFF666666)];
+      case 'A+': case 'A': return [const Color(0xFF43E97B), const Color(0xFF38F9D7)];
+      case 'B+': case 'B': return [kAccent1, kAccent2];
+      case 'C+': case 'C': return [const Color(0xFFF7971E), const Color(0xFFFFD200)];
+      default: return [kAccent3, const Color(0xFFFF8FA3)];
     }
   }
 
@@ -125,12 +124,12 @@ class _GradesScreenState extends State<GradesScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-          leading: Padding(
+        leading: Padding(
           padding: const EdgeInsets.only(left: 10),
           child: GlassCard(
             padding: const EdgeInsets.all(8),
             borderRadius: 12,
-            onTap: () => context.go('/dashboard'),
+            onTap: () => Navigator.of(context).pop(),
             child: const Icon(Icons.arrow_back_ios_rounded, color: kTextPrimary, size: 20),
           ),
         ),
@@ -168,7 +167,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                 isExpanded: true,
                                 hint: Text('All Terms',
                                     style: TextStyle(color: context.textSecondary)),
-                                dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : lSurface,
+                                dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A3E) : lSurface,
                                 style: TextStyle(color: context.textPrimary),
                                 items: [
                                   DropdownMenuItem<String?>(
@@ -207,7 +206,7 @@ class _GradesScreenState extends State<GradesScreen> {
                             const SizedBox(height: 8),
                             ShaderMask(
                               shaderCallback: (bounds) =>
-                                  const LinearGradient(colors: [Color(0xFF777777), Color(0xFF444444)])
+                                  const LinearGradient(colors: [kAccent1, kAccent2])
                                       .createShader(bounds),
                               child: Text(
                                 _gpa.toStringAsFixed(2),
@@ -244,7 +243,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                 _StatItem(
                                   label: 'Highest',
                                   value: '$_highestScore%',
-                                  color: const Color(0xFF777777),
+                                  color: const Color(0xFF43E97B),
                                 ),
                                 _StatItem(
                                   label: 'Lowest',
@@ -270,7 +269,7 @@ class _GradesScreenState extends State<GradesScreen> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(colors: [Color(0xFF666666), Color(0xFF444444)]),
+                                gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(Icons.menu_book_rounded, color: Colors.white, size: 16),
@@ -335,7 +334,7 @@ class _GradesScreenState extends State<GradesScreen> {
                           Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(colors: [Color(0xFF555555), Color(0xFF777777)]),
+                              gradient: const LinearGradient(colors: [Color(0xFF43E97B), Color(0xFF38F9D7)]),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(Icons.pie_chart_rounded, color: Colors.white, size: 16),
@@ -390,7 +389,7 @@ class _GradesScreenState extends State<GradesScreen> {
                           Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(colors: [Color(0xFF444444), Color(0xFF666666)]),
+                              gradient: const LinearGradient(colors: [Color(0xFFFF6584), Color(0xFFFF8FA3)]),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(Icons.assignment_rounded, color: Colors.white, size: 16),

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../config.dart';
 
@@ -44,71 +43,111 @@ class ApiService {
   // ─── Auth ────────────────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> login(String email, String password) async {
-    try {
-      final res = await http
-          .post(
-            Uri.parse('$_baseUrl/auth/login'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'email': email, 'password': password}),
-          )
-          .timeout(const Duration(seconds: 15));
-      if (res.statusCode == 200) {
-        try {
-          return jsonDecode(res.body) as Map<String, dynamic>;
-        } catch (_) {
-          throw Exception('Backend returned malformed response');
-        }
-      }
+    // Retry mechanism for transient network issues
+    const int maxRetries = 3;
+    int attempt = 0;
+    
+    while (attempt < maxRetries) {
       try {
-        final body = jsonDecode(res.body);
-        throw Exception(body['detail'] ?? 'Login failed');
-      } on FormatException {
-        throw Exception('Server error (${res.statusCode}): ${res.body.trim()}');
+        final res = await http
+            .post(
+              Uri.parse('$_baseUrl/auth/login'),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({'email': email, 'password': password}),
+            )
+            .timeout(connectionTimeout);
+        if (res.statusCode == 200) {
+          try {
+            return jsonDecode(res.body) as Map<String, dynamic>;
+          } catch (_) {
+            throw Exception('Backend returned malformed response');
+          }
+        }
+        try {
+          final body = jsonDecode(res.body);
+          throw Exception(body['detail'] ?? 'Login failed');
+        } on FormatException {
+          throw Exception('Server error (${res.statusCode}): ${res.body.trim()}');
+        }
+      } on SocketException {
+        attempt++;
+        if (attempt >= maxRetries) {
+          throw Exception(
+              'Cannot connect to backend. Make sure the server is running at $_baseUrl. Error: Connection refused or host unreachable.');
+        }
+        // Wait before retry
+        await Future.delayed(Duration(seconds: attempt * 2));
+      } on TimeoutException {
+        attempt++;
+        if (attempt >= maxRetries) {
+          throw Exception(
+              'Connection timed out after ${connectionTimeout.inSeconds}s. The backend server is not responding. Please check if the server is running at $_baseUrl and accessible from this device.');
+        }
+        // Wait before retry
+        await Future.delayed(Duration(seconds: attempt * 2));
+      } on http.ClientException {
+        attempt++;
+        if (attempt >= maxRetries) {
+          throw Exception(
+              'Cannot connect to server. Check your internet connection and ensure the backend is running at $_baseUrl.');
+        }
+        await Future.delayed(Duration(seconds: attempt * 2));
       }
-    } on SocketException {
-      throw Exception(
-          'Cannot connect to backend. Make sure the server is running.');
-    } on TimeoutException {
-      throw Exception(
-          'Connection timed out. The backend server is not responding.');
-    } on http.ClientException {
-      throw Exception(
-          'Cannot connect to server. Check your internet connection.');
     }
+    throw Exception('Login failed after $maxRetries attempts');
   }
 
   Future<Map<String, dynamic>> signup(String email, String password) async {
-    try {
-      final res = await http
-          .post(
-            Uri.parse('$_baseUrl/auth/signup'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'email': email, 'password': password}),
-          )
-          .timeout(const Duration(seconds: 15));
-      if (res.statusCode == 200) {
-        try {
-          return jsonDecode(res.body) as Map<String, dynamic>;
-        } catch (_) {
-          throw Exception('Backend returned malformed response');
-        }
-      }
+    // Retry mechanism for transient network issues
+    const int maxRetries = 3;
+    int attempt = 0;
+    
+    while (attempt < maxRetries) {
       try {
-        final body = jsonDecode(res.body);
-        throw Exception(body['detail'] ?? 'Signup failed');
-      } on FormatException {
-        throw Exception('Server error (${res.statusCode}): ${res.body.trim()}');
+        final res = await http
+            .post(
+              Uri.parse('$_baseUrl/auth/signup'),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({'email': email, 'password': password}),
+            )
+            .timeout(connectionTimeout);
+        if (res.statusCode == 200) {
+          try {
+            return jsonDecode(res.body) as Map<String, dynamic>;
+          } catch (_) {
+            throw Exception('Backend returned malformed response');
+          }
+        }
+        try {
+          final body = jsonDecode(res.body);
+          throw Exception(body['detail'] ?? 'Signup failed');
+        } on FormatException {
+          throw Exception('Server error (${res.statusCode}): ${res.body.trim()}');
+        }
+      } on SocketException {
+        attempt++;
+        if (attempt >= maxRetries) {
+          throw Exception(
+              'Cannot connect to backend. Make sure the server is running at $_baseUrl. Error: Connection refused or host unreachable.');
+        }
+        await Future.delayed(Duration(seconds: attempt * 2));
+      } on TimeoutException {
+        attempt++;
+        if (attempt >= maxRetries) {
+          throw Exception(
+              'Connection timed out after ${connectionTimeout.inSeconds}s. The backend server is not responding. Please check if the server is running at $_baseUrl and accessible from this device.');
+        }
+        await Future.delayed(Duration(seconds: attempt * 2));
+      } on http.ClientException {
+        attempt++;
+        if (attempt >= maxRetries) {
+          throw Exception(
+              'Cannot connect to server. Check your internet connection and ensure the backend is running at $_baseUrl.');
+        }
+        await Future.delayed(Duration(seconds: attempt * 2));
       }
-    } on SocketException {
-      throw Exception(
-          'Cannot connect to backend. Make sure the server is running.');
-    } on TimeoutException {
-      throw Exception(
-          'Connection timed out. The backend server is not responding.');
-    } on http.ClientException {
-      throw Exception(
-          'Cannot connect to server. Check your internet connection.');
     }
+    throw Exception('Signup failed after $maxRetries attempts');
   }
 
   /// GET that returns a single Map (for endpoints that return objects, not arrays).
@@ -211,18 +250,13 @@ class ApiService {
       request.files.add(imageFile);
     } else if (imageFile is String) {
       request.files.add(await http.MultipartFile.fromPath('file', imageFile));
-    } else if (imageFile is Uint8List) {
-      request.files.add(http.MultipartFile.fromBytes(
-        'file', imageFile,
-        filename: 'scan_${DateTime.now().millisecondsSinceEpoch}.png',
-      ));
     } else {
       try {
         // XFile has .path property
         final path = imageFile.path;
         request.files.add(await http.MultipartFile.fromPath('file', path));
       } catch (_) {
-        // Fallback for other byte-backed objects
+        // Fallback for web/Uint8List — convert to bytes
         final bytes = await imageFile.readAsBytes();
         request.files.add(http.MultipartFile.fromBytes(
           'file', bytes,

@@ -106,7 +106,8 @@ class _SplashScreenState extends State<SplashScreen>
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
+                        gradient: const LinearGradient(
+                            colors: [kAccent1, kAccent2]),
                         borderRadius: BorderRadius.circular(28),
                         boxShadow: [
                           BoxShadow(
@@ -116,7 +117,8 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ],
                       ),
-                      child: const Icon(Icons.document_scanner_rounded, color: Colors.white, size: 52),
+                      child: const Icon(Icons.document_scanner_rounded,
+                          color: Colors.white, size: 52),
                     ),
                   ),
                 ),
@@ -129,11 +131,24 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Column(
                     children: [
                       ShaderMask(
-                        shaderCallback: (bounds) => const LinearGradient(colors: [kAccent1, kAccent2]).createShader(bounds),
-                        child: const Text('PhotoSync', style: TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                        shaderCallback: (bounds) =>
+                            const LinearGradient(colors: [kAccent1, kAccent2])
+                                .createShader(bounds),
+                        child: const Text(
+                          'PhotoSync',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 42,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 2,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 8),
-                      Text('Smart Grade Management', style: TextStyle(color: context.textSecondary, fontSize: 14)),
+                      Text(
+                        'Smart Grade Management',
+                        style: TextStyle(color: context.textSecondary, fontSize: 14),
+                      ),
                     ],
                   ),
                 ),
@@ -142,8 +157,13 @@ class _SplashScreenState extends State<SplashScreen>
               FadeTransition(
                 opacity: _textOpacity,
                 child: SizedBox(
-                  width: 40, height: 40,
-                  child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(kAccent1.withValues(alpha: 0.6))),
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        kAccent1.withValues(alpha: 0.6)),
+                  ),
                 ),
               ),
             ],

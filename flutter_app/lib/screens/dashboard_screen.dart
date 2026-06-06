@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
-import '../theme/neumorphic_light_theme.dart';
 import '../widgets/fade_slide_in.dart';
 import '../widgets/app_drawer.dart';
 
@@ -44,341 +43,240 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+    final tp = context.textPrimary;
+    final ts = context.textSecondary;
     return Scaffold(
       drawer: const AppDrawer(currentRoute: '/dashboard'),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight + 8),
-        child: Container(
-          decoration: BoxDecoration(
-            color: isDark ? kBgDeep1 : nBgBase,
-            border: Border(
-              bottom: BorderSide(
-                color: isDark ? kGlassBorder.withValues(alpha: 0.3) : nBorder,
-                width: 0.5,
-              ),
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: Row(
-                children: [
-                  Material(
-                    color: Colors.transparent,
-                    child: IconButton(
-                      onPressed: () => Scaffold.of(context).openDrawer(),
-                      icon: Icon(
-                        Icons.menu_rounded,
-                        color: isDark ? kTextWhite : nTextPrimary,
-                        size: 26,
+      body: AppBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Compact Header with hamburger menu
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 100),
+                  beginOffset: const Offset(0, -0.05),
+                  child: Row(
+                    children: [
+                      Builder(
+                        builder: (context) => GestureDetector(
+                          onTap: () => Scaffold.of(context).openDrawer(),
+                          child: const GlassCard(
+                            padding: EdgeInsets.all(10),
+                            borderRadius: 14,
+                            blurIntensity: 3,
+                            child: Icon(Icons.menu_rounded,
+                                color: kAccent2, size: 20),
+                          ),
+                        ),
                       ),
-                      tooltip: 'Menu',
-                      splashRadius: 24,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'PhotoSync',
+                              style: TextStyle(
+                                color: tp,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                            Text(
+                              'Welcome back! 👋',
+                              style: TextStyle(color: ts, fontSize: 13),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Compact Stats grid
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 200),
+                  child: GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.4,
+                    children: [
+                      _StatCard(
+                        title: 'Students',
+                        value: '$_totalStudents',
+                        icon: Icons.people_rounded,
+                        colors: const [Color(0xFF6C63FF), Color(0xFF9B8FFF)],
+                        onTap: () => context.go('/students'),
+                      ),
+                      _StatCard(
+                        title: 'Subjects',
+                        value: '$_totalSubjects',
+                        icon: Icons.menu_book_rounded,
+                        colors: const [Color(0xFF48CAE4), Color(0xFF0096C7)],
+                        onTap: () => context.go('/subjects'),
+                      ),
+                      _StatCard(
+                        title: 'Exams',
+                        value: '$_totalExams',
+                        icon: Icons.assignment_rounded,
+                        colors: const [Color(0xFFFF6584), Color(0xFFFF8FA3)],
+                        onTap: () => context.go('/scanner'),
+                      ),
+                      _StatCard(
+                        title: 'Results',
+                        value: '$_totalResults',
+                        icon: Icons.bar_chart_rounded,
+                        colors: const [Color(0xFF43E97B), Color(0xFF38F9D7)],
+                        onTap: () => context.go('/grades'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Quick Actions header
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 300),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.flash_on_rounded,
+                            color: Colors.white, size: 16),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Quick Actions',
+                        style: TextStyle(
+                          color: tp,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 350),
+                  child: _ActionTile(
+                    label: 'Manage Students',
+                    subtitle: 'Add, edit & view students',
+                    icon: Icons.people_rounded,
+                    gradient: const [Color(0xFF6C63FF), Color(0xFF9B8FFF)],
+                    onTap: () => context.go('/students'),
+                  ),
+                ),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 400),
+                  child: _ActionTile(
+                    label: 'Manage Subjects',
+                    subtitle: 'Configure courses & units',
+                    icon: Icons.menu_book_rounded,
+                    gradient: const [Color(0xFF48CAE4), Color(0xFF0096C7)],
+                    onTap: () => context.go('/subjects'),
+                  ),
+                ),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 450),
+                  child: _ActionTile(
+                    label: 'Scan Test Papers',
+                    subtitle: 'Upload & analyze papers',
+                    icon: Icons.document_scanner_rounded,
+                    gradient: const [Color(0xFFFF6584), Color(0xFFFF8FA3)],
+                    onTap: () => context.go('/scanner'),
+                  ),
+                ),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 500),
+                  child: _ActionTile(
+                    label: 'View Grades',
+                    subtitle: 'Track GPA & results',
+                    icon: Icons.bar_chart_rounded,
+                    gradient: const [Color(0xFF43E97B), Color(0xFF38F9D7)],
+                    onTap: () => context.go('/grades'),
+                  ),
+                ),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 550),
+                  child: _ActionTile(
+                    label: 'Send Email Reports',
+                    subtitle: 'Notify students via email',
+                    icon: Icons.mark_email_read_rounded,
+                    gradient: const [Color(0xFFF7971E), Color(0xFFFFD200)],
+                    onTap: () => context.go('/email'),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Compact Team info
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 600),
+                  child: GlassCard(
+                    padding: const EdgeInsets.all(14),
+                    blurIntensity: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.groups_rounded, color: kAccent2, size: 16),
+                            const SizedBox(width: 8),
+                            Text('Development Team',
+                                style: TextStyle(
+                                    color: tp,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13)),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        _TeamMember(
+                          name: 'Habibun-najal Kayting',
+                          role: 'Lead Developer',
+                          email: 'kayting4k@gmail.com',
+                          colors: const [kAccent1, kAccent2],
+                          icon: Icons.code_rounded,
+                        ),
+                        const SizedBox(height: 8),
+                        _TeamMember(
+                          name: 'Hareeja Montenegro',
+                          role: 'Sub-developer & Quality Assurance',
+                          colors: const [kAccent3, kAccent1],
+                          icon: Icons.verified_rounded,
+                        ),
+                        const SizedBox(height: 8),
+                        _TeamMember(
+                          name: 'Mohd Shaffiqh Anang',
+                          role: 'Sub-developer & Documentation',
+                          colors: const [Color(0xFF43E97B), Color(0xFF38F9D7)],
+                          icon: Icons.description_rounded,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'PhotoSync',
-                      style: AppTypography.subheading.copyWith(
-                        color: isDark ? kTextWhite : nTextPrimary,
-                        fontSize: 20,
-                      ),
-                    ),
-                  ),
-                  Material(
-                    color: Colors.transparent,
-                    child: IconButton(
-                      onPressed: () {},
-                      icon: Icon(
-                        Icons.notifications_rounded,
-                        color: isDark ? kTextWhite : nTextPrimary,
-                        size: 26,
-                      ),
-                      tooltip: 'Notifications',
-                      splashRadius: 24,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
-      ),
-      body: Container(
-        color: isDark ? Colors.transparent : nBgBase,
-        child: isDark
-            ? AppBackground(
-                showOrbs: true,
-                child: _buildContent(context, isDark),
-              )
-            : _buildContent(context, isDark),
       ),
       floatingActionButton: const Padding(
         padding: EdgeInsets.only(bottom: 8, right: 4),
         child: AIAssistantBubble(),
       ),
-    );
-  }
-
-  Widget _buildContent(BuildContext context, bool isDark) {
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FadeSlideIn(
-              delay: const Duration(milliseconds: 50),
-              duration: const Duration(milliseconds: 150),
-              beginOffset: const Offset(0, -0.02),
-              child: isDark
-                  ? GlassCard(
-                      padding: const EdgeInsets.all(20),
-                      blurIntensity: 5,
-                      elevation: 0.8,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Good morning,',
-                              style: AppTypography.body.copyWith(
-                                  color: context.textSecondary, fontSize: 14)),
-                          const SizedBox(height: 8),
-                          Text('Welcome back to PhotoSync',
-                              style: AppTypography.heading.copyWith(
-                                  color: context.textPrimary, fontSize: 22)),
-                          const SizedBox(height: 12),
-                          Text(
-                              'Monitor progress, scan papers, and manage your students from one place.',
-                              style: AppTypography.body.copyWith(
-                                  color: context.textSecondary,
-                                  fontSize: 13,
-                                  height: 1.5)),
-                        ],
-                      ),
-                    )
-                  : NeumorphicCard(
-                      padding: const EdgeInsets.all(20),
-                      elevation: 1.2,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Good morning,',
-                              style: AppTypography.body.copyWith(
-                                  color: nTextSecondary, fontSize: 14)),
-                          const SizedBox(height: 8),
-                          Text('Welcome back to PhotoSync',
-                              style: AppTypography.heading.copyWith(
-                                  color: nTextPrimary, fontSize: 22)),
-                          const SizedBox(height: 12),
-                          Text(
-                              'Monitor progress, scan papers, and manage your students from one place.',
-                              style: AppTypography.body.copyWith(
-                                  color: nTextSecondary,
-                                  fontSize: 13,
-                                  height: 1.5)),
-                        ],
-                      ),
-                    ),
-            ),
-            const SizedBox(height: 20),
-            FadeSlideIn(
-              delay: const Duration(milliseconds: 100),
-              duration: const Duration(milliseconds: 150),
-              child: GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 1.3,
-                children: [
-                  _StatCard(
-                    title: 'Students',
-                    value: '$_totalStudents',
-                    icon: Icons.people_rounded,
-                    colors: const [kAccent1, kAccent2],
-                    onTap: () => context.go('/students'),
-                    isDark: isDark,
-                  ),
-                  _StatCard(
-                    title: 'Subjects',
-                    value: '$_totalSubjects',
-                    icon: Icons.menu_book_rounded,
-                    colors: const [Color(0xFFB388FF), Color(0xFF7C4DFF)],
-                    onTap: () => context.go('/subjects'),
-                    isDark: isDark,
-                  ),
-                  _StatCard(
-                    title: 'Scans',
-                    value: '$_totalExams',
-                    icon: Icons.document_scanner_rounded,
-                    colors: const [Color(0xFFE040FB), Color(0xFF7C4DFF)],
-                    onTap: () => context.go('/scanner'),
-                    isDark: isDark,
-                  ),
-                  _StatCard(
-                    title: 'Results',
-                    value: '$_totalResults',
-                    icon: Icons.bar_chart_rounded,
-                    colors: const [kAccent1, kAccent2],
-                    onTap: () => context.go('/grades'),
-                    isDark: isDark,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            FadeSlideIn(
-              delay: const Duration(milliseconds: 150),
-              duration: const Duration(milliseconds: 150),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Quick links',
-                      style: AppTypography.subheading.copyWith(
-                          color: isDark ? context.textPrimary : nTextPrimary,
-                          fontSize: 18)),
-                  Text('Tap to jump',
-                      style: AppTypography.caption.copyWith(
-                          color: isDark ? context.textSecondary : nTextSecondary,
-                          fontSize: 12)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            FadeSlideIn(
-              delay: const Duration(milliseconds: 200),
-              duration: const Duration(milliseconds: 150),
-              child: Wrap(
-                runSpacing: 12,
-                spacing: 12,
-                children: [
-                  _ActionTile(
-                    label: 'Students',
-                    subtitle: 'Manage learners',
-                    icon: Icons.people_rounded,
-                    gradient: const [kAccent1, kAccent2],
-                    onTap: () => context.go('/students'),
-                    isDark: isDark,
-                  ),
-                  _ActionTile(
-                    label: 'Subjects',
-                    subtitle: 'Manage courses',
-                    icon: Icons.menu_book_rounded,
-                    gradient: const [Color(0xFFB388FF), Color(0xFF7C4DFF)],
-                    onTap: () => context.go('/subjects'),
-                    isDark: isDark,
-                  ),
-                  _ActionTile(
-                    label: 'Scanner',
-                    subtitle: 'Upload test papers',
-                    icon: Icons.document_scanner_rounded,
-                    gradient: const [Color(0xFFE040FB), Color(0xFF7C4DFF)],
-                    onTap: () => context.go('/scanner'),
-                    isDark: isDark,
-                  ),
-                  _ActionTile(
-                    label: 'Grades',
-                    subtitle: 'Review results',
-                    icon: Icons.bar_chart_rounded,
-                    gradient: const [kAccent1, kAccent2],
-                    onTap: () => context.go('/grades'),
-                    isDark: isDark,
-                  ),
-                  _ActionTile(
-                    label: 'Sections',
-                    subtitle: 'Organize classes',
-                    icon: Icons.group_rounded,
-                    gradient: const [Color(0xFF4DB6AC), Color(0xFF26A69A)],
-                    onTap: () => context.go('/sections'),
-                    isDark: isDark,
-                  ),
-                  _ActionTile(
-                    label: 'Course Structure',
-                    subtitle: 'View hierarchy',
-                    icon: Icons.folder_rounded,
-                    gradient: const [Color(0xFF7B1FA2), Color(0xFF512DA8)],
-                    onTap: () => context.go('/hierarchy'),
-                    isDark: isDark,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            FadeSlideIn(
-              delay: const Duration(milliseconds: 250),
-              duration: const Duration(milliseconds: 150),
-              child: isDark
-                  ? GlassCard(
-                      padding: const EdgeInsets.all(16),
-                      blurIntensity: 3,
-                      elevation: 0.6,
-                      child: _buildTeamSection(isDark),
-                    )
-                  : NeumorphicCard(
-                      padding: const EdgeInsets.all(16),
-                      elevation: 1.0,
-                      child: _buildTeamSection(isDark),
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTeamSection(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.groups_rounded, color: Colors.white, size: 14),
-            ),
-            const SizedBox(width: 10),
-            Text('Team',
-                style: AppTypography.subheading.copyWith(
-                    color: isDark ? context.textPrimary : nTextPrimary,
-                    fontSize: 14)),
-          ],
-        ),
-        const SizedBox(height: 14),
-        _TeamMember(
-          name: 'Habibun-najal Kayting',
-          role: 'Lead Developer',
-          email: 'kayting4k@gmail.com',
-          colors: const [kAccent1, kAccent2],
-          icon: Icons.code_rounded,
-          isDark: isDark,
-        ),
-        PremiumDivider(indent: 0, endIndent: 0),
-        const SizedBox(height: 10),
-        _TeamMember(
-          name: 'Hareeja Montenegro',
-          role: 'QA & Support',
-          colors: const [Color(0xFFE040FB), kAccent1],
-          icon: Icons.verified_rounded,
-          isDark: isDark,
-        ),
-        PremiumDivider(indent: 0, endIndent: 0),
-        const SizedBox(height: 10),
-        _TeamMember(
-          name: 'Mohd Shaffiqh Anang',
-          role: 'Docs & Testing',
-          colors: const [Color(0xFFB388FF), Color(0xFF7C4DFF)],
-          icon: Icons.description_rounded,
-          isDark: isDark,
-        ),
-      ],
     );
   }
 }
@@ -389,7 +287,6 @@ class _StatCard extends StatelessWidget {
   final IconData icon;
   final List<Color> colors;
   final VoidCallback? onTap;
-  final bool isDark;
 
   const _StatCard({
     required this.title,
@@ -397,73 +294,44 @@ class _StatCard extends StatelessWidget {
     required this.icon,
     required this.colors,
     this.onTap,
-    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
-    return isDark
-        ? GlassCard(
-            padding: const EdgeInsets.all(14),
-            blurIntensity: 3,
-            elevation: 0.8,
-            onTap: onTap,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: colors),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 18),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(value,
-                        style: AppTypography.heading.copyWith(
-                            color: context.textPrimary, fontSize: 24)),
-                    Text(title,
-                        style: AppTypography.caption.copyWith(
-                            color: context.textSecondary, fontSize: 11)),
-                  ],
-                ),
-              ],
+    final tp = context.textPrimary;
+    final ts = context.textSecondary;
+    return GlassCard(
+      padding: const EdgeInsets.all(14),
+      blurIntensity: 3,
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: colors),
+              borderRadius: BorderRadius.circular(10),
             ),
-          )
-        : NeumorphicCard(
-            padding: const EdgeInsets.all(14),
-            elevation: 1.0,
-            onTap: onTap,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: colors),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 18),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(value,
-                        style: AppTypography.heading.copyWith(
-                            color: nTextPrimary, fontSize: 24)),
-                    Text(title,
-                        style: AppTypography.caption.copyWith(
-                            color: nTextSecondary, fontSize: 11)),
-                  ],
-                ),
-              ],
-            ),
-          );
+            child: Icon(icon, color: Colors.white, size: 18),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(value,
+                  style: TextStyle(
+                    color: tp,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  )),
+              Text(title,
+                  style: TextStyle(color: ts, fontSize: 11)),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -473,7 +341,6 @@ class _TeamMember extends StatelessWidget {
   final String? email;
   final List<Color> colors;
   final IconData icon;
-  final bool isDark;
 
   const _TeamMember({
     required this.name,
@@ -481,11 +348,12 @@ class _TeamMember extends StatelessWidget {
     this.email,
     required this.colors,
     required this.icon,
-    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
+    final tp = context.textPrimary;
+    final ts = context.textSecondary;
     return Row(
       children: [
         Container(
@@ -502,17 +370,17 @@ class _TeamMember extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(name,
-                  style: AppTypography.bodyBold.copyWith(
-                      color: isDark ? context.textPrimary : nTextPrimary,
+                  style: TextStyle(
+                      color: tp,
+                      fontWeight: FontWeight.w600,
                       fontSize: 12)),
               Text(role,
-                  style: AppTypography.caption.copyWith(
-                      color: isDark ? context.textSecondary : nTextSecondary,
-                      fontSize: 10)),
+                  style: TextStyle(
+                      color: ts, fontSize: 10)),
               if (email != null)
                 Text(email!,
-                    style: AppTypography.caption.copyWith(
-                        color: kAccent1, fontSize: 10)),
+                    style: const TextStyle(
+                        color: kAccent2, fontSize: 10)),
             ],
           ),
         ),
@@ -527,7 +395,6 @@ class _ActionTile extends StatelessWidget {
   final IconData icon;
   final List<Color> gradient;
   final VoidCallback onTap;
-  final bool isDark;
 
   const _ActionTile({
     required this.label,
@@ -535,81 +402,49 @@ class _ActionTile extends StatelessWidget {
     required this.icon,
     required this.gradient,
     required this.onTap,
-    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
+    final tp = context.textPrimary;
+    final ts = context.textSecondary;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: isDark
-          ? GlassCard(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              blurIntensity: 3,
-              elevation: 0.6,
-              onTap: onTap,
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(9),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: gradient),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(icon, color: Colors.white, size: 20),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(label,
-                            style: AppTypography.bodyBold.copyWith(
-                                color: context.textPrimary, fontSize: 14)),
-                        Text(subtitle,
-                            style: AppTypography.caption.copyWith(
-                                color: context.textSecondary, fontSize: 11)),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.arrow_forward_ios_rounded,
-                      color: context.textSecondary, size: 12),
-                ],
+      child: GlassCard(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        blurIntensity: 3,
+        onTap: onTap,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(9),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: gradient),
+                borderRadius: BorderRadius.circular(10),
               ),
-            )
-          : NeumorphicCard(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              elevation: 0.8,
-              onTap: onTap,
-              child: Row(
+              child: Icon(icon, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(9),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: gradient),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(icon, color: Colors.white, size: 20),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(label,
-                            style: AppTypography.bodyBold.copyWith(
-                                color: nTextPrimary, fontSize: 14)),
-                        Text(subtitle,
-                            style: AppTypography.caption.copyWith(
-                                color: nTextSecondary, fontSize: 11)),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.arrow_forward_ios_rounded,
-                      color: nTextSecondary, size: 12),
+                  Text(label,
+                      style: TextStyle(
+                          color: tp,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14)),
+                  Text(subtitle,
+                      style: TextStyle(
+                          color: ts, fontSize: 11)),
                 ],
               ),
             ),
+            Icon(Icons.arrow_forward_ios_rounded,
+                color: ts, size: 12),
+          ],
+        ),
+      ),
     );
   }
 }

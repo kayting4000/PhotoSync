@@ -29,111 +29,6 @@ class _SectionStudentsScreenState extends State<SectionStudentsScreen> {
     });
   }
 
-  void _showAddExistingDialog() {
-    final provider = context.read<StudentProvider>();
-    // Get students NOT in this section
-    final available = provider.students
-        .where((s) => s.sectionId != widget.section.id)
-        .toList();
-    if (available.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No existing students available to add'), backgroundColor: Colors.orange),
-      );
-      return;
-    }
-    String? selectedStudentId;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setState) => Dialog(
-          backgroundColor: Colors.transparent,
-          child: GlassCard(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Add Existing Student',
-                    style: TextStyle(
-                        color: context.textPrimary,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: kGlass,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: kGlassBorder),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: selectedStudentId,
-                      isExpanded: true,
-                      hint: Text('Select a student',
-                          style: TextStyle(color: context.textSecondary)),
-                      dropdownColor: Theme.of(context).brightness == Brightness.dark
-                          ? const Color(0xFF1A1A3E)
-                          : lSurface,
-                      style: TextStyle(color: context.textPrimary),
-                      items: available.map((s) => DropdownMenuItem<String>(
-                        value: s.id,
-                        child: Text(s.fullName),
-                      )).toList(),
-                      onChanged: (v) => setState(() => selectedStudentId = v),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GlassCard(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        onTap: () => Navigator.pop(ctx),
-                        child: const Center(child: Text('Cancel',
-                            style: TextStyle(color: kAccent2))),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GradientButton(
-                        colors: const [kAccent2, kAccent1],
-                        onPressed: () async {
-                          if (selectedStudentId == null) return;
-                          final updated = Student(
-                            id: selectedStudentId,
-                            studentId: available.firstWhere((s) => s.id == selectedStudentId).studentId,
-                            firstName: available.firstWhere((s) => s.id == selectedStudentId).firstName,
-                            lastName: available.firstWhere((s) => s.id == selectedStudentId).lastName,
-                            course: available.firstWhere((s) => s.id == selectedStudentId).course,
-                            yearLevel: available.firstWhere((s) => s.id == selectedStudentId).yearLevel,
-                            sectionId: widget.section.id,
-                          );
-                          final messenger = ScaffoldMessenger.of(context);
-                          final success = await provider.updateStudent(selectedStudentId!, updated);
-                          if (success && mounted) {
-                            Navigator.pop(ctx);
-                            provider.fetchStudents(sectionId: widget.section.id);
-                            messenger.showSnackBar(
-                              const SnackBar(content: Text('Student added to section'), backgroundColor: kAccent2),
-                            );
-                          }
-                        },
-                        child: const Text('Add',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   void _showAddDialog() {
     final idController = TextEditingController();
     final firstController = TextEditingController();
@@ -240,28 +135,11 @@ class _SectionStudentsScreenState extends State<SectionStudentsScreen> {
                               sectionId: widget.section.id,
                             );
                             final provider = context.read<StudentProvider>();
-                            final messenger = ScaffoldMessenger.of(context);
-                            try {
-                              final success = await provider.addStudent(student);
-                              if (success && mounted) {
-                                Navigator.pop(ctx);
-                                provider.fetchStudents(
-                                    sectionId: widget.section.id);
-                              } else if (!success && mounted) {
-                                messenger.showSnackBar(
-                                  SnackBar(
-                                      content: Text(provider.errorMessage ?? 'Failed to add student'),
-                                      backgroundColor: Colors.red),
-                                );
-                              }
-                            } catch (e) {
-                              if (mounted) {
-                                messenger.showSnackBar(
-                                  SnackBar(
-                                      content: Text('Error: $e'),
-                                      backgroundColor: Colors.red),
-                                );
-                              }
+                            final success = await provider.addStudent(student);
+                            if (success && mounted) {
+                              Navigator.pop(ctx);
+                              provider.fetchStudents(
+                                  sectionId: widget.section.id);
                             }
                           },
                           child: const Text('Add',
@@ -466,52 +344,23 @@ class _SectionStudentsScreenState extends State<SectionStudentsScreen> {
           ),
         ),
       ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Add existing student button
-          Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: kAccent2.withValues(alpha: 0.9),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                    color: kAccent2.withValues(alpha: 0.4),
-                    blurRadius: 15,
-                    offset: const Offset(0, 6)),
-              ],
-            ),
-            child: FloatingActionButton(
-              mini: true,
-              onPressed: _showAddExistingDialog,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              heroTag: 'existing',
-              child: const Icon(Icons.person_search_rounded, color: Colors.white),
-            ),
-          ),
-          // Add new student button
-          Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [kAccent2, kAccent1]),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                    color: kAccent2.withValues(alpha: 0.5),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8)),
-              ],
-            ),
-            child: FloatingActionButton(
-              onPressed: _showAddDialog,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              heroTag: 'new',
-              child: const Icon(Icons.add_rounded, color: Colors.white),
-            ),
-          ),
-        ],
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [kAccent2, kAccent1]),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+                color: kAccent2.withValues(alpha: 0.5),
+                blurRadius: 20,
+                offset: const Offset(0, 8)),
+          ],
+        ),
+        child: FloatingActionButton(
+          onPressed: _showAddDialog,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: const Icon(Icons.add_rounded, color: Colors.white),
+        ),
       ),
     );
   }

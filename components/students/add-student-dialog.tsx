@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react"
-import { apiClient } from "@/lib/api-client"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Plus } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 const courses = [
   "BSIT",
@@ -35,14 +36,11 @@ const courses = [
   "BSME",
 ]
 
-interface AddStudentDialogProps {
-  onCreated?: () => void
-}
-
-export function AddStudentDialog({ onCreated }: AddStudentDialogProps) {
+export function AddStudentDialog() {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -52,21 +50,24 @@ export function AddStudentDialog({ onCreated }: AddStudentDialogProps) {
     const formData = new FormData(e.currentTarget)
 
     try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error("Not authenticated")
+
       const data = {
+        user_id: user.id,
         student_id: formData.get("student_id") as string,
         first_name: formData.get("first_name") as string,
         last_name: formData.get("last_name") as string,
-        email: (formData.get("email") as string) || null,
+        email: formData.get("email") as string || null,
         course: formData.get("course") as string,
         year_level: parseInt(formData.get("year_level") as string),
       }
 
-      await apiClient("/students/", {
-        method: "POST",
-        body: JSON.stringify(data),
-      })
+      const { error } = await supabase.from("students").insert(data)
+      if (error) throw error
       setOpen(false)
-      onCreated?.()
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add student")
     } finally {
@@ -87,7 +88,7 @@ export function AddStudentDialog({ onCreated }: AddStudentDialogProps) {
           <DialogHeader>
             <DialogTitle>Add New Student</DialogTitle>
             <DialogDescription>
-              Enter the student's information below.
+              Enter the student&apos;s information below.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

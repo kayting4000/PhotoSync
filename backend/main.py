@@ -14,7 +14,6 @@ from fastapi.staticfiles import StaticFiles
 
 from database import engine, Base
 from models import User, Student, Subject, Exam, ExamResult, StudentSubject, ScoringRule, Section, AcademicTerm, Attendance, GpaConfig  # noqa: F401
-from scripts.ensure_columns import ensure_columns
 
 from controllers import (
     auth_router,
@@ -33,7 +32,6 @@ from controllers import (
 from controllers.subjects import router as subjects_router
 from controllers.sections import router as sections_router
 from controllers.students import router as students_router
-from controllers.search import router as search_router
 
 # load backend/.env (explicit path ensures it's found when starting uvicorn from the backend folder)
 load_dotenv(Path(__file__).parent / ".env")
@@ -41,15 +39,11 @@ load_dotenv(Path(__file__).parent / ".env")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Create tables on startup (safe — uses IF NOT EXISTS) and ensure columns."""
+    """Create tables on startup (safe — uses IF NOT EXISTS)."""
     try:
         Base.metadata.create_all(bind=engine)
     except Exception as e:
         logging.error("Database init failed at startup (continuing): %s", e)
-    try:
-        ensure_columns()
-    except Exception as e:
-        logging.error("Column migration failed at startup (continuing): %s", e)
     yield
 
 
@@ -85,7 +79,6 @@ app.include_router(gpa_config_router)
 app.include_router(subjects_router)
 app.include_router(sections_router)
 app.include_router(students_router)
-app.include_router(search_router)
 
 # Serve uploaded scan images statically
 uploads_dir = os.path.join(os.path.dirname(__file__), "uploads")

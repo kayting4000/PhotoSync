@@ -138,10 +138,7 @@ export function EmailManager({ students, results, subjects }: EmailManagerProps)
           }),
         })
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          throw new Error(errorData.message || `HTTP ${response.status}`)
-        }
+        if (!response.ok) throw new Error('Failed to send email')
         
         const data = await response.json()
         

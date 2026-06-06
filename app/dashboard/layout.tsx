@@ -1,39 +1,22 @@
-"use client"
-
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 import { DashboardNav } from "@/components/dashboard/nav"
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const router = useRouter()
-  const [user, setUser] = useState<{ id: string; email: string } | null>(null)
-  const [ready, setReady] = useState(false)
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  useEffect(() => {
-    const token = localStorage.getItem("access_token")
-    const raw = localStorage.getItem("user")
-    if (!token || !raw) {
-      router.replace("/auth/login")
-      return
-    }
-    try {
-      setUser(JSON.parse(raw))
-    } catch {
-      router.replace("/auth/login")
-      return
-    }
-    setReady(true)
-  }, [router])
-
-  if (!ready) return null
+  if (!user) {
+    redirect("/auth/login")
+  }
 
   return (
-    <div className="min-h-screen neu-page-bg">
-      <DashboardNav user={user!} />
+    <div className="min-h-screen bg-background">
+      <DashboardNav user={user} />
       <main className="container mx-auto px-4 py-6">
         {children}
       </main>

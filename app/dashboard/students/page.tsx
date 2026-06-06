@@ -1,31 +1,13 @@
-"use client"
-
-import { useEffect, useState } from "react"
-import { apiClient } from "@/lib/api-client"
+import { createClient } from "@/lib/supabase/server"
 import { StudentsTable } from "@/components/students/students-table"
 import { AddStudentDialog } from "@/components/students/add-student-dialog"
-import type { Student } from "@/lib/types"
 
-interface StudentsResponse {
-  items: Student[]
-  total: number
-}
-
-export default function StudentsPage() {
-  const [students, setStudents] = useState<Student[]>([])
-  const [loading, setLoading] = useState(true)
-
-  const fetchStudents = () => {
-    setLoading(true)
-    apiClient<StudentsResponse>("/students/")
-      .then((res) => setStudents(res.items))
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(() => {
-    fetchStudents()
-  }, [])
+export default async function StudentsPage() {
+  const supabase = await createClient()
+  const { data: students } = await supabase
+    .from("students")
+    .select("*")
+    .order("created_at", { ascending: false })
 
   return (
     <div className="space-y-6">
@@ -36,14 +18,10 @@ export default function StudentsPage() {
             Manage student records and information
           </p>
         </div>
-        <AddStudentDialog onCreated={fetchStudents} />
+        <AddStudentDialog />
       </div>
 
-      {loading ? (
-        <p className="text-muted-foreground">Loading students…</p>
-      ) : (
-        <StudentsTable students={students} onRefresh={fetchStudents} />
-      )}
+      <StudentsTable students={students ?? []} />
     </div>
   )
 }

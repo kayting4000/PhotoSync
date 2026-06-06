@@ -54,8 +54,8 @@ async def upload_scan(
     current_user: User = Depends(get_current_user),
 ):
     """Upload a scanned test paper image (single or multi-page), compress it, and link to an exam result."""
-    # Accept any file — we compress and convert to JPEG regardless
-    # (On web, content_type may not be set when sending raw bytes)
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Only image files are allowed")
 
     raw_bytes = await file.read()
     compressed = _compress_image(raw_bytes)

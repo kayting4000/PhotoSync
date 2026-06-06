@@ -1,34 +1,24 @@
 """
-Email controller — sends grade report emails and transcripts.
-Uses Gmail SMTP for email delivery.
+Email controller — sends grade report emails (results only, no attachments).
+Uses Resend API for email delivery.
 """
 import os
-import smtplib
-from datetime import datetime
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import httpx
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
 from database import get_db
 from controllers.auth import get_current_user
 from models.user import User
 from models.student import Student
-from models.exam_result import ExamResult
-from models.exam import Exam
-from models.subject import Subject
-from email_templates import grade_report_template, transcript_template
 
 load_dotenv()
 
-# Gmail SMTP Configuration
-GMAIL_USER = os.getenv("GMAIL_USER")
-GMAIL_PASSWORD = os.getenv("GMAIL_PASSWORD")
-GMAIL_SMTP_SERVER = "smtp.gmail.com"
-GMAIL_SMTP_PORT = 587  # TLS port (or 465 for SSL)
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "PhotoSync <onboarding@resend.dev>")
 
 router = APIRouter(prefix="/email", tags=["Email"])
 
@@ -45,192 +35,83 @@ class GradeReportEmailRequest(BaseModel):
     custom_message: Optional[str] = None
 
 
-def _send_email_via_gmail(to_email: str, subject: str, html_content: str) -> bool:
-    """
-    Send email via Gmail SMTP.
-    
-    Args:
-        to_email: Recipient email address
-        subject: Email subject
-        html_content: HTML email body
-        
-    Returns:
-        True if successful, raises HTTPException otherwise
-    """
-    if not GMAIL_USER or not GMAIL_PASSWORD:
-        raise HTTPException(
-            status_code=503,
-            detail="Gmail SMTP not configured. Set GMAIL_USER and GMAIL_PASSWORD environment variables."
-        )
-    
-    try:
-        # Create message
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
-        msg['From'] = GMAIL_USER
-        msg['To'] = to_email
-        
-        # Attach HTML content
-        msg.attach(MIMEText(html_content, 'html'))
-        
-        # Send via Gmail SMTP with TLS
-        with smtplib.SMTP(GMAIL_SMTP_SERVER, GMAIL_SMTP_PORT) as server:
-            server.starttls()  # Upgrade connection to TLS
-            server.login(GMAIL_USER, GMAIL_PASSWORD)
-            server.send_message(msg)
-        
-        return True
-        
-    except smtplib.SMTPAuthenticationError:
-        raise HTTPException(
-            status_code=401,
-            detail="Gmail authentication failed. Check GMAIL_USER and GMAIL_PASSWORD."
-        )
-    except smtplib.SMTPException as e:
-        raise HTTPException(
-            status_code=502,
-            detail=f"Gmail SMTP error: {str(e)}"
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to send email: {str(e)}"
-        )
-
-
 @router.post("/send-grade-report")
 async def send_grade_report(
     body: GradeReportEmailRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Send a grade report email to a student."""
-    
+    """Send a grade report email to a student (results only, no attachments)."""
+    if not RESEND_API_KEY:
+        return {
+            "success": False,
+            "message": "Email service not configured. Please set RESEND_API_KEY environment variable to enable email sending.",
+            "error": "RESEND_API_KEY_MISSING"
+        }
+
     # Get student info
     student = db.query(Student).filter(
         Student.id == body.student_id,
         Student.user_id == current_user.id,
     ).first()
-    
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     if not student.email:
         raise HTTPException(status_code=400, detail="Student has no email address")
-    
-    # Build email HTML using enhanced template
-    html = grade_report_template(
-        student_name=f"{student.first_name} {student.last_name}",
-        exam_name=body.exam_name,
-        subject_code=body.subject_code,
-        subject_name=body.subject_name,
-        percentage=body.percentage,
-        grade=body.grade,
-        grade_point=body.grade_point,
-        remarks=body.remarks,
-        custom_message=body.custom_message
-    )
-    
-    # Send email
-    _send_email_via_gmail(
-        to_email=student.email,
-        subject=f"Grade Report - {body.subject_code} {body.subject_name}",
-        html_content=html
-    )
-    
+
+    # Build email HTML
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+      <head><meta charset="utf-8"></head>
+      <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h1 style="color: #2563eb;">PhotoSync</h1>
+          <p style="color: #6b7280;">Grade Report</p>
+        </div>
+        <p>Dear <strong>{student.first_name} {student.last_name}</strong>,</p>
+        <p>Here is your grade report for <strong>{body.subject_code} - {body.subject_name}</strong>:</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+          <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Exam</strong></td>
+              <td style="padding: 8px; border: 1px solid #ddd;">{body.exam_name}</td></tr>
+          <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Percentage</strong></td>
+              <td style="padding: 8px; border: 1px solid #ddd;">{body.percentage:.1f}%</td></tr>
+          <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Grade</strong></td>
+              <td style="padding: 8px; border: 1px solid #ddd;">{body.grade} ({body.grade_point:.2f})</td></tr>
+          <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Status</strong></td>
+              <td style="padding: 8px; border: 1px solid #ddd; color: {'#16a34a' if body.remarks == 'Passed' else '#dc2626'}; font-weight: bold;">{body.remarks}</td></tr>
+        </table>
+        {f'<div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 20px 0;"><p><strong>Message:</strong></p><p>{body.custom_message}</p></div>' if body.custom_message else ''}
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+        <p style="color: #6b7280; font-size: 12px;">This is an automated message from PhotoSync.</p>
+      </body>
+    </html>
+    """
+
+    # Send via Resend
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        payload = {
+            "from": RESEND_FROM_EMAIL,
+            "to": [student.email],
+            "subject": f"Grade Report - {body.subject_code} {body.subject_name}",
+            "html": html,
+        }
+
+        res = await client.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+        )
+
+    if res.status_code != 200:
+        raise HTTPException(status_code=500, detail=f"Email send failed: {res.text}")
+
     return {
         "success": True,
         "message": f"Grade report sent to {student.email}",
-    }
-
-
-@router.post("/send-grade-transcript")
-async def send_grade_transcript(
-    student_id: str,
-    custom_message: Optional[str] = None,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Send complete grade transcript to student."""
-    
-    # Get student
-    student = db.query(Student).filter(
-        Student.id == student_id,
-        Student.user_id == current_user.id,
-    ).first()
-    
-    if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
-    if not student.email:
-        raise HTTPException(status_code=400, detail="Student has no email address")
-    
-    # Get all grades
-    results = db.query(ExamResult).options(
-        joinedload(ExamResult.exam).joinedload(Exam.subject)
-    ).filter(
-        ExamResult.student_id == student_id,
-        ExamResult.user_id == current_user.id,
-    ).all()
-    
-    # Build transcript
-    subjects_dict = {}
-    for result in results:
-        if not result.exam or not result.exam.subject:
-            continue
-        subject = result.exam.subject
-        subject_id = str(subject.id)
-        if subject_id not in subjects_dict:
-            subjects_dict[subject_id] = {
-                "code": subject.code,
-                "name": subject.name,
-                "units": subject.units,
-                "grades": [],
-            }
-        subjects_dict[subject_id]["grades"].append(result.percentage or 0)
-    
-    # Calculate GPA
-    weighted_sum = 0.0
-    total_units = 0
-    transcript_rows = ""
-    
-    for subject_id, subject_data in subjects_dict.items():
-        avg_grade = sum(subject_data["grades"]) / len(subject_data["grades"])
-        units = subject_data["units"]
-        weighted_sum += avg_grade * units
-        total_units += units
-        
-        transcript_rows += f"""
-    <tr>
-      <td>{subject_data['code']}</td>
-      <td>{subject_data['name']}</td>
-      <td style="text-align: center;">{units}</td>
-      <td style="text-align: center;">{avg_grade:.2f}%</td>
-    </tr>
-        """
-    
-    gpa = round(weighted_sum / total_units, 4) if total_units > 0 else 0
-    
-    # Build email HTML using enhanced template
-    html = transcript_template(
-        student_name=f"{student.first_name} {student.last_name}",
-        student_id=student.student_id,
-        course=student.course,
-        year_level=student.year_level,
-        transcript_rows=transcript_rows,
-        gpa=gpa,
-        custom_message=custom_message
-    )
-    
-    # Send email
-    _send_email_via_gmail(
-        to_email=student.email,
-        subject=f"Official Grade Transcript - {student.first_name} {student.last_name}",
-        html_content=html
-    )
-    
-    return {
-        "success": True,
-        "message": f"Grade transcript sent to {student.email}",
-        "gpa": gpa,
     }
 
 
@@ -262,5 +143,5 @@ async def send_bulk_reports(
                 "success": False,
                 "message": str(e),
             })
-    
+
     return {"results": results}

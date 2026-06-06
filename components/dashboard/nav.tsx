@@ -63,10 +63,10 @@ export function DashboardNav({ user }: { user: User }) {
             href={item.href}
             onClick={() => setOpen(false)}
             className={cn(
-              "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl transition-all",
+              "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
               isActive
-                ? "neu-btn text-primary font-semibold"
-                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             )}
           >
             <Icon className="h-4 w-4" />
@@ -78,13 +78,11 @@ export function DashboardNav({ user }: { user: User }) {
   )
 
   return (
-    <header className="sticky top-0 z-50 w-full neu-nav">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-14 items-center px-4">
         <div className="flex items-center gap-2 mr-6">
-          <div className="p-1.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10">
-            <GraduationCap className="h-5 w-5 text-primary" />
-          </div>
-          <span className="font-bold text-lg text-slate-800 dark:text-slate-100">PhotoSync</span>
+          <GraduationCap className="h-6 w-6 text-primary" />
+          <span className="font-bold text-lg">PhotoSync</span>
         </div>
 
         <nav className="hidden md:flex items-center gap-1 flex-1">
@@ -94,7 +92,7 @@ export function DashboardNav({ user }: { user: User }) {
         <div className="flex items-center gap-2 ml-auto">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon" className="rounded-xl">
+              <Button variant="ghost" size="icon">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>

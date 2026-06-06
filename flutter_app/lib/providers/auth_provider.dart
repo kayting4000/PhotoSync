@@ -1,6 +1,31 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
+
+/// JWT Token validator using native Dart libraries
+bool _isTokenValid(String token) {
+  try {
+    final parts = token.split('.');
+    if (parts.length != 3) return false;
+    
+    String payload = parts[1];
+    while (payload.length % 4 != 0) {
+      payload += '=';
+    }
+    final decoded = utf8.decode(base64Url.decode(payload));
+    final Map<String, dynamic> claims = jsonDecode(decoded);
+    
+    final exp = claims['exp'] as int?;
+    if (exp != null) {
+      final expiry = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+      return DateTime.now().isBefore(expiry);
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
 
 class AuthProvider extends ChangeNotifier {
   final api = ApiService();
@@ -26,10 +51,19 @@ class AuthProvider extends ChangeNotifier {
     final token = prefs.getString('auth_token');
     final userId = prefs.getString('auth_user_id');
     final email = prefs.getString('auth_email');
+    
     if (token != null && userId != null && email != null) {
-      api.setAuth(token, userId, email);
-      _userId = userId;
-      _userEmail = email;
+      // Validate token before restoring session
+      if (_isTokenValid(token)) {
+        api.setAuth(token, userId, email);
+        _userId = userId;
+        _userEmail = email;
+      } else {
+        // Token expired - clear stored auth data
+        await prefs.remove('auth_token');
+        await prefs.remove('auth_user_id');
+        await prefs.remove('auth_email');
+      }
     }
     _initialized = true;
     notifyListeners();

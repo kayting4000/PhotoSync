@@ -2,7 +2,7 @@ name: photosync
 description: "PhotoSync - Photo Management & Grade Management System"
 publish_to: 'none'
 
-version: 2024.12.19+1
+version: 37.0.0+37
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -42,17 +42,6 @@ dependencies:
   # Connectivity monitoring
   connectivity_plus: ^5.0.0
 
-  # Premium fonts
-  google_fonts: ^6.0.0
-
-  # Local storage (Hive)
-  hive: ^2.2.0
-  hive_flutter: ^1.1.0
-
-  # Push notifications
-  firebase_core: ^2.24.0
-  firebase_messaging: ^14.6.0
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -66,3 +55,4 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+

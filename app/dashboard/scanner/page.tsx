@@ -1,33 +1,29 @@
-"use client"
-
-import { useEffect, useState } from "react"
-import { apiClient } from "@/lib/api-client"
+import { Suspense } from "react"
+import { createClient } from "@/lib/supabase/server"
 import { Skeleton } from "@/components/ui/skeleton"
-import ClientScannerWrapper from "@/components/scanner/client-scanner-wrapper"
-import type { Student, Exam, Subject } from "@/lib/types"
+import dynamic from "next/dynamic"
 
-interface ExamWithSubject extends Exam {
-  subject?: Subject
-}
+const TestScanner = dynamic(
+  () => import("@/components/scanner/test-scanner").then(mod => ({ default: mod.TestScanner })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Skeleton className="h-[500px]" />
+        <Skeleton className="h-[500px]" />
+      </div>
+    ),
+  }
+)
 
-export default function ScannerPage() {
-  const [students, setStudents] = useState<Student[]>([])
-  const [exams, setExams] = useState<ExamWithSubject[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    Promise.all([
-      apiClient<{ items: Student[] }>("/students/"),
-      apiClient<{ items: ExamWithSubject[] }>("/exams/"),
-    ])
-      .then(([s, e]) => {
-        setStudents(s.items)
-        setExams(e.items)
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
-
+export default async function ScannerPage() {
+  const supabase = await createClient()
+  
+  const [{ data: students }, { data: exams }] = await Promise.all([
+    supabase.from("students").select("*").order("student_id"),
+    supabase.from("exams").select("*, subject:subjects(*)").order("created_at", { ascending: false }),
+  ])
+  
   return (
     <div className="space-y-6">
       <div>
@@ -37,14 +33,14 @@ export default function ScannerPage() {
         </p>
       </div>
 
-      {loading ? (
+      <Suspense fallback={
         <div className="grid gap-6 lg:grid-cols-2">
           <Skeleton className="h-[500px]" />
           <Skeleton className="h-[500px]" />
         </div>
-      ) : (
-        <ClientScannerWrapper students={students} exams={exams} />
-      )}
+      }>
+        <TestScanner students={students ?? []} exams={exams ?? []} />
+      </Suspense>
     </div>
   )
 }
