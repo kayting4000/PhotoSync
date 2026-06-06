@@ -1,151 +1,67 @@
-"""
-Students controller — CRUD operations via SQLAlchemy ORM (Neon PostgreSQL).
-"""
-from fastapi import APIRouter, HTTPException, Query, Depends, Path
-from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
 
 from database import get_db
+from models.student import Student
 from controllers.auth import get_current_user
-from models import Student, Section
-from schemas import StudentCreate, StudentUpdate
+from models.user import User
 
 router = APIRouter(prefix="/students", tags=["Students"])
 
 
-def _serialize(s: Student) -> dict:
-    return {
-        "id": str(s.id),
-        "user_id": str(s.user_id),
-        "student_id": s.student_id,
-        "first_name": s.first_name,
-        "last_name": s.last_name,
-        "email": s.email,
-        "course": s.course,
-        "year_level": s.year_level,
-        "section_id": str(s.section_id) if s.section_id else None,
-        "created_at": s.created_at.isoformat() if s.created_at else None,
-        "updated_at": s.updated_at.isoformat() if s.updated_at else None,
-    }
-
-
-@router.get("/")
-def get_students(
-    course: Optional[str] = Query(None),
-    year_level: Optional[int] = Query(None),
-    section_id: Optional[str] = Query(None),
-    search: Optional[str] = Query(None),
-    skip: int = Query(0, ge=0, alias="offset"),
-    limit: int = Query(50, ge=1, le=500),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    q = db.query(Student).filter(Student.user_id == current_user.id)
-    if course:
-        q = q.filter(Student.course == course)
-    if year_level is not None:
-        q = q.filter(Student.year_level == year_level)
-    if section_id:
-        q = q.filter(Student.section_id == section_id)
-    if search:
-        q = q.filter(
-            or_(
-                Student.first_name.ilike(f"%{search}%"),
-                Student.last_name.ilike(f"%{search}%"),
-                Student.student_id.ilike(f"%{search}%"),
-            )
-        )
-    total = q.count()
-    q = q.order_by(Student.created_at.desc()).offset(skip).limit(limit)
-    return {
-        "items": [_serialize(s) for s in q.all()],
-        "total": total,
-        "skip": skip,
-        "limit": limit,
-    }
-
-
+# -------------------------
+# CREATE STUDENT
+# -------------------------
 @router.post("/")
 def create_student(
-    body: StudentCreate,
+    data: dict,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+
     student = Student(
         user_id=current_user.id,
-        student_id=body.student_id,
-        first_name=body.first_name,
-        last_name=body.last_name,
-        email=body.email,
-        course=body.course,
-        year_level=body.year_level,
-        section_id=body.section_id,
+        student_id=data["student_id"],
+        first_name=data["first_name"],
+        middle_initial=data.get("middle_initial"),
+        last_name=data["last_name"],
+        email=data.get("email"),
+        parent_guardian_email=data.get("parent_guardian_email"),
+        course=data.get("course"),
+        year_level=data.get("year_level"),
+        section_id=data["section_id"],
     )
+
     db.add(student)
     db.commit()
     db.refresh(student)
-    return _serialize(student)
+
+    return {
+        "id": str(student.id),
+        "student_id": student.student_id,
+        "name": f"{student.first_name} {student.last_name}",
+        "section_id": str(student.section_id)
+    }
 
 
-@router.put("/{student_id}")
-def update_student(
-    student_id: str,
-    body: StudentUpdate,
+# -------------------------
+# GET ALL STUDENTS
+# -------------------------
+@router.get("/")
+def get_students(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    student = db.query(Student).filter(
-        Student.id == student_id, Student.user_id == current_user.id
-    ).first()
-    if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
-    update_data = body.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(student, key, value)
-    db.commit()
-    db.refresh(student)
-    return _serialize(student)
+    students = db.query(Student).filter(Student.user_id == current_user.id).all()
 
-
-@router.delete("/{student_id}")
-def delete_student(
-    student_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    student = db.query(Student).filter(
-        Student.id == student_id, Student.user_id == current_user.id
-    ).first()
-    if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
-    db.delete(student)
-    db.commit()
-    return {"message": "Student deleted"}
-
-
-@router.post("/sections/{section_id}/students")
-def create_student(
-    section_id: int = Path(...),
-    payload: dict = None,
-    db: Session = Depends(get_db),
-):
-    payload = payload or {}
-    name = payload.get("name")
-    email = payload.get("email")
-    if not name or not email:
-        raise HTTPException(status_code=400, detail="name and email are required")
-    section = db.get(Section, section_id)
-    if not section:
-        raise HTTPException(status_code=404, detail="section not found")
-    student = Student(name=name, email=email, section_id=section_id)
-    db.add(student)
-    try:
-        db.commit()
-        db.refresh(student)
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-    # NOTE: to add default exam/attendance placeholders, extend here (safe to add after commit)
-    return {"success": True, "student": {"id": student.id, "name": student.name, "email": student.email, "section_id": section_id}}
+    return {
+        "items": [
+            {
+                "id": str(s.id),
+                "student_id": s.student_id,
+                "name": f"{s.first_name} {s.last_name}",
+                "section_id": str(s.section_id),
+            }
+            for s in students
+        ]
+    }

@@ -19,11 +19,20 @@ class ExamProvider extends ChangeNotifier {
       notifyListeners();
 
       var path = '/exams/';
-      if (subjectId != null) {
-        path = '/exams/?subject_id=$subjectId';
-      }
+      if (subjectId != null) path = '/exams/?subject_id=$subjectId';
       final data = await api.get(path);
-      _exams = data.map((item) => Exam.fromJson(item)).toList();
+
+      // normalize dynamic response to List
+      List items;
+      if (data is List) {
+        items = data;
+      } else if (data is Map && data['items'] is List) {
+        items = data['items'] as List;
+      } else {
+        items = [];
+      }
+
+      _exams = items.map((item) => Exam.fromJson(item as Map<String, dynamic>)).toList();
 
       _isLoading = false;
       notifyListeners();

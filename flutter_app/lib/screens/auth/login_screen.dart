@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/fade_slide_in.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,192 +10,81 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _isPasswordVisible = false;
+  final emailCtrl = TextEditingController();
+  final passCtrl = TextEditingController();
+  bool _loading = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    emailCtrl.dispose();
+    passCtrl.dispose();
     super.dispose();
   }
 
-  void _handleLogin() async {
-    final authProvider = context.read<AuthProvider>();
-    final success = await authProvider.login(
-      _emailController.text,
-      _passwordController.text,
+  Future<void> _login() async {
+    final auth = context.read<AuthProvider>();
+    setState(() => _loading = true);
+
+    final success = await auth.login(
+      emailCtrl.text.trim(),
+      passCtrl.text.trim(),
     );
-    if (success && mounted) {
-      context.go('/dashboard');
-    } else if (mounted) {
+
+    if (!mounted) return;
+    setState(() => _loading = false);
+
+    if (success) {
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } else {
+      final msg = auth.errorMessage ?? 'Login failed';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage ?? 'Login failed'),
-          backgroundColor: kAccent3,
-        ),
+        SnackBar(content: Text(msg)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // show a tiny hint if the provider isn't initialized yet
+    final auth = context.watch<AuthProvider>();
+    if (!auth.initialized) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
-      body: AppBackground(
-        child: SafeArea(
-          bottom: false,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 40),
-                FadeSlideIn(
-                  delay: const Duration(milliseconds: 100),
-                  beginOffset: const Offset(0, -0.1),
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: kAccent1.withValues(alpha: 0.5),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(Icons.document_scanner_rounded,
-                        color: Colors.white, size: 40),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                FadeSlideIn(
-                  delay: const Duration(milliseconds: 200),
-                  child: Text(
-                    'PhotoSync',
-                    style: TextStyle(
-                      color: context.textPrimary,
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                FadeSlideIn(
-                  delay: const Duration(milliseconds: 300),
-                  child: Text(
-                    'Test Paper Scanner & Grade Management',
-                    style: TextStyle(color: context.textSecondary, fontSize: 13),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(height: 48),
-                FadeSlideIn(
-                  delay: const Duration(milliseconds: 400),
-                  child: GlassCard(
-                    child: Column(
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Welcome back',
-                            style: TextStyle(
-                              color: context.textPrimary,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Sign in to continue',
-                            style: TextStyle(color: context.textSecondary, fontSize: 13),
-                          ),
-                        ),
-                        const SizedBox(height: 28),
-                        GlassTextField(
-                          controller: _emailController,
-                          label: 'Email',
-                          prefixIcon: Icons.email_outlined,
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 16),
-                        GlassTextField(
-                          controller: _passwordController,
-                          label: 'Password',
-                          prefixIcon: Icons.lock_outlined,
-                          obscureText: !_isPasswordVisible,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _isPasswordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: kTextSecondary,
-                            ),
-                            onPressed: () => setState(
-                                () => _isPasswordVisible = !_isPasswordVisible),
-                          ),
-                        ),
-                        const SizedBox(height: 28),
-                        Consumer<AuthProvider>(
-                          builder: (context, auth, _) => SizedBox(
-                            width: double.infinity,
-                            child: GradientButton(
-                              onPressed: auth.isLoading ? null : _handleLogin,
-                              child: auth.isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Sign In',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                FadeSlideIn(
-                  delay: const Duration(milliseconds: 500),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Don't have an account? ",
-                          style: TextStyle(color: kTextSecondary)),
-                      GestureDetector(
-                        onTap: () => context.go('/signup'),
-                        child: const Text(
-                          'Sign up',
-                          style: TextStyle(
-                            color: kAccent2,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 80),
+              TextField(
+                controller: emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(labelText: 'Email'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: passCtrl,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Password'),
+              ),
+              const SizedBox(height: 24),
+              _loading
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: _login,
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                        child: Text('Login'),
                       ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+                    ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => Navigator.pushNamed(context, '/signup'),
+                child: const Text('Create account'),
+              ),
+            ],
           ),
         ),
       ),
