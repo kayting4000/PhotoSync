@@ -31,6 +31,8 @@ router = APIRouter(prefix="/scanner", tags=["Scanner"])
 
 class ScanRequest(BaseModel):
     image_base64: str
+    page_number: int = 1
+    total_pages: int = 1
 
 
 def _image_hash(image_base64: str) -> str:

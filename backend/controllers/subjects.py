@@ -64,7 +64,7 @@ def create_subject(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    return {"success": True, "subject": {"id": subject.id, "name": subject.name}}
+    return _serialize(subject)
 
 
 @router.put("/{subject_id}")

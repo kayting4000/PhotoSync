@@ -390,10 +390,10 @@ class _SectionsScreenState extends State<SectionsScreen> {
                           child: CircularProgressIndicator(color: kAccent1));
                     }
                     if (provider.sections.isEmpty) {
-                      return Center(
+                      return const Center(
                         child: GlassCard(
-                          padding: const EdgeInsets.all(40),
-                          child: const Column(
+                          padding: EdgeInsets.all(40),
+                          child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.group_outlined,

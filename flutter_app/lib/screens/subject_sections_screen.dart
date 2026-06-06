@@ -24,12 +24,6 @@ class _SubjectSectionsScreenState extends State<SubjectSectionsScreen> {
     });
   }
 
-  List<Section> get _subjectSections => context
-      .read<SectionProvider>()
-      .sections
-      .where((s) => s.subjectId == widget.subject.id)
-      .toList();
-
   void _showAddDialog() {
     final roomController = TextEditingController();
     String label = 'A';
@@ -101,9 +95,10 @@ class _SubjectSectionsScreenState extends State<SubjectSectionsScreen> {
                             roomNumber: roomController.text.trim(),
                           );
                           final provider = context.read<SectionProvider>();
+                          final nav = Navigator.of(ctx);
                           final success = await provider.addSection(section);
                           if (success && mounted) {
-                            Navigator.pop(ctx);
+                            nav.pop();
                             setState(() {});
                           }
                         },

@@ -135,9 +135,10 @@ class _SectionStudentsScreenState extends State<SectionStudentsScreen> {
                               sectionId: widget.section.id,
                             );
                             final provider = context.read<StudentProvider>();
+                            final nav = Navigator.of(ctx);
                             final success = await provider.addStudent(student);
                             if (success && mounted) {
-                              Navigator.pop(ctx);
+                              nav.pop(ctx);
                               provider.fetchStudents(
                                   sectionId: widget.section.id);
                             }

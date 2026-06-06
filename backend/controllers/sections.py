@@ -103,25 +103,5 @@ def delete_section(
     return {"message": "Section deleted"}
 
 
-@router.post("/subjects/{subject_id}/sections")
-def create_section(
-    subject_id: int = Path(...),
-    payload: dict = None,
-    db: Session = Depends(get_db),
-):
-    payload = payload or {}
-    name = payload.get("name")
-    if not name:
-        raise HTTPException(status_code=400, detail="name is required")
-    subject = db.get(Subject, subject_id)
-    if not subject:
-        raise HTTPException(status_code=404, detail="subject not found")
-    section = Section(name=name, subject_id=subject_id)
-    db.add(section)
-    try:
-        db.commit()
-        db.refresh(section)
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    return {"success": True, "section": {"id": section.id, "name": section.name, "subject_id": subject_id}}
+
+

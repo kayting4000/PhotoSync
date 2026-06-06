@@ -279,7 +279,7 @@ class _GlassCardState extends State<GlassCard> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     final bgColor = widget.color ?? kGlassBg;
-    final borderColor = kGlassBorder;
+    const borderColor = kGlassBorder;
 
     Widget card = AnimatedBuilder(
       animation: _hoverAnim,
@@ -420,15 +420,15 @@ class _GlassTextFieldState extends State<GlassTextField> {
           fillColor: kGlassBg,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: kGlassBorder, width: 1.0),
+            borderSide: const BorderSide(color: kGlassBorder, width: 1.0),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: kGlassBorder, width: 1.0),
+            borderSide: const BorderSide(color: kGlassBorder, width: 1.0),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: kAccentVivid, width: 1.5),
+            borderSide: const BorderSide(color: kAccentVivid, width: 1.5),
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
         ),
@@ -586,7 +586,7 @@ class DynamicAvatar extends StatelessWidget {
   final double size;
   final List<Color>? colors;
 
-  DynamicAvatar({super.key, required this.text, this.size = 48, this.colors});
+  const DynamicAvatar({super.key, required this.text, this.size = 48, this.colors});
 
   Color _getColor(String text) {
     final index = text.codeUnitAt(0) % avatarColors.length;
@@ -749,7 +749,11 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
 
   void _toggle() {
     setState(() => _isOpen = !_isOpen);
-    if (_isOpen) _animController.forward(); else _animController.reverse();
+    if (_isOpen) {
+      _animController.forward();
+    } else {
+      _animController.reverse();
+    }
   }
 
   void _sendMessage() {
@@ -849,9 +853,9 @@ class _AIAssistantBubbleState extends State<AIAssistantBubble>
                             hintStyle: AppTypography.caption.copyWith(color: kTextTertiary, fontSize: 12),
                             filled: true, fillColor: kGlassBg,
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: kGlassBorder)),
-                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: kGlassBorder)),
-                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: kAccentVivid, width: 1.5)),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: kGlassBorder)),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: kGlassBorder)),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: kAccentVivid, width: 1.5)),
                           ),
                           onSubmitted: (_) => _sendMessage(),
                         ),
@@ -916,7 +920,7 @@ class FrostedAppBar extends StatelessWidget implements PreferredSizeWidget {
           height: kToolbarHeight,
           decoration: BoxDecoration(
             color: kBgDeep1.withValues(alpha: 0.6),
-            border: Border(bottom: BorderSide(color: kGlassBorder, width: 0.5)),
+            border: const Border(bottom: BorderSide(color: kGlassBorder, width: 0.5)),
           ),
           child: AppBar(
             backgroundColor: Colors.transparent,

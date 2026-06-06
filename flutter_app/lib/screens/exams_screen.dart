@@ -191,14 +191,16 @@ class _ExamsScreenState extends State<ExamsScreen> {
                               passingScore: double.tryParse(passingController.text),
                             );
                             final provider = context.read<ExamProvider>();
+                            final messenger = ScaffoldMessenger.of(context);
+                            final nav = Navigator.of(context);
                             final success = await provider.addExam(exam);
                             if (success && mounted) {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              nav.pop();
+                              messenger.showSnackBar(
                                   const SnackBar(content: Text('Exam created'),
                                       backgroundColor: kAccent2));
                             } else if (!success && mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              messenger.showSnackBar(
                                   SnackBar(
                                       content: Text(provider.errorMessage ?? 'Failed to create exam'),
                                       backgroundColor: Colors.red));
@@ -320,14 +322,16 @@ class _ExamsScreenState extends State<ExamsScreen> {
                               passingScore: double.tryParse(passingController.text),
                             );
                             final provider = context.read<ExamProvider>();
+                            final messenger = ScaffoldMessenger.of(context);
+                            final nav = Navigator.of(context);
                             final success = await provider.updateExam(exam.id!, updated);
                             if (success && mounted) {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              nav.pop();
+                              messenger.showSnackBar(
                                   const SnackBar(content: Text('Exam updated'),
                                       backgroundColor: kAccent2));
                             } else if (!success && mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              messenger.showSnackBar(
                                   SnackBar(
                                       content: Text(provider.errorMessage ?? 'Failed to update exam'),
                                       backgroundColor: Colors.red));
@@ -448,7 +452,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                               Icon(Icons.quiz_rounded,
                                   size: 64, color: kAccent1.withValues(alpha: 0.5)),
                               const SizedBox(height: 16),
-                              Text('No exams yet',
+                              const Text('No exams yet',
                                   style: TextStyle(
                                       color: kAccent1,
                                       fontSize: 18,
@@ -542,9 +546,10 @@ class _ExamsScreenState extends State<ExamsScreen> {
                                       child: const Text('Delete',
                                           style: TextStyle(color: kAccent3)),
                                       onTap: () async {
+                                        final messenger = ScaffoldMessenger.of(context);
                                         await provider.deleteExam(exam.id!);
                                         if (mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
+                                          messenger.showSnackBar(
                                               const SnackBar(
                                                   content: Text('Exam deleted'),
                                                   backgroundColor: kAccent3));

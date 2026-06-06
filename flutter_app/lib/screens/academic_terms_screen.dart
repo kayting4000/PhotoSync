@@ -423,11 +423,10 @@ class _AcademicTermsScreenState extends State<AcademicTermsScreen> {
                           child: CircularProgressIndicator(color: kAccent1));
                     }
                     if (provider.terms.isEmpty) {
-                      return Center(
+                      return const Center(
                         child: GlassCard(
-                          padding: const EdgeInsets.all(40),
-                          child: const Column(
-                            mainAxisSize: MainAxisSize.min,
+                          padding: EdgeInsets.all(40),
+                          child: Column(mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.calendar_month_outlined,
                                   size: 64, color: kAccent2),

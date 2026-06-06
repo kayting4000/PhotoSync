@@ -243,25 +243,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        _TeamMember(
+                        const _TeamMember(
                           name: 'Habibun-najal Kayting',
                           role: 'Lead Developer',
                           email: 'kayting4k@gmail.com',
-                          colors: const [kAccent1, kAccent2],
+                          colors: [kAccent1, kAccent2],
                           icon: Icons.code_rounded,
                         ),
                         const SizedBox(height: 8),
-                        _TeamMember(
+                        const _TeamMember(
                           name: 'Hareeja Montenegro',
                           role: 'Sub-developer & Quality Assurance',
-                          colors: const [kAccent3, kAccent1],
+                          colors: [kAccent3, kAccent1],
                           icon: Icons.verified_rounded,
                         ),
                         const SizedBox(height: 8),
-                        _TeamMember(
+                        const _TeamMember(
                           name: 'Mohd Shaffiqh Anang',
                           role: 'Sub-developer & Documentation',
-                          colors: const [Color(0xFF43E97B), Color(0xFF38F9D7)],
+                          colors: [Color(0xFF43E97B), Color(0xFF38F9D7)],
                           icon: Icons.description_rounded,
                         ),
                       ],
