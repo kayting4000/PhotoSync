@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import '../services/api_service.dart';
 import '../config.dart';
 import '../providers/student_provider.dart';
 import '../providers/exam_provider.dart';
@@ -22,47 +21,26 @@ class ScannerScreen extends StatefulWidget {
 class _ScannerScreenState extends State<ScannerScreen> {
   /// Multi-page support: each page stored as raw bytes (cross-platform)
   final List<Uint8List> _pageBytes = [];
-  String? _visualizedImageUrl;
   int _detectedCount = 0;
   bool _isAnalyzing = false;
-  bool _isUploading = false;
-  String? _uploadedUrl;
+  final bool _isUploading = false;
   final ImagePicker _picker = ImagePicker();
 
   // Student & Exam selection
   String? _selectedStudentId;
   String? _selectedExamId;
-  List<dynamic> _subjects = [];
-  String? _selectedSubjectId;
-  String? _selectedPaperType;
-  static const List<String> _paperTypes = ['All', 'Exam', 'Quiz', 'Assignment', 'Other'];
 
   String get _backendUrl => '${AppConfig.baseUrl}/scanner/scan';
 
   @override
   void initState() {
     super.initState();
-    _fetchSubjects();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         Provider.of<StudentProvider>(context, listen: false).fetchStudents();
         Provider.of<ExamProvider>(context, listen: false).fetchExams();
       }
     });
-  }
-
-  Future<void> _fetchSubjects() async {
-    try {
-      final api = ApiService();
-      final subjects = await api.get('/subjects/');
-      if (mounted) {
-        setState(() {
-          _subjects = subjects;
-        });
-      }
-    } catch (e) {
-      // silently fail
-    }
   }
 
   /// Pick an image and add it as a new page
@@ -123,11 +101,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
     setState(() {
       _isAnalyzing = true;
       _detectedCount = 0;
-      _visualizedImageUrl = null;
     });
 
     int totalDetected = 0;
-    String? firstVisualization;
 
     try {
       for (int i = 0; i < _pageBytes.length; i++) {
@@ -148,9 +124,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
           final data = jsonDecode(response.body);
           final pageCount = (data['count'] ?? 0) as int;
           totalDetected += pageCount;
-          if (firstVisualization == null) {
-            firstVisualization = data['visualization_url'];
-          }
           debugPrint('  Page ${i + 1}: $pageCount checkmarks detected');
         } else {
           throw Exception('Page ${i + 1} error: ${response.statusCode}');
@@ -160,7 +133,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       if (mounted) {
         setState(() {
           _detectedCount = totalDetected;
-          _visualizedImageUrl = firstVisualization;
         });
       }
     } catch (e) {
@@ -241,7 +213,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           '${_pageBytes.isEmpty ? 'No' : _pageBytes.length} page${_pageBytes.length != 1 ? 's' : ''} selected',
                           style: TextStyle(color: tp, fontWeight: FontWeight.w600, fontSize: 13),
                         ),
-                        if (_pageBytes.length > 0 && _pageBytes.length < 5) ...[
+                        if (_pageBytes.isNotEmpty && _pageBytes.length < 5) ...[
                           const SizedBox(width: 6),
                           Text('(max 5)', style: TextStyle(color: ts, fontSize: 11)),
                         ],
@@ -528,7 +500,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         child: DropdownButton<String>(
           value: value,
           isExpanded: true,
-          dropdownColor: isDark ? const Color(0xFF1A1A3E) : lSurface,
+          dropdownColor: isDark ? const Color(0xFF1A1A3E) : Colors.white,
           style: TextStyle(color: tp),
           hint: Text(hint, style: TextStyle(color: ts)),
           items: items.isEmpty
@@ -540,3 +512,4 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
   }
 }
+

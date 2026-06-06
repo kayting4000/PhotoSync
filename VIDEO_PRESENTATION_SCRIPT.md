@@ -2,7 +2,7 @@
 **Total Duration: 5 minutes max**
 **Team Breakdown:**
 - 🟦 Team 1 — Introduction & App Flow: ~0:45
-- 🟩 Team 2 — Frontend: ~2:00
+- 🟩 Team 2 — Frontend (Next.js Web + Flutter Mobile): ~2:00
 - 🟥 Team 3 — Backend: ~2:00
 - 🎬 Outro: ~0:15
 
@@ -20,14 +20,14 @@ The problem we solve: teachers manually checking papers and computing grades is 
 
 EduScan solves this with three core parts:
 - A **Next.js web app** for full management on desktop
-- A **Flutter mobile app** for scanning on the go
+- A **Flutter mobile app** for scanning on the go with camera or gallery support
 - A **FastAPI backend** with a PostgreSQL database powering everything
 
 Here's the flow:"
 
 > *(Screen: Simple flow diagram or navigate through the app)*
 
-"A professor **logs in**, manages **students and subjects**, **scans a test paper** using the camera or uploads an image — the AI detects check marks automatically — the **grade is computed and saved**, and finally the student receives their **grade report via email**. Simple. Fast. Accurate."
+"A professor **logs in**, manages **students and subjects**, **scans a test paper** — the mobile app supports multi-page scanning with up to 5 pages, with AI detecting check marks automatically — the **grade is computed and saved**, and finally the student receives their **grade report via email**. Simple. Fast. Accurate."
 
 ---
 
@@ -51,7 +51,7 @@ Starting with authentication — users sign up or log in securely. The session i
 
 ---
 
-### 1:20 – 1:40 | Student & Subject Management
+### 1:20 – 1:45 | Student & Subject Management
 > *(Screen: Students table → Add Student dialog → Subjects page)*
 
 "The **Students page** lists all enrolled students with search and filter support. You can add, edit, or delete students in real time.
@@ -60,19 +60,21 @@ The **Subjects page** lets you create subjects with codes and units, then attach
 
 ---
 
-### 1:40 – 2:15 | Scanner
-> *(Screen: Scanner page — select student, subject, exam → upload image → result)*
+### 1:45 – 2:15 | Flutter Mobile Scanner
+> *(Screen: Flutter mobile app — Scanner screen with page selection, add page via camera/gallery, scan multi-page, result)*
 
-"The **Test Paper Scanner** is the core feature. Select a student, subject, and exam, then upload a photo of the answer sheet. The system sends it to **Roboflow AI**, which detects check marks and counts correct answers.
+"The **Test Paper Scanner** is available as a cross-platform **Flutter mobile app** — the core feature. 
 
-The score, percentage, and grade are computed instantly using the MSU grading scale. You can also override the score manually for essay-type exams. Once confirmed, the result is saved with one click."
+Select a **student** and **semester** (Preliminary, Mid-Semester, or Final Term), then add up to 5 answer sheet pages using either the **camera** or **gallery**. The app previews each page with numbered thumbnails and allows removing pages before scanning.
+
+Tap 'Scan All Pages' and the system sends each page to **Roboflow AI**, which detects check marks and counts correct answers across all pages. The total score is displayed with color-coded feedback — green for high scores, orange for medium, red for low."
 
 ---
 
 ### 2:15 – 2:45 | Grades & Email
 > *(Screen: Grades page → GPA → Email page)*
 
-"The **Grades page** shows all exam results per student — score, percentage, grade letter, and pass/fail status. The GPA is calculated automatically using a weighted average.
+"The **Grades page** shows all exam results per student — score, percentage, grade letter, and pass/fail status. The GPA is calculated automatically using a weighted average following the MSU-TCTO grading scale.
 
 The **Email page** lets you select a subject, choose students, add a custom message, and send grade reports directly to their inbox — all in one action."
 
@@ -87,7 +89,7 @@ The **Email page** lets you select a subject, choose students, add a custom mess
 **[Speaker]:**
 "The backend is built with **FastAPI** and **Python**, connected to a **Neon PostgreSQL** database using **SQLAlchemy** as the ORM.
 
-The project is structured into **models**, **schemas**, **controllers**, and a central **main.py** that registers all routes. It's deployed via **Railway** using the included Procfile."
+The project is structured into **models**, **schemas**, **controllers**, and a central **main.py** that registers all routes. The backend is deployable via a Procfile for cloud hosting."
 
 ---
 
@@ -114,18 +116,18 @@ The project is structured into **models**, **schemas**, **controllers**, and a c
 ### 3:50 – 4:20 | Scanner & GPA Logic
 > *(Screen: scanner.py and grades.py or results controller)*
 
-"Inside the scanner controller, the base64 image is sent to the **Roboflow Workflow API**. The response includes the number of detected check marks, which becomes the student's correct answer count.
+"Inside the scanner controller, the base64 image is sent to the **Roboflow Workflow API**. The response includes the number of detected check marks, which becomes the student's correct answer count. The scanner supports multi-page processing — each page is sent individually and counts are aggregated.
 
 The GPA controller loops through all exam results for a student, multiplies each grade point by the subject's unit credit, sums the weighted values, and divides by total units — following the standard Philippine university grading system."
 
 ---
 
 ### 4:20 – 4:45 | Database & Deployment
-> *(Screen: scripts/001_create_tables.sql or Railway dashboard)*
+> *(Screen: scripts/001_create_tables.sql or hosting dashboard)*
 
 "The database schema includes tables for users, students, subjects, exams, exam results, sections, and scoring rules — all with foreign key relationships and proper indexes.
 
-Migrations are managed through SQL scripts in the `/scripts/` folder. The backend is deployed to **Railway** with auto-start via the Procfile, and environment variables are configured securely in the Railway dashboard."
+Migrations are managed through SQL scripts in the `/scripts/` folder. Environment variables are configured via `.env` files for secure credential management."
 
 ---
 
@@ -152,7 +154,7 @@ Thank you!"
 - [ ] Dashboard with real stats
 - [ ] Students table + add dialog
 - [ ] Subjects + exam creation
-- [ ] Scanner — upload image → result
+- [ ] Flutter mobile scanner — add pages via camera/gallery, multi-page thumbnails, scan results
 - [ ] Grades table + GPA
 - [ ] Email send page
 
@@ -162,7 +164,7 @@ Thank you!"
 - [ ] Auth controller (JWT)
 - [ ] Scanner controller code
 - [ ] GPA calculation logic
-- [ ] Database SQL schema or Railway dashboard
+- [ ] Database SQL schema
 
 ---
 
@@ -171,7 +173,7 @@ Thank you!"
 | Team | Section | Time |
 |------|---------|------|
 | Team 1 | Intro + Flow | 0:00 – 0:45 |
-| Team 2 | Frontend | 0:45 – 2:45 |
+| Team 2 | Frontend (Web + Mobile) | 0:45 – 2:45 |
 | Team 3 | Backend | 2:45 – 4:45 |
 | All | Outro | 4:45 – 5:00 |
 | **Total** | | **5:00** |
