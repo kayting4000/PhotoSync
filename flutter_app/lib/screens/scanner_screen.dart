@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -8,6 +9,8 @@ import '../config.dart';
 import '../services/api_service.dart';
 import '../providers/student_provider.dart';
 import '../providers/exam_provider.dart';
+import '../providers/subject_provider.dart';
+import '../models/exam.dart';
 import '../theme/app_theme.dart';
 import '../widgets/fade_slide_in.dart';
 import '../widgets/app_drawer.dart';
@@ -31,6 +34,19 @@ class _ScannerScreenState extends State<ScannerScreen> {
   String? _selectedStudentId;
   String? _selectedExamId;
 
+  // Scan review state
+  bool _scanComplete = false;
+  bool _resultSaved = false;
+  bool _scanFailed = false;
+  String _scanErrorMessage = '';
+  double _percentage = 0;
+  String _grade = '';
+  String _remarks = '';
+
+  // Edit state
+  int _editCorrectAnswers = 0;
+  int _editTotalItems = 50;
+
   String get _backendUrl => '${AppConfig.baseUrl}/scanner/scan';
 
   @override
@@ -38,10 +54,36 @@ class _ScannerScreenState extends State<ScannerScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        Provider.of<StudentProvider>(context, listen: false).fetchStudents();
-        Provider.of<ExamProvider>(context, listen: false).fetchExams();
+        context.read<StudentProvider>().fetchStudents();
+        context.read<ExamProvider>().fetchExams();
+        context.read<SubjectProvider>().fetchSubjects();
       }
     });
+  }
+
+  /// Reset the scan state for a fresh scan
+  void _resetScan() {
+    setState(() {
+      _detectedCount = 0;
+      _scanComplete = false;
+      _resultSaved = false;
+      _scanFailed = false;
+      _scanErrorMessage = '';
+      _percentage = 0;
+      _grade = '';
+      _remarks = '';
+    });
+  }
+
+  /// Get the selected Exam object from the provider
+  Exam? get _selectedExam {
+    final exams = context.read<ExamProvider>().exams;
+    if (_selectedExamId == null) return null;
+    try {
+      return exams.firstWhere((e) => e.id == _selectedExamId);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Pick an image and add it as a new page
@@ -58,6 +100,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
         }
         return;
       }
+
+      // Reset previous scan results when adding new pages
+      if (_scanComplete) _resetScan();
 
       final pickedFile = await _picker.pickImage(
         source: source,
@@ -82,6 +127,401 @@ class _ScannerScreenState extends State<ScannerScreen> {
     setState(() {
       _pageBytes.removeAt(index);
     });
+    if (_scanComplete) _resetScan();
+  }
+
+  /// Show dialog to create a new exam
+  void _showCreateExamDialog() {
+    final subjects = context.read<SubjectProvider>().subjects;
+    if (subjects.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please create a subject first'),
+          backgroundColor: kAccent3,
+        ),
+      );
+      return;
+    }
+
+    String? selectedSubjectId = subjects.first.id;
+    final nameController = TextEditingController();
+    final totalItemsController = TextEditingController(text: '50');
+    final passingScoreController = TextEditingController(text: '30');
+    String componentType = 'exam';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => Dialog(
+          backgroundColor: Colors.transparent,
+          child: GlassCard(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.add_circle_rounded, color: Colors.white, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Text('New Exam',
+                          style: TextStyle(
+                              color: context.textPrimary,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  const Text('Subject', style: TextStyle(color: kAccent2, fontSize: 13)),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: kGlass,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: kGlassBorder),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: selectedSubjectId,
+                        isExpanded: true,
+                        dropdownColor: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF1A1A3E)
+                            : lSurface,
+                        style: TextStyle(color: context.textPrimary),
+                        items: subjects.map((s) => DropdownMenuItem(
+                          value: s.id,
+                          child: Text(s.name, style: TextStyle(color: context.textPrimary)),
+                        )).toList(),
+                        onChanged: (v) => setDialogState(() => selectedSubjectId = v),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  GlassTextField(
+                      controller: nameController,
+                      label: 'Exam Name',
+                      prefixIcon: Icons.assignment_rounded),
+                  const SizedBox(height: 12),
+                  const Text('Component Type', style: TextStyle(color: kAccent2, fontSize: 13)),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: kGlass,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: kGlassBorder),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: componentType,
+                        isExpanded: true,
+                        dropdownColor: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF1A1A3E)
+                            : lSurface,
+                        style: TextStyle(color: context.textPrimary),
+                        items: const [
+                          DropdownMenuItem(value: 'exam', child: Text('Exam', style: TextStyle(color: kAccent2))),
+                          DropdownMenuItem(value: 'quiz', child: Text('Quiz', style: TextStyle(color: kAccent2))),
+                          DropdownMenuItem(value: 'assignment', child: Text('Assignment', style: TextStyle(color: kAccent2))),
+                          DropdownMenuItem(value: 'oral', child: Text('Oral', style: TextStyle(color: kAccent2))),
+                        ],
+                        onChanged: (v) => setDialogState(() => componentType = v!),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  GlassTextField(
+                      controller: totalItemsController,
+                      label: 'Total Items',
+                      prefixIcon: Icons.numbers_rounded,
+                      keyboardType: TextInputType.number),
+                  const SizedBox(height: 12),
+                  GlassTextField(
+                      controller: passingScoreController,
+                      label: 'Passing Score',
+                      prefixIcon: Icons.check_circle_outline_rounded,
+                      keyboardType: TextInputType.number),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GlassCard(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          onTap: () => Navigator.pop(context),
+                          child: const Center(
+                              child: Text('Cancel', style: TextStyle(color: kAccent2))),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GradientButton(
+                          colors: const [kAccent2, kAccent1],
+                          onPressed: () async {
+                            final name = nameController.text.trim();
+                            final totalItems = int.tryParse(totalItemsController.text.trim()) ?? 50;
+                            final passingScore = double.tryParse(passingScoreController.text.trim());
+                            if (name.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Exam name is required'), backgroundColor: kAccent3),
+                              );
+                              return;
+                            }
+                            if (selectedSubjectId == null) return;
+
+                            final exam = Exam(
+                              subjectId: selectedSubjectId!,
+                              name: name,
+                              componentType: componentType,
+                              totalItems: totalItems,
+                              passingScore: passingScore,
+                            );
+
+                            final provider = context.read<ExamProvider>();
+                            final success = await provider.addExam(exam);
+                            if (success && mounted) {
+                              Navigator.pop(context);
+                              // Select the newly created exam
+                              final exams = provider.exams;
+                              if (exams.isNotEmpty) {
+                                setState(() => _selectedExamId = exams.last.id);
+                              }
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Exam created successfully!'),
+                                  backgroundColor: kAccent2,
+                                ),
+                              );
+                            }
+                          },
+                          child: const Text('Create',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Show dialog to edit scan result before saving
+  void _showEditResultDialog() {
+    final exam = _selectedExam;
+    final maxItems = exam?.totalItems ?? 100;
+
+    _editCorrectAnswers = _detectedCount;
+    _editTotalItems = maxItems;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => Dialog(
+          backgroundColor: Colors.transparent,
+          child: GlassCard(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.edit_rounded, color: Colors.white, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Text('Edit Score',
+                        style: TextStyle(
+                            color: context.textPrimary,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Text('Correct Answers Detected',
+                    style: TextStyle(color: context.textSecondary, fontSize: 13)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: kGlass,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: kGlassBorder),
+                  ),
+                  child: TextField(
+                    controller: TextEditingController(text: _editCorrectAnswers.toString()),
+                    keyboardType: TextInputType.number,
+                    style: TextStyle(color: context.textPrimary, fontSize: 24, fontWeight: FontWeight.bold),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                    ),
+                    onChanged: (v) {
+                      final val = int.tryParse(v) ?? 0;
+                      setDialogState(() => _editCorrectAnswers = val);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text('Total Items',
+                    style: TextStyle(color: context.textSecondary, fontSize: 13)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: kGlass,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: kGlassBorder),
+                  ),
+                  child: TextField(
+                    controller: TextEditingController(text: _editTotalItems.toString()),
+                    keyboardType: TextInputType.number,
+                    style: TextStyle(color: context.textPrimary, fontSize: 24, fontWeight: FontWeight.bold),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                    ),
+                    onChanged: (v) {
+                      final val = int.tryParse(v) ?? 50;
+                      setDialogState(() => _editTotalItems = val);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Preview of computed result
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: kGlass,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: kGlassBorder),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Result Preview',
+                              style: TextStyle(color: context.textSecondary, fontSize: 12)),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${_editCorrectAnswers.clamp(0, _editTotalItems)} / $_editTotalItems',
+                            style: TextStyle(
+                              color: context.textPrimary,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('Percentage',
+                              style: TextStyle(color: context.textSecondary, fontSize: 12)),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${((_editCorrectAnswers.clamp(0, _editTotalItems) / _editTotalItems) * 100).toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              color: _editCorrectAnswers >= _editTotalItems * 0.6
+                                  ? const Color(0xFF43E97B)
+                                  : kAccent3,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GlassCard(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        onTap: () => Navigator.pop(context),
+                        child: const Center(
+                            child: Text('Cancel', style: TextStyle(color: kAccent2))),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: GradientButton(
+                        colors: const [kAccent1, kAccent2],
+                        onPressed: () {
+                          setState(() {
+                            _detectedCount = _editCorrectAnswers.clamp(0, _editTotalItems);
+                            _computePercentage(_editTotalItems);
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Apply',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Compute percentage and grade from detected count and total items
+  void _computePercentage(int totalItems) {
+    final pct = (_detectedCount / totalItems * 100).clamp(0, 100).toDouble();
+    _percentage = pct;
+
+    // Grade assignment matching backend logic
+    if (pct >= 96) {
+      _grade = '1.0';
+      _remarks = 'Passed';
+    } else if (pct >= 92) {
+      _grade = '1.25';
+      _remarks = 'Passed';
+    } else if (pct >= 88) {
+      _grade = '1.5';
+      _remarks = 'Passed';
+    } else if (pct >= 84) {
+      _grade = '1.75';
+      _remarks = 'Passed';
+    } else if (pct >= 80) {
+      _grade = '2.0';
+      _remarks = 'Passed';
+    } else if (pct >= 76) {
+      _grade = '2.25';
+      _remarks = 'Passed';
+    } else if (pct >= 72) {
+      _grade = '2.5';
+      _remarks = 'Passed';
+    } else if (pct >= 68) {
+      _grade = '2.75';
+      _remarks = 'Passed';
+    } else if (pct >= 60) {
+      _grade = '3.0';
+      _remarks = 'Passed';
+    } else {
+      _grade = '5.0';
+      _remarks = 'Failed';
+    }
   }
 
   /// Scan all pages — sends each to Roboflow
@@ -98,6 +538,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
       return;
     }
     if (_pageBytes.isEmpty) return;
+
+    // Reset previous results
+    _resetScan();
 
     setState(() {
       _isAnalyzing = true;
@@ -132,53 +575,72 @@ class _ScannerScreenState extends State<ScannerScreen> {
       }
 
       if (mounted) {
+        final exam = _selectedExam;
+        final totalItems = exam?.totalItems ?? 100;
+
         setState(() {
           _detectedCount = totalDetected;
+          _scanComplete = true;
+          _computePercentage(totalItems);
         });
-      }
-
-      // Auto-save the scan result as an exam grade
-      if (_detectedCount > 0 && _selectedStudentId != null && _selectedExamId != null) {
-        final totalItems = 50; // Default total items
-        final percentage = (_detectedCount / totalItems * 100).clamp(0, 100);
-
-        debugPrint('Saving exam result: $_detectedCount/$totalItems = ${percentage.toStringAsFixed(1)}%');
-
-        await ApiService().post('/results/', {
-          'student_id': _selectedStudentId!,
-          'exam_id': _selectedExamId!,
-          'correct_answers': _detectedCount,
-          'total_score': totalItems,
-          'percentage': percentage,
-        });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('✅ Result saved: ${percentage.toStringAsFixed(1)}% ($_detectedCount correct out of $totalItems)'),
-              backgroundColor: const Color(0xFF43E97B),
-            ),
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No checkmarks detected. Try a different image.'),
-              backgroundColor: kAccent3,
-            ),
-          );
-        }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Scan failed: $e'), backgroundColor: kAccent3),
-        );
+        setState(() {
+          _isAnalyzing = false;
+          _scanFailed = true;
+          _scanErrorMessage = e.toString().replaceAll('Exception: ', '');
+        });
       }
     } finally {
       if (mounted) setState(() => _isAnalyzing = false);
     }
+  }
+
+  /// Save the scan result to backend
+  Future<void> _saveResult() async {
+    if (_selectedStudentId == null || _selectedExamId == null) return;
+
+    final exam = _selectedExam;
+    final totalItems = exam?.totalItems ?? 100;
+
+    setState(() => _isAnalyzing = true);
+
+    try {
+      await ApiService().post('/results/', {
+        'student_id': _selectedStudentId!,
+        'exam_id': _selectedExamId!,
+        'correct_answers': _detectedCount,
+        'total_score': totalItems,
+        'percentage': _percentage,
+      });
+
+      if (mounted) {
+        setState(() {
+          _resultSaved = true;
+          _isAnalyzing = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ Result saved: ${_percentage.toStringAsFixed(1)}% ($_detectedCount correct out of $totalItems)'),
+            backgroundColor: const Color(0xFF43E97B),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isAnalyzing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save: $e'), backgroundColor: kAccent3),
+        );
+      }
+    }
+  }
+
+  /// Navigate to grades screen
+  void _goToGrades() {
+    context.push('/grades');
   }
 
   Color get _scoreColor {
@@ -190,9 +652,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   Widget build(BuildContext context) {
     final students = context.watch<StudentProvider>().students;
+    final exams = context.watch<ExamProvider>().exams;
     final tp = context.textPrimary;
     final ts = context.textSecondary;
     final isDark = context.isDark;
+    final exam = _selectedExam;
+    final totalItems = exam?.totalItems ?? 100;
 
     return Scaffold(
       drawer: const AppDrawer(currentRoute: '/scanner'),
@@ -258,7 +723,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Student & Semester selection
+                // Student & Exam selection
                 FadeSlideIn(
                   delay: const Duration(milliseconds: 100),
                   child: GlassCard(
@@ -274,20 +739,52 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             value: s.id,
                             child: Text(s.fullName, style: TextStyle(color: tp)),
                           )).toList(),
-                          onChanged: (v) => setState(() => _selectedStudentId = v),
+                          onChanged: (v) {
+                            setState(() => _selectedStudentId = v);
+                            if (_scanComplete) _resetScan();
+                          },
                         ),
                         const SizedBox(height: 16),
-                        const Text('Select Semester', style: TextStyle(color: kAccent2, fontSize: 13)),
-                        const SizedBox(height: 8),
-                        _buildDropdown(
-                          value: _selectedExamId,
-                          hint: 'Choose a semester',
-                          items: const [
-                            DropdownMenuItem(value: 'preliminary', child: Text('Preliminary Term', style: TextStyle(color: kAccent2))),
-                            DropdownMenuItem(value: 'midsemester', child: Text('Mid-Semester Term', style: TextStyle(color: kAccent2))),
-                            DropdownMenuItem(value: 'final', child: Text('Final Term', style: TextStyle(color: kAccent2))),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Select Exam', style: TextStyle(color: kAccent2, fontSize: 13)),
+                                  const SizedBox(height: 8),
+                                  _buildDropdown(
+                                    value: _selectedExamId,
+                                    hint: 'Choose an exam',
+                                    items: exams.map((e) => DropdownMenuItem(
+                                      value: e.id,
+                                      child: Text(
+                                        '${e.name} (${e.totalItems} items)',
+                                        style: TextStyle(color: tp, fontSize: 13),
+                                      ),
+                                    )).toList(),
+                                    onChanged: (v) {
+                                      setState(() => _selectedExamId = v);
+                                      if (_scanComplete) _resetScan();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Create Exam button
+                            GestureDetector(
+                              onTap: _showCreateExamDialog,
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(colors: [kAccent2, kAccent1]),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
+                              ),
+                            ),
                           ],
-                          onChanged: (v) => setState(() => _selectedExamId = v),
                         ),
                       ],
                     ),
@@ -411,7 +908,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           ),
                         ],
                       ),
-                      if (_pageBytes.isNotEmpty) ...[
+                      if (_pageBytes.isNotEmpty && !_resultSaved) ...[
                         const SizedBox(height: 12),
                         SizedBox(
                           width: double.infinity,
@@ -453,37 +950,468 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   ),
                 ],
 
-                // Results
-                if (!_isAnalyzing && _pageBytes.isNotEmpty && _detectedCount > 0) ...[
+                // ─── RESULTS REVIEW CARD ───────────────────────────────
+                if (_scanComplete && _detectedCount > 0 && !_isAnalyzing) ...[
                   const SizedBox(height: 20),
                   FadeSlideIn(
                     child: GlassCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Header
                           Row(
                             children: [
-                              const Icon(Icons.auto_awesome_rounded, color: kAccent2, size: 18),
-                              const SizedBox(width: 8),
-                              Text('AI Detection Results', style: TextStyle(color: tp, fontSize: 16, fontWeight: FontWeight.w600)),
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(colors: [kAccent1, kAccent2]),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text('AI Detection Results',
+                                    style: TextStyle(color: tp, fontSize: 16, fontWeight: FontWeight.w600)),
+                              ),
+                              if (_resultSaved)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF43E97B).withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFF43E97B).withValues(alpha: 0.4)),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.check_circle_rounded, color: Color(0xFF43E97B), size: 14),
+                                      SizedBox(width: 4),
+                                      Text('Saved', style: TextStyle(color: Color(0xFF43E97B), fontSize: 11, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                ),
                             ],
                           ),
                           const SizedBox(height: 20),
+
+                          // Score fraction (BIG)
+                          Center(
+                            child: Column(
+                              children: [
+                                ShaderMask(
+                                  shaderCallback: (bounds) =>
+                                      LinearGradient(colors: [_scoreColor, kAccent2]).createShader(bounds),
+                                  child: Text(
+                                    '$_detectedCount / $totalItems',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 40,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'items detected correctly',
+                                  style: TextStyle(color: ts, fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Percentage bar
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: LinearProgressIndicator(
+                              value: _percentage / 100,
+                              minHeight: 10,
+                              backgroundColor: kGlass,
+                              valueColor: AlwaysStoppedAnimation<Color>(_scoreColor),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Percentage and Grade row
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              Text('Checkmarks Detected', style: TextStyle(color: ts)),
-                              ShaderMask(
-                                shaderCallback: (bounds) => LinearGradient(colors: [_scoreColor, kAccent2]).createShader(bounds),
-                                child: Text('$_detectedCount',
-                                  style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
+                              _StatItem(
+                                label: 'Percentage',
+                                value: '${_percentage.toStringAsFixed(1)}%',
+                                color: _percentage >= 60 ? const Color(0xFF43E97B) : kAccent3,
+                              ),
+                              _StatItem(
+                                label: 'Grade',
+                                value: _grade,
+                                color: _grade == '5.0' ? kAccent3 : kAccent1,
+                              ),
+                              _StatItem(
+                                label: 'Remarks',
+                                value: _remarks,
+                                color: _remarks == 'Passed' ? const Color(0xFF43E97B) : kAccent3,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Exam info
+                          if (exam != null) ...[
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: kGlass,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: kGlassBorder),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.assignment_rounded, color: kAccent2, size: 16),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      exam.name,
+                                      style: TextStyle(color: tp, fontSize: 13),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${exam.totalItems} items',
+                                    style: TextStyle(color: ts, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+
+                          // Action buttons
+                          if (!_resultSaved) ...[
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: GradientButton(
+                                    onPressed: _showEditResultDialog,
+                                    colors: const [kAccent2, kAccent1],
+                                    child: const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.edit_rounded, color: Colors.white, size: 16),
+                                        SizedBox(width: 6),
+                                        Text('Edit Score',
+                                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: GradientButton(
+                                    onPressed: _saveResult,
+                                    colors: const [Color(0xFF43E97B), Color(0xFF38F9D7)],
+                                    child: const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
+                                        SizedBox(width: 6),
+                                        Text('Accept & Save',
+                                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: double.infinity,
+                              child: GlassCard(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                onTap: () {
+                                  _pageBytes.clear();
+                                  _resetScan();
+                                },
+                                child: const Center(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.refresh_rounded, color: kAccent2, size: 16),
+                                      SizedBox(width: 6),
+                                      Text('Rescan (Clear & Start Over)',
+                                          style: TextStyle(color: kAccent2, fontWeight: FontWeight.w600, fontSize: 13)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ] else ...[
+                            // After save - View Grades button
+                            SizedBox(
+                              width: double.infinity,
+                              child: GradientButton(
+                                onPressed: _goToGrades,
+                                colors: const [kAccent1, kAccent2],
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.bar_chart_rounded, color: Colors.white, size: 18),
+                                    SizedBox(width: 8),
+                                    Text('View Grades',
+                                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: double.infinity,
+                              child: GlassCard(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                onTap: () {
+                                  _pageBytes.clear();
+                                  _resetScan();
+                                },
+                                child: const Center(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.document_scanner_rounded, color: kAccent2, size: 16),
+                                      SizedBox(width: 6),
+                                      Text('Scan Another Paper',
+                                          style: TextStyle(color: kAccent2, fontWeight: FontWeight.w600, fontSize: 13)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+
+                // ─── SCAN FAILED CARD ─────────────────────────────────
+                if (_scanFailed && !_isAnalyzing) ...[
+                  const SizedBox(height: 20),
+                  FadeSlideIn(
+                    child: GlassCard(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: kAccent3.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: kAccent3.withValues(alpha: 0.3)),
+                            ),
+                            child: const Icon(Icons.error_outline_rounded, color: kAccent3, size: 48),
+                          ),
+                          const SizedBox(height: 14),
+                          Text('Scan Failed',
+                              style: TextStyle(
+                                  color: tp,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              _scanErrorMessage.isNotEmpty
+                                  ? _scanErrorMessage
+                                  : 'Could not scan the image. The AI model may not have detected any checkmarks.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: ts, fontSize: 13),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Tips for better scanning
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: kGlass,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: kGlassBorder),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Tips for better scanning:',
+                                    style: TextStyle(color: tp, fontSize: 12, fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 6),
+                                Text('• Use clear, well-lit images',
+                                    style: TextStyle(color: ts, fontSize: 11)),
+                                Text('• Ensure checkmarks are clearly visible',
+                                    style: TextStyle(color: ts, fontSize: 11)),
+                                Text('• Avoid blurry or angled photos',
+                                    style: TextStyle(color: ts, fontSize: 11)),
+                                Text('• Make sure the paper fills the frame',
+                                    style: TextStyle(color: ts, fontSize: 11)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GradientButton(
+                                  onPressed: _scanAllPages,
+                                  colors: const [kAccent2, kAccent1],
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.refresh_rounded, color: Colors.white, size: 16),
+                                      SizedBox(width: 6),
+                                      Text('Try Again',
+                                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: GlassCard(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  onTap: () {
+                                    _showEditResultDialog();
+                                    setState(() => _scanFailed = false);
+                                  },
+                                  child: Center(
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.edit_rounded, color: context.textSecondary, size: 16),
+                                        const SizedBox(width: 6),
+                                        Text('Enter Manually',
+                                            style: TextStyle(color: context.textSecondary, fontWeight: FontWeight.w600, fontSize: 13)),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: GlassCard(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              onTap: () {
+                                _pageBytes.clear();
+                                _resetScan();
+                              },
+                              child: const Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.photo_camera_rounded, color: kAccent2, size: 16),
+                                    SizedBox(width: 6),
+                                    Text('Retake Image',
+                                        style: TextStyle(color: kAccent2, fontWeight: FontWeight.w600, fontSize: 13)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+
+                // ─── ZERO DETECTIONS CARD ──────────────────────────────
+                if (_scanComplete && _detectedCount == 0 && !_isAnalyzing && !_scanFailed) ...[
+                  const SizedBox(height: 20),
+                  FadeSlideIn(
+                    child: GlassCard(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF7971E).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: const Color(0xFFF7971E).withValues(alpha: 0.3)),
+                            ),
+                            child: const Icon(Icons.search_off_rounded, color: Color(0xFFF7971E), size: 48),
+                          ),
+                          const SizedBox(height: 14),
+                          Text('No Checkmarks Detected',
+                              style: TextStyle(
+                                  color: tp,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
-                          Text('Across ${_pageBytes.length} page${_pageBytes.length != 1 ? 's' : ''}',
-                            style: TextStyle(color: ts, fontSize: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              'The AI scanned your ${_pageBytes.length > 1 ? '${_pageBytes.length} pages' : 'page'} but could not detect any checkmarks. You can still manually enter the score or try scanning again.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: ts, fontSize: 13),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GradientButton(
+                                  onPressed: _showEditResultDialog,
+                                  colors: const [kAccent2, kAccent1],
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.edit_rounded, color: Colors.white, size: 16),
+                                      SizedBox(width: 6),
+                                      Text('Enter Score Manually',
+                                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: GlassCard(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  onTap: _scanAllPages,
+                                  child: Center(
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.refresh_rounded, color: context.textSecondary, size: 16),
+                                        const SizedBox(width: 6),
+                                        Text('Rescan',
+                                            style: TextStyle(color: context.textSecondary, fontWeight: FontWeight.w600, fontSize: 13)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: GlassCard(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              onTap: () {
+                                _pageBytes.clear();
+                                _resetScan();
+                              },
+                              child: const Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.photo_camera_rounded, color: kAccent2, size: 16),
+                                    SizedBox(width: 6),
+                                    Text('Retake Image',
+                                        style: TextStyle(color: kAccent2, fontWeight: FontWeight.w600, fontSize: 13)),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -492,7 +1420,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 ],
 
                 // Empty state
-                if (_pageBytes.isEmpty && !_isAnalyzing) ...[
+                if (_pageBytes.isEmpty && !_isAnalyzing && !_scanComplete) ...[
                   const SizedBox(height: 16),
                   FadeSlideIn(
                     delay: const Duration(milliseconds: 150),
@@ -548,3 +1476,31 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 }
 
+/// Reusable stat item for the results card
+class _StatItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const _StatItem({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(value,
+            style: TextStyle(
+                color: color,
+                fontSize: 18,
+                fontWeight: FontWeight.bold)),
+        const SizedBox(height: 2),
+        Text(label,
+            style: const TextStyle(color: kTextSecondary, fontSize: 10)),
+      ],
+    );
+  }
+}

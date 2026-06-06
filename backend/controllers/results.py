@@ -2,6 +2,7 @@
 Exam Results controller — CRUD operations via SQLAlchemy ORM (Neon PostgreSQL).
 """
 import uuid
+from uuid import UUID
 from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -100,8 +101,8 @@ def create_result(
 
     result = ExamResult(
         user_id=current_user.id,
-        student_id=data["student_id"],
-        exam_id=data["exam_id"],
+        student_id=UUID(data["student_id"]) if isinstance(data["student_id"], str) and len(data["student_id"]) == 36 else data["student_id"],
+        exam_id=UUID(data["exam_id"]) if isinstance(data["exam_id"], str) and len(data["exam_id"]) == 36 else data["exam_id"],
         correct_answers=data["correct_answers"],
         total_score=data["total_score"],
         percentage=data.get("percentage"),

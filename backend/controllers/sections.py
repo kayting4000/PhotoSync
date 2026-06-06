@@ -1,6 +1,7 @@
 """
 Sections controller — CRUD operations via SQLAlchemy ORM (Neon PostgreSQL).
 """
+from uuid import UUID
 from fastapi import APIRouter, HTTPException, Query, Depends, Path
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -57,7 +58,7 @@ def create_section(
 ):
     section = Section(
         user_id=current_user.id,
-        subject_id=body.subject_id,
+        subject_id=UUID(body.subject_id) if isinstance(body.subject_id, str) else body.subject_id,
         section_label=body.section_label,
         room_number=body.room_number,
     )

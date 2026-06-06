@@ -107,6 +107,13 @@ def update_student(
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     update_data = body.model_dump(exclude_unset=True)
+    # Convert section_id string to UUID if needed
+    if 'section_id' in update_data and update_data['section_id'] is not None:
+        if isinstance(update_data['section_id'], str) and len(update_data['section_id']) == 36:
+            try:
+                update_data['section_id'] = uuid.UUID(update_data['section_id'])
+            except ValueError:
+                pass
     for key, value in update_data.items():
         setattr(student, key, value)
     db.commit()

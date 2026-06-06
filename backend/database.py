@@ -49,6 +49,8 @@ else:
         pool_pre_ping=True,
     )
 
+# (UUID columns in SQLite store strings, no conversion needed)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, future=True)
 Base = declarative_base()
 

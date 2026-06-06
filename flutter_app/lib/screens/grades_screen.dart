@@ -421,6 +421,8 @@ class _GradesScreenState extends State<GradesScreen> {
                         ...List.generate(_examResults.length, (index) {
                           final result = _examResults[index];
                           final percentage = (result['percentage'] ?? 0.0).toDouble();
+                          final correct = result['correct_answers'] ?? 0;
+                          final total = result['total_score'] ?? 100;
                           final grade = result['grade'] ?? 'N/A';
                           final colors = _gradeColors(grade);
                           final emoji = _gradeEmoji(grade);
@@ -476,9 +478,19 @@ class _GradesScreenState extends State<GradesScreen> {
                                           ),
                                         ),
                                         const SizedBox(height: 4),
-                                        Text('${percentage.toStringAsFixed(1)}%',
-                                            style: const TextStyle(
-                                                color: kTextSecondary, fontSize: 11)),
+                                        Row(
+                                          children: [
+                                            Text('$correct / $total',
+                                                style: const TextStyle(
+                                                    color: kTextSecondary, fontSize: 11)),
+                                            const Spacer(),
+                                            Text('${percentage.toStringAsFixed(1)}%',
+                                                style: TextStyle(
+                                                    color: colors.first,
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.bold)),
+                                          ],
+                                        ),
                                       ],
                                     ),
                                   ),

@@ -5,6 +5,7 @@ import '../models/subject.dart';
 import '../models/section.dart';
 import '../models/student.dart';
 import '../providers/student_provider.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/fade_slide_in.dart';
 
@@ -19,6 +20,9 @@ class SectionStudentsScreen extends StatefulWidget {
 }
 
 class _SectionStudentsScreenState extends State<SectionStudentsScreen> {
+  List<Student> _allStudents = [];
+  bool _isLoadingExisting = false;
+
   @override
   void initState() {
     super.initState();
@@ -29,7 +33,299 @@ class _SectionStudentsScreenState extends State<SectionStudentsScreen> {
     });
   }
 
-  void _showAddDialog() {
+  /// Bottom sheet to choose between adding a new student or an existing one
+  void _showAddStudentSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF1A0B2E)
+              : lSurface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16, top: 8),
+                decoration: BoxDecoration(
+                  color: kGlassBorder,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Text('Add Student',
+                  style: TextStyle(
+                      color: context.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              // Option 1: Create new
+              GlassCard(
+                padding: const EdgeInsets.all(16),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showCreateNewStudentDialog();
+                },
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [kAccent2, kAccent1]),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.person_add_rounded, color: Colors.white, size: 22),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Create New Student',
+                              style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.w600, fontSize: 15)),
+                          const SizedBox(height: 2),
+                          Text('Add a brand new student to this section',
+                              style: TextStyle(color: context.textSecondary, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right_rounded, color: context.textSecondary),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Option 2: Add existing
+              GlassCard(
+                padding: const EdgeInsets.all(16),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showAddExistingStudentDialog();
+                },
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [Color(0xFF43E97B), Color(0xFF38F9D7)]),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.group_add_rounded, color: Colors.white, size: 22),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Add Existing Student',
+                              style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.w600, fontSize: 15)),
+                          const SizedBox(height: 2),
+                          Text('Assign a student already in the system to this section',
+                              style: TextStyle(color: context.textSecondary, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right_rounded, color: context.textSecondary),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Fetch all students and show a picker to add existing ones to this section
+  void _showAddExistingStudentDialog() async {
+    setState(() => _isLoadingExisting = true);
+
+    // Fetch all students (no section filter) to find unassigned ones
+    final allData = await ApiService().get('/students/');
+    final sectionStudents = context.read<StudentProvider>().students;
+    final sectionStudentIds = sectionStudents.map((s) => s.id).toSet();
+
+    List<Student> existingStudents = allData
+        .map((item) => Student.fromJson(item))
+        .where((s) => !sectionStudentIds.contains(s.id))
+        .toList();
+
+    if (!mounted) return;
+    setState(() => _isLoadingExisting = false);
+
+    String? searchQuery;
+    List<Student> filtered = List.from(existingStudents);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => Dialog(
+          backgroundColor: Colors.transparent,
+          child: GlassCard(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Add Existing Student',
+                    style: TextStyle(
+                        color: context.textPrimary,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text('Select a student to add to Section ${widget.section.sectionLabel}',
+                    style: TextStyle(color: context.textSecondary, fontSize: 12)),
+                const SizedBox(height: 16),
+                // Search field
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: kGlass,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: kGlassBorder),
+                  ),
+                  child: TextField(
+                    style: TextStyle(color: context.textPrimary, fontSize: 14),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Search students...',
+                      hintStyle: TextStyle(color: context.textSecondary, fontSize: 13),
+                      prefixIcon: Icon(Icons.search_rounded, color: context.textSecondary, size: 20),
+                    ),
+                    onChanged: (v) {
+                      searchQuery = v.toLowerCase();
+                      setDialogState(() {
+                        if (searchQuery!.isEmpty) {
+                          filtered = List.from(existingStudents);
+                        } else {
+                          filtered = existingStudents.where((s) =>
+                            s.fullName.toLowerCase().contains(searchQuery!) ||
+                            s.studentId.toLowerCase().contains(searchQuery!) ||
+                            s.course.toLowerCase().contains(searchQuery!)
+                          ).toList();
+                        }
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (filtered.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        Icon(Icons.people_outline_rounded, size: 40, color: context.textSecondary),
+                        const SizedBox(height: 8),
+                        Text(
+                          existingStudents.isEmpty
+                              ? 'All students are already in this section'
+                              : 'No students match your search',
+                          style: TextStyle(color: context.textSecondary, fontSize: 13),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  SizedBox(
+                    height: 300,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: filtered.length,
+                      itemBuilder: (ctx, index) {
+                        final student = filtered[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: GlassCard(
+                            padding: const EdgeInsets.all(12),
+                            onTap: () async {
+                              final provider = context.read<StudentProvider>();
+                              final updated = Student(
+                                id: student.id,
+                                studentId: student.studentId,
+                                firstName: student.firstName,
+                                lastName: student.lastName,
+                                email: student.email,
+                                course: student.course,
+                                yearLevel: student.yearLevel,
+                                sectionId: widget.section.id,
+                              );
+                              final success = await provider.updateStudent(student.id!, updated);
+                              if (success && mounted) {
+                                Navigator.pop(ctx);
+                                provider.fetchStudents(sectionId: widget.section.id);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${student.fullName} added to Section ${widget.section.sectionLabel}'),
+                                    backgroundColor: const Color(0xFF43E97B),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 18,
+                                  backgroundColor: kAccent1.withValues(alpha: 0.2),
+                                  child: Text(
+                                    student.firstName.isNotEmpty ? student.firstName[0].toUpperCase() : '?',
+                                    style: TextStyle(color: kAccent1, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(student.fullName, style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.w600, fontSize: 14)),
+                                      const SizedBox(height: 2),
+                                      Text('${student.studentId} • ${student.course} Y${student.yearLevel}',
+                                          style: TextStyle(color: context.textSecondary, fontSize: 11)),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF43E97B).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFF43E97B).withValues(alpha: 0.3)),
+                                  ),
+                                  child: const Text('Add', style: TextStyle(color: Color(0xFF43E97B), fontSize: 11, fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: GlassCard(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    onTap: () => Navigator.pop(ctx),
+                    child: Center(
+                      child: Text('Cancel', style: TextStyle(color: context.textSecondary)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showCreateNewStudentDialog() {
     final idController = TextEditingController();
     final firstController = TextEditingController();
     final lastController = TextEditingController();
@@ -48,7 +344,7 @@ class _SectionStudentsScreenState extends State<SectionStudentsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Add Student',
+                  Text('Add New Student',
                       style: TextStyle(
                           color: context.textPrimary,
                           fontSize: 20,
@@ -357,7 +653,7 @@ class _SectionStudentsScreenState extends State<SectionStudentsScreen> {
           ],
         ),
         child: FloatingActionButton(
-          onPressed: _showAddDialog,
+          onPressed: _showAddStudentSheet,
           backgroundColor: Colors.transparent,
           elevation: 0,
           child: const Icon(Icons.add_rounded, color: Colors.white),

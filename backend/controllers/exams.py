@@ -1,6 +1,7 @@
 """
 Exams controller — CRUD operations via SQLAlchemy ORM (Neon PostgreSQL).
 """
+from uuid import UUID
 from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -40,9 +41,9 @@ def get_exams(
 ):
     q = db.query(Exam).filter(Exam.user_id == current_user.id)
     if subject_id:
-        q = q.filter(Exam.subject_id == subject_id)
+        q = q.filter(Exam.subject_id == (UUID(subject_id) if isinstance(subject_id, str) and len(subject_id) == 36 else subject_id))
     if term_id:
-        q = q.filter(Exam.term_id == term_id)
+        q = q.filter(Exam.term_id == (UUID(term_id) if isinstance(term_id, str) and len(term_id) == 36 else term_id))
     total = q.count()
     q = q.order_by(Exam.created_at.desc()).offset(skip).limit(limit)
     return {
@@ -61,13 +62,13 @@ def create_exam(
 ):
     exam = Exam(
         user_id=current_user.id,
-        subject_id=body.subject_id,
+        subject_id=UUID(body.subject_id) if isinstance(body.subject_id, str) and len(body.subject_id) == 36 else body.subject_id,
         name=body.name,
         component_type=body.component_type,
         total_items=body.total_items,
         points_per_item=body.points_per_item,
         passing_score=body.passing_score,
-        term_id=body.term_id,
+        term_id=UUID(body.term_id) if isinstance(body.term_id, str) and len(body.term_id) == 36 else body.term_id,
     )
     db.add(exam)
     db.commit()
