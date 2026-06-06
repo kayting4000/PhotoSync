@@ -1,179 +1,161 @@
-# 🎬 EduScan Video Presentation Script
+# 🎬 PhotoSync Video Presentation Script
 **Total Duration: 5 minutes max**
-**Team Breakdown:**
-- 🟦 Team 1 — Introduction & App Flow: ~0:45
-- 🟩 Team 2 — Frontend (Next.js Web + Flutter Mobile): ~2:00
-- 🟥 Team 3 — Backend: ~2:00
-- 🎬 Outro: ~0:15
 
 ---
 
-## 🟦 TEAM 1 — Introduction & App Flow
-**Duration: 0:00 – 0:45**
+## 🎥 SCREEN RECORDING GUIDE — Flow Demo
+**Duration: 0:00 – 5:00**
 
-> *(Screen: App logo / splash screen or landing page)*
+> *Record your phone/emulator screen showing the entire app flow*
 
-**[Speaker]:**
-"Good day! We present **EduScan** — a smart test paper scanning and grade management system built for educators.
+### 0:00 – 0:20 | Introduction
+> *(Screen: App logo / splash screen)*
 
-The problem we solve: teachers manually checking papers and computing grades is time-consuming and error-prone.
+**Narrator:**
+"Good day! We present **PhotoSync** — a smart test paper scanning and grade management system built for educators.
 
-EduScan solves this with three core parts:
-- A **Next.js web app** for full management on desktop
-- A **Flutter mobile app** for scanning on the go with camera or gallery support
-- A **FastAPI backend** with a PostgreSQL database powering everything
-
-Here's the flow:"
-
-> *(Screen: Simple flow diagram or navigate through the app)*
-
-"A professor **logs in**, manages **students and subjects**, **scans a test paper** — the mobile app supports multi-page scanning with up to 5 pages, with AI detecting check marks automatically — the **grade is computed and saved**, and finally the student receives their **grade report via email**. Simple. Fast. Accurate."
+The problem we solve: teachers manually checking papers and computing grades is time-consuming and error-prone. PhotoSync uses **AI-powered scanning** via Roboflow, automatic grade computation, and **Gmail SMTP** for sending grade reports directly to students."
 
 ---
 
-## 🟩 TEAM 2 — Frontend
-**Duration: 0:45 – 2:45**
+### 0:20 – 1:00 | Login / Sign-up
+> *(Screen: Login page on Flutter app)*
 
-### 0:45 – 1:00 | Authentication
-> *(Screen: Login / Sign-up page)*
+**Actions to record:**
+1. Open the PhotoSync Flutter app
+2. Type email and password
+3. Tap **Sign In**
 
-**[Speaker]:**
-"The frontend is built with **Next.js 15**, **TypeScript**, **Tailwind CSS**, and **shadcn/ui** components.
-
-Starting with authentication — users sign up or log in securely. The session is managed via JWT tokens stored in localStorage, and unauthenticated users are automatically redirected to login."
+**Narrator:**
+"Professors sign in securely. Authentication is powered by a **FastAPI backend** with **JWT tokens** and **bcrypt password hashing**. Every user's data is completely isolated."
 
 ---
 
-### 1:00 – 1:20 | Dashboard
+### 1:00 – 1:30 | Dashboard Overview
 > *(Screen: Dashboard page)*
 
-"After login, the **dashboard** gives a quick overview — total students, subjects, exams created, and results recorded. Quick action buttons let you jump directly to adding a student, scanning a paper, or viewing grades."
+**Actions to record:**
+1. After login, the **Dashboard** appears
+2. Show total students, subjects, exams counts
+3. Show quick action buttons
+
+**Narrator:**
+"The **Dashboard** gives a quick overview. From here you can jump to any section."
 
 ---
 
-### 1:20 – 1:45 | Student & Subject Management
-> *(Screen: Students table → Add Student dialog → Subjects page)*
+### 1:30 – 2:00 | Students & Subjects
+> *(Screen: Students list → Subject sections)*
 
-"The **Students page** lists all enrolled students with search and filter support. You can add, edit, or delete students in real time.
+**Actions to record:**
+1. Tap **Students** from drawer menu
+2. Show the list of students
+3. Tap on a student to view their record
+4. Go back and tap **Subjects**
 
-The **Subjects page** lets you create subjects with codes and units, then attach exams to each subject — defining total items and points per item."
-
----
-
-### 1:45 – 2:15 | Flutter Mobile Scanner
-> *(Screen: Flutter mobile app — Scanner screen with page selection, add page via camera/gallery, scan multi-page, result)*
-
-"The **Test Paper Scanner** is available as a cross-platform **Flutter mobile app** — the core feature. 
-
-Select a **student** and **semester** (Preliminary, Mid-Semester, or Final Term), then add up to 5 answer sheet pages using either the **camera** or **gallery**. The app previews each page with numbered thumbnails and allows removing pages before scanning.
-
-Tap 'Scan All Pages' and the system sends each page to **Roboflow AI**, which detects check marks and counts correct answers across all pages. The total score is displayed with color-coded feedback — green for high scores, orange for medium, red for low."
+**Narrator:**
+"Manage your **students** and **subjects** with full CRUD. Each student belongs to a section. You can add exam scores, track attendance, and view performance."
 
 ---
 
-### 2:15 – 2:45 | Grades & Email
-> *(Screen: Grades page → GPA → Email page)*
+### 2:00 – 3:00 | AI Scanner — The Core Feature
+> *(Screen: Scanner screen)*
 
-"The **Grades page** shows all exam results per student — score, percentage, grade letter, and pass/fail status. The GPA is calculated automatically using a weighted average following the MSU-TCTO grading scale.
+**Actions to record:**
+1. Tap **Scanner** from drawer menu
+2. Select a **student** from dropdown
+3. Select a **semester**
+4. Tap **Add Page** → choose **Gallery**
+5. Select a test paper image *(have a sample ready)*
+6. Tap **Scan Page**
+7. Wait for scan results to show detected count
 
-The **Email page** lets you select a subject, choose students, add a custom message, and send grade reports directly to their inbox — all in one action."
+**Narrator:**
+"The **AI Scanner** is the heart of PhotoSync. Select a student, choose the term, then add answer sheet pages from your gallery.
 
----
-
-## 🟥 TEAM 3 — Backend
-**Duration: 2:45 – 4:45**
-
-### 2:45 – 3:05 | Stack & Structure
-> *(Screen: VS Code showing backend folder / main.py / requirements.txt)*
-
-**[Speaker]:**
-"The backend is built with **FastAPI** and **Python**, connected to a **Neon PostgreSQL** database using **SQLAlchemy** as the ORM.
-
-The project is structured into **models**, **schemas**, **controllers**, and a central **main.py** that registers all routes. The backend is deployable via a Procfile for cloud hosting."
+Tap **Scan** and the image is sent to **Roboflow AI**, which detects check marks and counts correct answers. The result is automatically saved as an exam grade."
 
 ---
 
-### 3:05 – 3:25 | Authentication & Security
-> *(Screen: auth.py controller or JWT code)*
+### 3:00 – 3:30 | Grades & GPA
+> *(Screen: Grades page)*
 
-"Authentication uses **JWT tokens**. On signup or login, the backend validates credentials, hashes passwords using bcrypt, and returns a signed access token. Every protected endpoint requires this token via a Bearer header — ensuring data is isolated per user."
+**Actions to record:**
+1. Tap **Grades** from drawer menu
+2. Show the **GPA summary** with average, highest, lowest
+3. Scroll to show **All Exam Results**
 
----
-
-### 3:25 – 3:50 | Core API Endpoints
-> *(Screen: Swagger UI at /docs or controllers folder)*
-
-"The API covers all major resources:
-- `/students/` — full CRUD with user-scoped isolation
-- `/subjects/` and `/exams/` — manage academic structure
-- `/results/` — create and retrieve exam results
-- `/gpa/` — calculates weighted GPA using the MSU scale
-- `/scanner/scan` — receives a base64 image, forwards it to Roboflow, and returns the check mark count
-- `/email/send-grade-report` — builds an HTML grade report and sends it via the Resend API"
+**Narrator:**
+"The **Grades page** shows all results with percentages and grade letters. **GPA is calculated automatically** using the MSU-TCTO grading scale."
 
 ---
 
-### 3:50 – 4:20 | Scanner & GPA Logic
-> *(Screen: scanner.py and grades.py or results controller)*
+### 3:30 – 4:15 | Send Grade Email
+> *(Screen: Student Record → Send Email)*
 
-"Inside the scanner controller, the base64 image is sent to the **Roboflow Workflow API**. The response includes the number of detected check marks, which becomes the student's correct answer count. The scanner supports multi-page processing — each page is sent individually and counts are aggregated.
+**Actions to record:**
+1. Go to **Students** from drawer
+2. Tap a student that has exam results
+3. Tap the **green email icon** (top right)
+4. Wait for: "✅ Grade sent to student@email.com"
 
-The GPA controller loops through all exam results for a student, multiplies each grade point by the subject's unit credit, sums the weighted values, and divides by total units — following the standard Philippine university grading system."
-
----
-
-### 4:20 – 4:45 | Database & Deployment
-> *(Screen: scripts/001_create_tables.sql or hosting dashboard)*
-
-"The database schema includes tables for users, students, subjects, exams, exam results, sections, and scoring rules — all with foreign key relationships and proper indexes.
-
-Migrations are managed through SQL scripts in the `/scripts/` folder. Environment variables are configured via `.env` files for secure credential management."
+**Narrator:**
+"PhotoSync lets you send individual grade reports with one tap. Open any student's record, tap the green email button, and they receive a formatted HTML grade report via **Gmail SMTP**."
 
 ---
 
-## 🎬 OUTRO
-**Duration: 4:45 – 5:00**
+### 4:15 – 4:45 | Backend & Swagger API
+> *(Screen: Browser showing http://localhost:8000/docs)*
 
-> *(Screen: App dashboard or team photo)*
+**Actions to record:**
+1. Open browser to `http://localhost:8000/docs`
+2. Scroll through API endpoints
 
-**[All / Lead speaker]:**
-"EduScan — built to save teachers time, reduce grading errors, and keep students informed.
-
-Thank you!"
-
----
-
-## 📋 Screen Recording Checklist
-
-### Team 1
-- [ ] App splash / logo screen
-- [ ] Quick flow walkthrough (30 seconds max)
-
-### Team 2
-- [ ] Login and signup page
-- [ ] Dashboard with real stats
-- [ ] Students table + add dialog
-- [ ] Subjects + exam creation
-- [ ] Flutter mobile scanner — add pages via camera/gallery, multi-page thumbnails, scan results
-- [ ] Grades table + GPA
-- [ ] Email send page
-
-### Team 3
-- [ ] Backend folder structure in editor
-- [ ] FastAPI `/docs` Swagger UI
-- [ ] Auth controller (JWT)
-- [ ] Scanner controller code
-- [ ] GPA calculation logic
-- [ ] Database SQL schema
+**Narrator:**
+"The **FastAPI backend** powers everything. Swagger UI at `/docs` lets you test every endpoint. Database is **Neon PostgreSQL** via **SQLAlchemy**."
 
 ---
 
-## 🕐 Timing Summary
+### 4:45 – 5:00 | Conclusion
+> *(Screen: Back to app dashboard)*
 
-| Team | Section | Time |
-|------|---------|------|
-| Team 1 | Intro + Flow | 0:00 – 0:45 |
-| Team 2 | Frontend (Web + Mobile) | 0:45 – 2:45 |
-| Team 3 | Backend | 2:45 – 4:45 |
-| All | Outro | 4:45 – 5:00 |
-| **Total** | | **5:00** |
+**Narrator:**
+"PhotoSync — built to save teachers time, eliminate grading errors, and keep students informed with instant grade reports via email. Thank you!"
+
+---
+
+## ⏱️ Timing Summary
+
+| Section | Time |
+|---------|------|
+| 🎬 Introduction | 0:00 – 0:20 |
+| 🔐 Login | 0:20 – 1:00 |
+| 📊 Dashboard | 1:00 – 1:30 |
+| 👨‍🎓 Students & Subjects | 1:30 – 2:00 |
+| 🤖 AI Scanner | 2:00 – 3:00 |
+| 📈 Grades & GPA | 3:00 – 3:30 |
+| 📧 Send Email | 3:30 – 4:15 |
+| ⚙️ Backend / Swagger | 4:15 – 4:45 |
+| 🎯 Conclusion | 4:45 – 5:00 |
+| **Total** | **5:00** |
+
+---
+
+## 📋 Recording Checklist
+
+### Before:
+- [ ] Backend running at `http://localhost:8000`
+- [ ] Flutter app connected to backend
+- [ ] Sample student with exam results created
+- [ ] Sample answer sheet image in gallery
+- [ ] Close other apps
+
+### During:
+- [ ] Speak clearly at steady pace
+- [ ] Pause 2 seconds between actions
+- [ ] Wait for scan to complete before narrating
+- [ ] Wait for email success snackbar
+
+### After:
+- [ ] Trim video to 5:00 or less
+- [ ] Export as MP4
