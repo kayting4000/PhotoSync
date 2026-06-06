@@ -135,11 +135,12 @@ class _SectionStudentsScreenState extends State<SectionStudentsScreen> {
                               sectionId: widget.section.id,
                             );
                             final provider = context.read<StudentProvider>();
+                            final sectionId = widget.section.id;
                             final success = await provider.addStudent(student);
-                            if (success && mounted) {
+                            if (!mounted) return;
+                            if (success) {
                               Navigator.pop(ctx);
-                              provider.fetchStudents(
-                                  sectionId: widget.section.id);
+                              provider.fetchStudents(sectionId: sectionId);
                             }
                           },
                           child: const Text('Add',
@@ -322,10 +323,11 @@ class _SectionStudentsScreenState extends State<SectionStudentsScreen> {
                                                   TextStyle(color: kAccent3)),
                                         ]),
                                         onTap: () async {
-                                          await provider
-                                              .deleteStudent(student.id!);
-                                          provider.fetchStudents(
-                                              sectionId: widget.section.id);
+                                          final sid = student.id!;
+                                          final secId = widget.section.id;
+                                          await provider.deleteStudent(sid);
+                                          if (!mounted) return;
+                                          provider.fetchStudents(sectionId: secId);
                                         },
                                       ),
                                     ],

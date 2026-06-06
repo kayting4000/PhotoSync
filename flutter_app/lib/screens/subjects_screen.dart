@@ -6,7 +6,6 @@ import '../models/subject.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/fade_slide_in.dart';
-import '../api.dart'; // add this near the top with other imports
 
 class SubjectsScreen extends StatefulWidget {
   const SubjectsScreen({super.key});
@@ -16,9 +15,6 @@ class SubjectsScreen extends StatefulWidget {
 }
 
 class _SubjectsScreenState extends State<SubjectsScreen> {
-  // Add these state fields
-  bool _isLoading = false;
-  List<Map<String, dynamic>> subjectsList = [];
 
   @override
   void initState() {
@@ -438,53 +434,4 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
       ),
     );
   }
-
-  Future<void> _createSubjectAndRefresh(String name) async {
-    if (name.trim().isEmpty) return;
-    setState(() { _isLoading = true; });
-    try {
-      final res = await createSubject(name);
-      // guard against widget disposed while awaiting
-      if (!mounted) return;
-      if (res['success'] == true && res['subject'] != null) {
-        setState(() {
-          // keep local list in sync for UI – adapt if you use Provider instead
-          subjectsList.insert(0, Map<String, dynamic>.from(res['subject']));
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Subject created'), backgroundColor: Colors.green),
-        );
-      } else {
-        final msg = res['detail'] ?? 'Unknown server response';
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Create failed: $e')));
-    } finally {
-      if (!mounted) return;
-      setState(() { _isLoading = false; });
-    }
-  }
-}
-
-class _CloudTexturePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Guard: if size is zero, don't paint (avoids NaN from modulo/division)
-    if (size.isEmpty || size.width == 0.0 || size.height == 0.0) {
-      return;
-    }
-    final paint = Paint()..style = PaintingStyle.fill;
-    // Soft white cloud-like patches
-    for (int i = 0; i < 8; i++) {
-      final x = (i * 0.137 + 0.3) * size.width;
-      final y = (i * 0.124 + 0.1) * size.height;
-      final radius = size.width * (0.15 + i * 0.02);
-      paint.color = Colors.white.withValues(alpha: 0.06);
-      canvas.drawOval(Rect.fromCenter(center: Offset(x % size.width, y % size.height), width: size.width * 0.4, height: size.height * 0.12), paint);
-    }
-  }
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

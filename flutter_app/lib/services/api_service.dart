@@ -1,245 +1,84 @@
-import 'dart:async';
 import 'dart:convert';
+import 'dart:async';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../config.dart';
 
-/// Singleton API service that handles all backend HTTP calls
-/// with JWT Bearer auth headers.
 class ApiService {
-  static final ApiService _instance = ApiService._internal();
-  factory ApiService() => _instance;
-  ApiService._internal();
+  final String baseUrl;
+  String? _authToken;
 
-  /// Backend API base URL — uses AppConfig to toggle between local/production
-  String get _baseUrl => AppConfig.baseUrl;
+  ApiService({String? baseUrl}) : baseUrl = baseUrl ?? Config.apiBase;
 
-  String? _jwtToken;
-  String? _userId;
-  String? _userEmail;
+  void setAuthToken(String? token) => _authToken = token;
 
-  bool get isAuthenticated => _jwtToken != null;
-  String? get userId => _userId;
-  String? get userEmail => _userEmail;
-
-  Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        if (_jwtToken != null) 'Authorization': 'Bearer $_jwtToken',
-      };
-
-  /// Store auth data after login/signup.
-  void setAuth(String token, String id, String email) {
-    _jwtToken = token;
-    _userId = id;
-    _userEmail = email;
+  Map<String, String> _headers([Map<String, String>? extras]) {
+    final h = <String, String>{
+      'Content-Type': 'application/json',
+      if (_authToken != null) 'Authorization': 'Bearer $_authToken',
+    };
+    if (extras != null) h.addAll(extras);
+    return h;
   }
 
-  void clearAuth() {
-    _jwtToken = null;
-    _userId = null;
-    _userEmail = null;
-  }
-
-  // ─── Auth ────────────────────────────────────────────────────────────────
-
-  Future<Map<String, dynamic>> login(String email, String password) async {
+  Future<dynamic> _decodeResponse(http.Response resp) async {
+    if (resp.body.isEmpty) return null;
     try {
-      final res = await http
-          .post(
-            Uri.parse('$_baseUrl/auth/login'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'email': email, 'password': password}),
-          )
-          .timeout(const Duration(seconds: 15));
-      if (res.statusCode == 200) {
-        try {
-          return jsonDecode(res.body) as Map<String, dynamic>;
-        } catch (_) {
-          throw Exception('Backend returned malformed response');
-        }
-      }
-      try {
-        final body = jsonDecode(res.body);
-        throw Exception(body['detail'] ?? 'Login failed');
-      } on FormatException {
-        throw Exception('Server error (${res.statusCode}): ${res.body.trim()}');
-      }
-    } on SocketException {
-      throw Exception(
-          'Cannot connect to backend. Make sure the server is running.');
-    } on TimeoutException {
-      throw Exception(
-          'Connection timed out. The backend server is not responding.');
-    } on http.ClientException {
-      throw Exception(
-          'Cannot connect to server. Check your internet connection.');
+      return jsonDecode(resp.body);
+    } catch (_) {
+      return resp.body;
     }
   }
 
-  Future<Map<String, dynamic>> signup(String email, String password) async {
+  Future<dynamic> _safeRequest(Future<http.Response> Function() fn) async {
     try {
-      final res = await http
-          .post(
-            Uri.parse('$_baseUrl/auth/signup'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'email': email, 'password': password}),
-          )
-          .timeout(const Duration(seconds: 15));
-      if (res.statusCode == 200) {
-        try {
-          return jsonDecode(res.body) as Map<String, dynamic>;
-        } catch (_) {
-          throw Exception('Backend returned malformed response');
-        }
+      final resp = await fn().timeout(const Duration(seconds: 15));
+      if (resp.statusCode >= 200 && resp.statusCode < 300) {
+        return await _decodeResponse(resp);
+      } else {
+        final body = await _decodeResponse(resp);
+        throw Exception('API error ${resp.statusCode}: ${body ?? resp.reasonPhrase}');
       }
-      try {
-        final body = jsonDecode(res.body);
-        throw Exception(body['detail'] ?? 'Signup failed');
-      } on FormatException {
-        throw Exception('Server error (${res.statusCode}): ${res.body.trim()}');
-      }
-    } on SocketException {
-      throw Exception(
-          'Cannot connect to backend. Make sure the server is running.');
     } on TimeoutException {
-      throw Exception(
-          'Connection timed out. The backend server is not responding.');
-    } on http.ClientException {
-      throw Exception(
-          'Cannot connect to server. Check your internet connection.');
+      throw TimeoutException('Request timed out (backend not responding)');
+    } on SocketException {
+      throw const SocketException('Network unreachable');
     }
   }
 
-  /// GET that returns a single Map (for endpoints that return objects, not arrays).
+  Future<dynamic> get(String path) async {
+    final url = Uri.parse('$baseUrl$path');
+    return await _safeRequest(() => http.get(url, headers: _headers()));
+  }
+
   Future<Map<String, dynamic>> getMap(String path) async {
-    final res = await http.get(
-      Uri.parse('$_baseUrl$path'),
-      headers: _headers,
-    );
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body) as Map<String, dynamic>;
-    }
-    throw Exception('GET $path failed: ${res.statusCode} ${res.body}');
+    final res = await get(path);
+    if (res == null) throw Exception('Empty response from $path');
+    if (res is Map<String, dynamic>) return res;
+    if (res is Map) return Map<String, dynamic>.from(res);
+    throw Exception('Expected Map response from $path but got ${res.runtimeType}');
   }
 
-  // ─── Generic CRUD helpers ────────────────────────────────────────────────
-
-  /// GET request — returns a List.
-  /// Handles both paginated responses ({items: [...]}) and raw arrays ([...]).
-  Future<List<dynamic>> get(String path) async {
-    final res = await http.get(
-      Uri.parse('$_baseUrl$path'),
-      headers: _headers,
-    );
-    if (res.statusCode == 200) {
-      final data = jsonDecode(res.body);
-      // Handle paginated format: {items: [...], total: N}
-      if (data is Map && data.containsKey('items')) {
-        return List<dynamic>.from(data['items']);
-      }
-      // Handle raw array format: [...]
-      if (data is List) return data;
-      // Handle single object: {...}
-      if (data is Map) return [data];
-      return [];
-    }
-    throw Exception('GET $path failed: ${res.statusCode} ${res.body}');
+  Future<dynamic> post(String path, dynamic body) async {
+    final url = Uri.parse('$baseUrl$path');
+    return await _safeRequest(() => http.post(url, headers: _headers(), body: jsonEncode(body)));
   }
 
-  Future<Map<String, dynamic>> post(
-      String path, Map<String, dynamic> body) async {
-    final res = await http.post(
-      Uri.parse('$_baseUrl$path'),
-      headers: _headers,
-      body: jsonEncode(body),
-    );
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body) as Map<String, dynamic>;
-    }
-    final data = jsonDecode(res.body);
-    throw Exception(data['detail'] ?? 'POST $path failed');
-  }
-
-  Future<Map<String, dynamic>> put(
-      String path, Map<String, dynamic> body) async {
-    final res = await http.put(
-      Uri.parse('$_baseUrl$path'),
-      headers: _headers,
-      body: jsonEncode(body),
-    );
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body) as Map<String, dynamic>;
-    }
-    final data = jsonDecode(res.body);
-    throw Exception(data['detail'] ?? 'PUT $path failed');
+  Future<dynamic> put(String path, dynamic body) async {
+    final url = Uri.parse('$baseUrl$path');
+    return await _safeRequest(() => http.put(url, headers: _headers(), body: jsonEncode(body)));
   }
 
   Future<void> delete(String path) async {
-    final res = await http.delete(
-      Uri.parse('$_baseUrl$path'),
-      headers: _headers,
-    );
-    if (res.statusCode != 200) {
-      final data = jsonDecode(res.body);
-      throw Exception(data['detail'] ?? 'DELETE $path failed');
-    }
+    final url = Uri.parse('$baseUrl$path');
+    await _safeRequest(() => http.delete(url, headers: _headers()));
   }
 
-  // ─── Scan Upload (multipart) ────────────────────────────────────────────
-
-  /// Upload a scanned test paper image, associate with a student + exam.
-  /// [imageFile] can be a [File] (native) or [XFile] (cross-platform web).
-  Future<Map<String, dynamic>> uploadScan({
-    required String studentId,
-    required String examId,
-    required dynamic imageFile,
-    int pageNumber = 1,
-    int totalPages = 1,
-  }) async {
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('$_baseUrl/scan-uploads/upload'),
-    );
-    request.headers['Authorization'] = 'Bearer $_jwtToken';
-    request.fields['student_id'] = studentId;
-    request.fields['exam_id'] = examId;
-    request.fields['page_number'] = pageNumber.toString();
-    request.fields['total_pages'] = totalPages.toString();
-    
-    if (imageFile is http.MultipartFile) {
-      request.files.add(imageFile);
-    } else if (imageFile is String) {
-      request.files.add(await http.MultipartFile.fromPath('file', imageFile));
-    } else {
-      try {
-        // XFile has .path property
-        final path = imageFile.path;
-        request.files.add(await http.MultipartFile.fromPath('file', path));
-      } catch (_) {
-        // Fallback for web/Uint8List — convert to bytes
-        final bytes = await imageFile.readAsBytes();
-        request.files.add(http.MultipartFile.fromBytes(
-          'file', bytes,
-          filename: 'scan_${DateTime.now().millisecondsSinceEpoch}.png',
-        ));
-      }
-    }
-
-    final streamed = await request.send();
-    final res = await http.Response.fromStream(streamed);
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body) as Map<String, dynamic>;
-    }
-    final data = jsonDecode(res.body);
-    throw Exception(data['detail'] ?? 'Upload failed');
+  Future<dynamic> login(String email, String password) async {
+    return await post('/auth/login', {'email': email, 'password': password});
   }
 
-  /// Check if a student has a scanned test paper for an exam.
-  Future<Map<String, dynamic>> getScannedResult(
-    String studentId,
-    String examId,
-  ) async {
-    return getMap('/scan-uploads/results/$studentId/$examId');
+  Future<dynamic> signup(String email, String password, {String? name}) async {
+    return await post('/auth/signup', {'email': email, 'password': password, 'name': name});
   }
-
 }
