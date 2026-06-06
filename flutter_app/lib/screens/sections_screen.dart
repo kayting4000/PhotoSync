@@ -63,9 +63,9 @@ class _SectionsScreenState extends State<SectionsScreen> {
                           return Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.08),
+                              color: Colors.white.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: kAccent2.withOpacity(0.3)),
+                              border: Border.all(color: kAccent2.withValues(alpha: 0.3)),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,9 +85,9 @@ class _SectionsScreenState extends State<SectionsScreen> {
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: kAccent2.withOpacity(0.3)),
+                            border: Border.all(color: kAccent2.withValues(alpha: 0.3)),
                           ),
                           child: DropdownButton<String>(
                             isExpanded: true,
@@ -98,7 +98,7 @@ class _SectionsScreenState extends State<SectionsScreen> {
                             items: [
                               DropdownMenuItem(
                                 value: '',
-                                child: Text('Select Subject', style: TextStyle(color: kAccent2.withOpacity(0.9))),
+                                child: Text('Select Subject', style: TextStyle(color: kAccent2.withValues(alpha: 0.9))),
                               ),
                               ...subjectProvider.subjects.map(
                                 (subject) => DropdownMenuItem(
@@ -124,9 +124,9 @@ class _SectionsScreenState extends State<SectionsScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: kAccent2.withOpacity(0.3)),
+                        border: Border.all(color: kAccent2.withValues(alpha: 0.3)),
                       ),
                       child: DropdownButton<String>(
                         isExpanded: true,
@@ -256,9 +256,9 @@ class _SectionsScreenState extends State<SectionsScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: kAccent2.withOpacity(0.3)),
+                        border: Border.all(color: kAccent2.withValues(alpha: 0.3)),
                       ),
                       child: DropdownButton<String>(
                         isExpanded: true,

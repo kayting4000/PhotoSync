@@ -35,12 +35,9 @@ const navItems = [
   { href: "/dashboard/email", label: "Email Results", icon: Mail },
 ]
 
-interface User {
-  id: string
-  email: string
-}
+import type { User as SupabaseUser } from "@supabase/supabase-js"
 
-export function DashboardNav({ user }: { user: User }) {
+export function DashboardNav({ user }: { user: SupabaseUser }) {
   const pathname = usePathname()
   const router = useRouter()
   const [open, setOpen] = useState(false)

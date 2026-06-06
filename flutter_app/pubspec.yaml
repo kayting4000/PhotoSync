@@ -42,6 +42,9 @@ dependencies:
   # Connectivity monitoring
   connectivity_plus: ^5.0.0
 
+  # Premium fonts
+  google_fonts: ^6.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -55,4 +58,6 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+
+
 
