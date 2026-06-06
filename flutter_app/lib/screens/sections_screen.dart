@@ -198,14 +198,15 @@ class _SectionsScreenState extends State<SectionsScreen> {
                         final messenger = ScaffoldMessenger.of(context);
                         final nav = Navigator.of(context);
                         final success = await provider.addSection(section);
-                        if (success && mounted) {
+                        if (!mounted) return;
+                        if (success) {
                           nav.pop();
                           messenger.showSnackBar(
                             const SnackBar(
                                 content: Text('Section added!'),
                                 backgroundColor: kAccent1),
                           );
-                        } else if (mounted) {
+                        } else {
                           messenger.showSnackBar(
                             SnackBar(
                               content: Text(provider.errorMessage ?? 'Failed to add section'),

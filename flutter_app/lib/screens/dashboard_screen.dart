@@ -30,10 +30,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final data = await api.getMap('/dashboard/');
       if (mounted) {
         setState(() {
-          _totalStudents = (data['total_students'] ?? 0) as int;
-          _totalSubjects = (data['total_subjects'] ?? 0) as int;
-          _totalExams = (data['total_exams'] ?? 0) as int;
-          _totalResults = (data['total_results'] ?? 0) as int;
+          _totalStudents = (data['total_students'] ?? 0 as num).toInt();
+          _totalSubjects = (data['total_subjects'] ?? 0 as num).toInt();
+          _totalExams = (data['total_exams'] ?? 0 as num).toInt();
+          _totalResults = (data['total_results'] ?? 0 as num).toInt();
         });
       }
     } catch (e) {
@@ -172,52 +172,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 FadeSlideIn(
                   delay: const Duration(milliseconds: 350),
-                  child: _ActionTile(
+                  child: const _ActionTile(
                     label: 'Manage Students',
                     subtitle: 'Add, edit & view students',
                     icon: Icons.people_rounded,
-                    gradient: const [Color(0xFF6C63FF), Color(0xFF9B8FFF)],
-                    onTap: () => context.go('/students'),
+                    gradient: [Color(0xFF6C63FF), Color(0xFF9B8FFF)],
+                    route: '/students',
                   ),
                 ),
                 FadeSlideIn(
                   delay: const Duration(milliseconds: 400),
-                  child: _ActionTile(
+                  child: const _ActionTile(
                     label: 'Manage Subjects',
                     subtitle: 'Configure courses & units',
                     icon: Icons.menu_book_rounded,
-                    gradient: const [Color(0xFF48CAE4), Color(0xFF0096C7)],
-                    onTap: () => context.go('/subjects'),
+                    gradient: [Color(0xFF48CAE4), Color(0xFF0096C7)],
+                    route: '/subjects',
                   ),
                 ),
                 FadeSlideIn(
                   delay: const Duration(milliseconds: 450),
-                  child: _ActionTile(
+                  child: const _ActionTile(
                     label: 'Scan Test Papers',
                     subtitle: 'Upload & analyze papers',
                     icon: Icons.document_scanner_rounded,
-                    gradient: const [Color(0xFFFF6584), Color(0xFFFF8FA3)],
-                    onTap: () => context.go('/scanner'),
+                    gradient: [Color(0xFFFF6584), Color(0xFFFF8FA3)],
+                    route: '/scanner',
                   ),
                 ),
                 FadeSlideIn(
                   delay: const Duration(milliseconds: 500),
-                  child: _ActionTile(
+                  child: const _ActionTile(
                     label: 'View Grades',
                     subtitle: 'Track GPA & results',
                     icon: Icons.bar_chart_rounded,
-                    gradient: const [Color(0xFF43E97B), Color(0xFF38F9D7)],
-                    onTap: () => context.go('/grades'),
+                    gradient: [Color(0xFF43E97B), Color(0xFF38F9D7)],
+                    route: '/grades',
                   ),
                 ),
                 FadeSlideIn(
                   delay: const Duration(milliseconds: 550),
-                  child: _ActionTile(
+                  child: const _ActionTile(
                     label: 'Send Email Reports',
                     subtitle: 'Notify students via email',
                     icon: Icons.mark_email_read_rounded,
-                    gradient: const [Color(0xFFF7971E), Color(0xFFFFD200)],
-                    onTap: () => context.go('/email'),
+                    gradient: [Color(0xFFF7971E), Color(0xFFFFD200)],
+                    route: '/email',
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -275,7 +275,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       floatingActionButton: const Padding(
         padding: EdgeInsets.only(bottom: 8, right: 4),
-        child: AIAssistantBubble(),
+        child: SizedBox.shrink(),
       ),
     );
   }
@@ -394,14 +394,14 @@ class _ActionTile extends StatelessWidget {
   final String subtitle;
   final IconData icon;
   final List<Color> gradient;
-  final VoidCallback onTap;
+  final String route;
 
   const _ActionTile({
     required this.label,
     required this.subtitle,
     required this.icon,
     required this.gradient,
-    required this.onTap,
+    required this.route,
   });
 
   @override
@@ -413,7 +413,7 @@ class _ActionTile extends StatelessWidget {
       child: GlassCard(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         blurIntensity: 3,
-        onTap: onTap,
+        onTap: () => context.go(route),
         child: Row(
           children: [
             Container(
@@ -435,13 +435,11 @@ class _ActionTile extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                           fontSize: 14)),
                   Text(subtitle,
-                      style: TextStyle(
-                          color: ts, fontSize: 11)),
+                      style: TextStyle(color: ts, fontSize: 11)),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded,
-                color: ts, size: 12),
+            Icon(Icons.arrow_forward_ios_rounded, color: ts, size: 12),
           ],
         ),
       ),

@@ -12,6 +12,8 @@ from .section import Section
 from .academic_term import AcademicTerm
 from .attendance import Attendance
 from .gpa_config import GpaConfig
+from .semester import Semester
+from .semester_variable import SemesterVariable
 
 TABLES = {
     "users": "users",
@@ -23,4 +25,6 @@ TABLES = {
     "scoring_rules": "scoring_rules",
     "sections": "sections",
     "academic_terms": "academic_terms",
+    "semesters": "semesters",
+    "semester_variables": "semester_variables",
 }

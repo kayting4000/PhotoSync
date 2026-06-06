@@ -13,5 +13,6 @@
     ".venv-1",
     ".venv-*",  
     "flutter_app/ios/Flutter/ephemeral/**"
-  ]
+  ],
+  "cmake.sourceDirectory": "D:/CCC151/test paper/flutter_app/linux"
 }

@@ -44,10 +44,21 @@ class _EmailScreenState extends State<EmailScreen> {
 
   Future<void> _fetchSubjects() async {
     try {
-      final subjects = await api.get('/subjects/');
+      final data = await api.get('/subjects/');
+
+      // normalize dynamic response to List
+      List items;
+      if (data is List) {
+        items = data;
+      } else if (data is Map && data['items'] is List) {
+        items = data['items'] as List;
+      } else {
+        items = [];
+      }
+
       if (mounted) {
         setState(() {
-          _subjects = subjects;
+          _subjects = items;
           _isLoading = false;
         });
       }
@@ -90,7 +101,16 @@ class _EmailScreenState extends State<EmailScreen> {
         if (student.id == null) continue;
 
         try {
-          final results = await api.get('/exam-results/?student_id=${student.id}');
+          final res = await api.get('/exam-results/?student_id=${student.id}');
+          List results;
+          if (res is List) {
+            results = res;
+          } else if (res is Map && res['items'] is List) {
+            results = res['items'] as List;
+          } else {
+            results = [];
+          }
+
           if (results.isNotEmpty) {
             final latest = results.first as Map<String, dynamic>;
 
@@ -124,6 +144,7 @@ class _EmailScreenState extends State<EmailScreen> {
           }
           sentCount++;
         } catch (e) {
+          // continue on per-student failures
           continue;
         }
       }
@@ -140,8 +161,7 @@ class _EmailScreenState extends State<EmailScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Error: $e'), backgroundColor: kAccent3),
+          SnackBar(content: Text('Error: $e'), backgroundColor: kAccent3),
         );
       }
     } finally {

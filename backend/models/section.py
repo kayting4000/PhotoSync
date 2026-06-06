@@ -1,29 +1,25 @@
-"""
-Section model — represents the 'sections' table in Neon PostgreSQL.
-A section is a subsection of a subject (A, B, C, D, E).
-Each section has a specific room and student list.
-"""
-import uuid
-from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, DateTime
 from sqlalchemy.orm import relationship
 from database import Base
-
-
-TABLE = "sections"
-
+import uuid
+from datetime import datetime
 
 class Section(Base):
-    __tablename__ = TABLE
+    __tablename__ = "sections"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    subject_id = Column(UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False, index=True)
-    section_label = Column(String, nullable=False)  # A, B, C, D, E
-    room_number = Column(String, nullable=False)  # e.g., "Room 101", "Lab A"
-    created_at = Column(DateTime(timezone=True), server_default=text("now()"))
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, nullable=False)
 
-    # Relationships
-    user = relationship("User", backref="sections")
-    subject = relationship("Subject", backref="sections")
-    student_subjects = relationship("StudentSubject", back_populates="section", cascade="all, delete-orphan")
+    subject_id = Column(String, nullable=False)
+
+    section_label = Column(String, nullable=False)
+    room_number = Column(String, nullable=False)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # 🔥 IMPORTANT RELATION
+    students = relationship(
+        "Student",
+        back_populates="section",
+        cascade="all, delete"
+    )

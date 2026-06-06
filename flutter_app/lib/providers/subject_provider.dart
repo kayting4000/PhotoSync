@@ -19,7 +19,15 @@ class SubjectProvider extends ChangeNotifier {
       notifyListeners();
 
       final data = await api.get('/subjects/');
-      _subjects = data.map((item) => Subject.fromJson(item)).toList();
+      List items;
+      if (data is List) {
+        items = data;
+      } else if (data is Map && data['items'] is List) {
+        items = data['items'] as List;
+      } else {
+        items = [];
+      }
+      _subjects = items.map((item) => Subject.fromJson(item as Map<String, dynamic>)).toList();
 
       _isLoading = false;
       notifyListeners();
