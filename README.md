@@ -1,6 +1,6 @@
-# 📱 PhotoSync - Complete Project
+# 📱 EduScan - Complete Project
 
-Welcome to PhotoSync! This is a complete, production-ready application with both **Next.js Web** and **Flutter Mobile** versions sharing the same Supabase backend.
+Welcome to EduScan! This is a complete, production-ready application with both **Next.js Web**, **Python/FastAPI Backend**, and **Flutter Mobile** versions sharing the same Supabase backend.
 
 ## 🚀 Quick Start
 
@@ -11,6 +11,14 @@ pnpm dev
 # Open http://localhost:3000
 ```
 
+### For Backend (Python/FastAPI)
+```bash
+cd backend
+pip install -r requirements.txt
+python -m uvicorn main:app --reload
+# Open http://localhost:8000/docs
+```
+
 ### For Mobile (Flutter)
 ```bash
 cd flutter_app
@@ -19,7 +27,7 @@ flutter pub get
 flutter run
 ```
 
-**First time? Read [DOWNLOAD_INSTRUCTIONS.md](./DOWNLOAD_INSTRUCTIONS.md) →**
+**First time? Read [SETUP_GUIDE.md](./SETUP_GUIDE.md) →**
 
 ---
 
@@ -27,12 +35,14 @@ flutter run
 
 | Document | Purpose |
 |----------|---------|
-| **DOWNLOAD_INSTRUCTIONS.md** | 👈 **START HERE** - How to download and set up |
-| **COMPLETE_SETUP_GUIDE.md** | Comprehensive setup & development guide |
-| **FLUTTER_APP_GUIDE.md** | Flutter-specific information |
-| **FLUTTER_VS_WEB_COMPARISON.md** | Compare web and mobile versions |
+| **SETUP_GUIDE.md** | 👈 **START HERE** - How to download and set up |
+| **QUICK_START_GUIDE.md** | Quick start guide |
+| **ENVIRONMENT_SETUP.md** | Environment configuration |
+| **CROSS_DEVICE_SETUP.md** | Cross-device setup instructions |
+| **FIREBASE_SETUP_GUIDE.md** | Firebase configuration |
 | **flutter_app/README.md** | Flutter app technical details |
 | **flutter_app/DEPLOYMENT.md** | Build and publish guide |
+| **backend/BACKEND_GUIDE.md** | Backend API documentation |
 
 ---
 
@@ -83,7 +93,7 @@ flutter run
 ## 🎯 Project Structure
 
 ```
-PhotoSync/
+EduScan/
 ├── 📁 app/                           # Next.js Web Application
 │   ├── 📁 dashboard/                 # Dashboard pages
 │   ├── 📁 api/                       # API routes
@@ -113,20 +123,25 @@ PhotoSync/
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Components**: shadcn/ui
-- **Backend**: Supabase
 - **Hosting**: Vercel
+
+### Backend
+- **Framework**: Python FastAPI
+- **ORM**: SQLAlchemy
+- **Authentication**: JWT + Supabase Auth
+- **Email**: Gmail SMTP
+- **API Docs**: Swagger UI at `/docs`
 
 ### Mobile Version
 - **Framework**: Flutter 3.0+
 - **Language**: Dart
 - **State Management**: Provider
 - **Navigation**: GoRouter
-- **Backend**: Supabase SDK
 - **Platforms**: iOS, Android, Web, Desktop
 
-### Shared Backend
-- **Database**: PostgreSQL (Supabase)
-- **Authentication**: Supabase Auth
+### Database
+- **Primary**: PostgreSQL (Supabase / Neon)
+- **Auth**: Supabase Auth
 - **API**: REST + Realtime subscriptions
 - **Storage**: Supabase Storage
 
@@ -183,7 +198,7 @@ PhotoSync/
 
 ## 🚀 Getting Started Steps
 
-1. **Read**: [DOWNLOAD_INSTRUCTIONS.md](./DOWNLOAD_INSTRUCTIONS.md)
+1. **Read**: [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 2. **Get Supabase credentials**: 2-5 minutes
 3. **Configure web app**: 1 minute
 4. **Configure mobile app**: 1 minute
@@ -215,15 +230,21 @@ PhotoSync/
 
 ---
 
-## 📝 License
+## 📜 License
 
-This project is provided for educational and commercial use.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) first.
 
 ---
 
 ## ✅ Next Step
 
-👉 **Start here**: [DOWNLOAD_INSTRUCTIONS.md](./DOWNLOAD_INSTRUCTIONS.md)
+👉 **Start here**: [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 
 The document will guide you through:
 - Downloading the project
@@ -235,4 +256,4 @@ The document will guide you through:
 
 **Ready to build something amazing?** Let's go! 🚀
 
-*Created with ❤️ using Next.js, Flutter, and Supabase*
+*Created with ❤️ using Next.js, FastAPI, Flutter, and Supabase*
