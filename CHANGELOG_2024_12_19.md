@@ -1,4 +1,4 @@
-# 📋 EduScan Changelog - December 19, 2024
+# 📋 PhotoSync Changelog - December 19, 2024
 
 ## Version: 2024.12.19+1
 

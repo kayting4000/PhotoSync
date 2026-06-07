@@ -1,4 +1,4 @@
-"""
+''''''''''''"""
 Email controller — sends grade report emails (results only, no attachments).
 Uses Gmail SMTP for email delivery.
 """

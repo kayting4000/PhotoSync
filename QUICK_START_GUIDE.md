@@ -1,4 +1,4 @@
-# 🚀 EduScan Quick Start Guide - v2024.12.19+1
+# 🚀 PhotoSync Quick Start Guide - v2024.12.19+1
 
 ## 📱 Mobile App
 

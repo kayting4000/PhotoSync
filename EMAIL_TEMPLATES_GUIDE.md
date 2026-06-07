@@ -2,7 +2,7 @@
 
 ## Overview
 
-The EduScan system now includes **professional report card-style email templates** for grade reports and transcripts. These templates feature:
+The PhotoSync system now includes **professional report card-style email templates** for grade reports and transcripts. These templates feature:
 
 - ✅ Modern gradient headers with purple/blue theme
 - ✅ Professional report card layout
@@ -23,7 +23,7 @@ The EduScan system now includes **professional report card-style email templates
 ┌─────────────────────────────────────────────────────────┐
 │  [PURPLE GRADIENT HEADER]                               │
 │  📊 Grade Report                                         │
-│  EduScan Academic System                                 │
+│  PhotoSync Academic System                                 │
 └─────────────────────────────────────────────────────────┘
 │                                                           │
 │  Dear Juan Dela Cruz,                                    │
@@ -56,10 +56,10 @@ The EduScan system now includes **professional report card-style email templates
 │  └─────────────────────────────────────────────────────┘ │
 │                                                           │
 │  If you have any questions about your grade, please     │
-│  contact your instructor or visit the EduScan portal.   │
+│  contact your instructor or visit the PhotoSync portal.   │
 │                                                           │
 ├─────────────────────────────────────────────────────────┤
-│ This is an automated message from EduScan               │
+│ This is an automated message from PhotoSync               │
 │ Generated on December 19, 2024 at 02:30 PM             │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -93,7 +93,7 @@ The EduScan system now includes **professional report card-style email templates
 ┌─────────────────────────────────────────────────────────┐
 │  [PURPLE GRADIENT HEADER]                               │
 │  📜 Official Grade Transcript                            │
-│  EduScan Academic System                                 │
+│  PhotoSync Academic System                                 │
 │  ═══════════════════════════════════════════════════════ │
 └─────────────────────────────────────────────────────────┘
 │                                                           │
@@ -130,11 +130,11 @@ The EduScan system now includes **professional report card-style email templates
 │  │ standard...                                         │ │
 │  └─────────────────────────────────────────────────────┘ │
 │                                                           │
-│  This is your official academic transcript from EduScan. │
+│  This is your official academic transcript from PhotoSync. │
 │  For inquiries, please contact your academic advisor.    │
 │                                                           │
 ├─────────────────────────────────────────────────────────┤
-│ Official Document - EduScan Academic System             │
+│ Official Document - PhotoSync Academic System             │
 │ Generated on December 19, 2024 at 02:30 PM             │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -233,7 +233,7 @@ This will send example emails to `kayting4k@gmail.com` showing:
 
 ```
 ============================================================
-[EMAIL] EduScan Email Template Test
+[EMAIL] PhotoSync Email Template Test
 ============================================================
 
 Sending test emails to: kayting4k@gmail.com
@@ -365,7 +365,7 @@ Modify the header section in the template:
 ```python
 <div class="header">
     <h1>📊 Grade Report</h1>  <!-- Change title -->
-    <p>EduScan Academic System</p>  <!-- Change subtitle -->
+    <p>PhotoSync Academic System</p>  <!-- Change subtitle -->
 </div>
 ```
 

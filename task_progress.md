@@ -1,4 +1,4 @@
-# Optimisation Plan - EduScan/PhotoSync ✅ COMPLETE
+# Optimisation Plan - PhotoSync/PhotoSync ✅ COMPLETE
 
 ## All Fixes Applied & Verified
 

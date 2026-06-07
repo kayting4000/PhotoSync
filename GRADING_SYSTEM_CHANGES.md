@@ -2,7 +2,7 @@
 
 ## What Changed?
 
-The EduScan system has been upgraded to better match how professors think about teaching and grading.
+The PhotoSync system has been upgraded to better match how professors think about teaching and grading.
 
 ### 1. Sections → Rooms
 

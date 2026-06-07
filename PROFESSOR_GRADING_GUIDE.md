@@ -2,7 +2,7 @@
 
 ## Overview
 
-The updated EduScan system now supports a weighted term-based grading system that professors understand:
+The updated PhotoSync system now supports a weighted term-based grading system that professors understand:
 
 - **Sections** = Rooms (where classes are held)
 - **Terms** = Preliminary, Mid-Semester, Final (with adjustable weights)

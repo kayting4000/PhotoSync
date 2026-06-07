@@ -465,7 +465,7 @@ from controllers import (
     exams_router, results_router, dashboard_router, grades_router,
 )
 
-app = FastAPI(title="EduScan API", version="1.0.0")
+app = FastAPI(title="PhotoSync API", version="1.0.0")
 ```
 
 ### CORS Middleware

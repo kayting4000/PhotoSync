@@ -16,18 +16,15 @@ class _EmailScreenState extends State<EmailScreen> {
   final api = ApiService();
   List<dynamic> _subjects = [];
   List<dynamic> _sections = [];
-  List<dynamic> _exams = [];
   String? _selectedSubject;
   String? _selectedSubjectName;
   String? _selectedSubjectCode;
   String? _selectedSection;
-  String? _selectedExam;
   String _mode = 'bulk_all'; // 'bulk_all', 'bulk_section', 'individual'
   bool _isLoading = true;
   bool _isSending = false;
   final _messageController = TextEditingController();
   String _individualEmail = '';
-  String _individualName = '';
 
   @override
   void initState() {
@@ -44,18 +41,7 @@ class _EmailScreenState extends State<EmailScreen> {
 
   Future<void> _fetchSubjects() async {
     try {
-      final data = await api.get('/subjects/');
-
-      // normalize dynamic response to List
-      List items;
-      if (data is List) {
-        items = data;
-      } else if (data is Map && data['items'] is List) {
-        items = data['items'] as List;
-      } else {
-        items = [];
-      }
-
+      final items = await api.get('/subjects/');
       if (mounted) {
         setState(() {
           _subjects = items;
@@ -71,13 +57,6 @@ class _EmailScreenState extends State<EmailScreen> {
     try {
       final sections = await api.get('/sections/');
       if (mounted) setState(() => _sections = sections);
-    } catch (_) {}
-  }
-
-  Future<void> _fetchExams(String subjectId) async {
-    try {
-      final exams = await api.get('/exams/?subject_id=$subjectId');
-      if (mounted) setState(() => _exams = exams);
     } catch (_) {}
   }
 
@@ -101,15 +80,7 @@ class _EmailScreenState extends State<EmailScreen> {
         if (student.id == null) continue;
 
         try {
-          final res = await api.get('/exam-results/?student_id=${student.id}');
-          List results;
-          if (res is List) {
-            results = res;
-          } else if (res is Map && res['items'] is List) {
-            results = res['items'] as List;
-          } else {
-            results = [];
-          }
+          final results = await api.get('/exam-results/?student_id=${student.id}');
 
           if (results.isNotEmpty) {
             final latest = results.first as Map<String, dynamic>;
@@ -189,6 +160,7 @@ class _EmailScreenState extends State<EmailScreen> {
       if (studentId == null) {
         // Fetch students if not in provider yet
         await context.read<StudentProvider>().fetchStudents();
+        if (!mounted) return;
         final all = context.read<StudentProvider>().students;
         final found = all.firstWhere(
           (s) => s.email != null && s.email!.toLowerCase() == _individualEmail.toLowerCase(),
@@ -204,6 +176,7 @@ class _EmailScreenState extends State<EmailScreen> {
         if (results.isNotEmpty) latestResult = results.first as Map<String, dynamic>;
       } catch (_) {}
 
+      if (!mounted) return;
       await api.post('/email/send-grade-report', {
         'student_id': studentId,
         'exam_name': latestResult?['exam_name'] ?? 'N/A',
@@ -227,7 +200,6 @@ class _EmailScreenState extends State<EmailScreen> {
         _messageController.clear();
         setState(() {
           _individualEmail = '';
-          _individualName = '';
         });
       }
     } catch (e) {
@@ -382,7 +354,6 @@ class _EmailScreenState extends State<EmailScreen> {
                                 ),
                                 child: TextField(
                                   style: TextStyle(color: tp),
-                                  onChanged: (v) => _individualName = v,
                                   decoration: InputDecoration(
                                     border: InputBorder.none,
                                     hintText: 'Recipient name (optional)',
@@ -520,7 +491,7 @@ class _EmailScreenState extends State<EmailScreen> {
                               _mode == 'individual'
                                   ? 'To: ${_individualEmail.isEmpty ? '(enter email above)' : _individualEmail}'
                                   : _mode == 'bulk_section'
-                                      ? 'To: ${_studentsInSelectedSection} students in section'
+                                      ? 'To: $_studentsInSelectedSection students in section'
                                       : 'To: $studentsWithEmail students with email addresses',
                               style: TextStyle(color: ts, fontSize: 12),
                             ),
@@ -619,7 +590,6 @@ class _EmailScreenState extends State<EmailScreen> {
               _selectedSubjectName = subject['name'];
               _selectedSubjectCode = subject['code'] ?? subject['name'];
             });
-            _fetchExams(value!);
           },
         ),
       ),

@@ -1,4 +1,4 @@
-# Testing Guide for EduScan
+# Testing Guide for PhotoSync
 
 Complete testing checklist and instructions to validate all features and fix any remaining issues.
 

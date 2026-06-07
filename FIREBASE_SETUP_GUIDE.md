@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide walks through setting up Firebase Cloud Messaging (FCM) for push notifications in the EduScan Flutter app.
+This guide walks through setting up Firebase Cloud Messaging (FCM) for push notifications in the PhotoSync Flutter app.
 
 ---
 
@@ -10,7 +10,7 @@ This guide walks through setting up Firebase Cloud Messaging (FCM) for push noti
 
 1. Go to [Firebase Console](https://console.firebase.google.com/)
 2. Click "Create a project"
-3. Enter project name: `EduScan`
+3. Enter project name: `PhotoSync`
 4. Accept terms and click "Create project"
 5. Wait for project creation to complete
 
@@ -21,8 +21,8 @@ This guide walks through setting up Firebase Cloud Messaging (FCM) for push noti
 ### For Android:
 
 1. In Firebase Console, click "Add app" → Select "Android"
-2. Enter package name: `com.eduscan.app`
-3. Enter app nickname: `EduScan Android`
+2. Enter package name: `com.photosync.app`
+3. Enter app nickname: `PhotoSync Android`
 4. Click "Register app"
 5. Download `google-services.json`
 6. Place it in: `flutter_app/android/app/google-services.json`
@@ -30,8 +30,8 @@ This guide walks through setting up Firebase Cloud Messaging (FCM) for push noti
 ### For iOS:
 
 1. In Firebase Console, click "Add app" → Select "iOS"
-2. Enter bundle ID: `com.eduscan.app`
-3. Enter app nickname: `EduScan iOS`
+2. Enter bundle ID: `com.photosync.app`
+3. Enter app nickname: `PhotoSync iOS`
 4. Click "Register app"
 5. Download `GoogleService-Info.plist`
 6. Open `flutter_app/ios/Runner.xcworkspace` in Xcode
@@ -51,7 +51,7 @@ cd flutter_app
 dart pub global activate flutterfire_cli
 
 # Configure Firebase for your project
-flutterfire configure --project=eduscan
+flutterfire configure --project=photosync
 ```
 
 This will:
@@ -103,7 +103,7 @@ android {
     compileSdkVersion 34
     
     defaultConfig {
-        applicationId "com.eduscan.app"
+        applicationId "com.photosync.app"
         minSdkVersion 21
         targetSdkVersion 34
         versionCode 1

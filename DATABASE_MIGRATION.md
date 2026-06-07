@@ -2,7 +2,7 @@
 
 ## Overview
 
-This migration updates the EduScan database schema to support the new professor-friendly grading system with weighted terms and exam components.
+This migration updates the PhotoSync database schema to support the new professor-friendly grading system with weighted terms and exam components.
 
 ## Changes Summary
 

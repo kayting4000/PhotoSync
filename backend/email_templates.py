@@ -183,7 +183,7 @@ def grade_report_template(
         <div class="container">
           <div class="header">
             <h1>📊 Grade Report</h1>
-            <p>EduScan Academic System</p>
+            <p>PhotoSync Academic System</p>
           </div>
           
           <div class="content">
@@ -225,13 +225,13 @@ def grade_report_template(
             <div class="divider"></div>
             
             <p style="color: #6b7280; font-size: 13px; line-height: 1.6;">
-              If you have any questions about your grade, please contact your instructor or visit the EduScan portal 
+              If you have any questions about your grade, please contact your instructor or visit the PhotoSync portal 
               to view more details about your academic performance.
             </p>
           </div>
           
           <div class="footer">
-            <p style="margin: 0;">This is an automated message from EduScan Academic System</p>
+            <p style="margin: 0;">This is an automated message from PhotoSync Academic System</p>
             <p style="margin: 4px 0 0 0;">Generated on {datetime.now().strftime('%B %d, %Y at %I:%M %p')}</p>
           </div>
         </div>
@@ -426,7 +426,7 @@ def transcript_template(
         <div class="container">
           <div class="header">
             <h1>📜 Official Grade Transcript</h1>
-            <p>EduScan Academic System</p>
+            <p>PhotoSync Academic System</p>
           </div>
           
           <div class="content">
@@ -475,13 +475,13 @@ def transcript_template(
             <div class="divider"></div>
             
             <p style="color: #6b7280; font-size: 13px; line-height: 1.6;">
-              This is your official academic transcript from EduScan. It contains a complete record of your grades 
+              This is your official academic transcript from PhotoSync. It contains a complete record of your grades 
               and academic performance. For inquiries or clarifications, please contact your academic advisor.
             </p>
           </div>
           
           <div class="footer">
-            <p style="margin: 0;">📋 Official Document - EduScan Academic System</p>
+            <p style="margin: 0;">📋 Official Document - PhotoSync Academic System</p>
             <p style="margin: 4px 0 0 0;">Generated on {datetime.now().strftime('%B %d, %Y at %I:%M %p')}</p>
           </div>
         </div>

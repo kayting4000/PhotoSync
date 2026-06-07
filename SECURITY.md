@@ -11,7 +11,7 @@
 
 ## 🛡 Reporting a Vulnerability
 
-The EduScan team takes security seriously. We appreciate your efforts to responsibly disclose any security concerns.
+The PhotoSync team takes security seriously. We appreciate your efforts to responsibly disclose any security concerns.
 
 ### How to Report
 
@@ -82,7 +82,7 @@ Please include the following information in your report:
 
 ## 🔐 Security Features
 
-EduScan includes the following security features:
+PhotoSync includes the following security features:
 
 - **Supabase Authentication** — Secure user authentication
 - **Row Level Security (RLS)** — Database-level access control
@@ -109,8 +109,8 @@ When we receive a security bug report, we will:
 
 ## 🙏 Acknowledgments
 
-We thank all security researchers and community members who help improve the security of EduScan. Your efforts are greatly appreciated.
+We thank all security researchers and community members who help improve the security of PhotoSync. Your efforts are greatly appreciated.
 
 ---
 
-**Thank you for helping keep EduScan and its users safe!** 🔒
+**Thank you for helping keep PhotoSync and its users safe!** 🔒

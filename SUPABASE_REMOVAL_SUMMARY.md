@@ -14,8 +14,8 @@
 **Removed From**: `package.json`
 
 ### 2. **Documentation Files Deleted**
-- ❌ `EduScan_Milestone2_Final.pptx`
-- ❌ `EduScan_Backend_Milestone2.pptx`
+- ❌ `PhotoSync_Milestone2_Final.pptx`
+- ❌ `PhotoSync_Backend_Milestone2.pptx`
 - ❌ `backend/PRESENTATION_5MIN.md`
 - ❌ `backend/PRESENTATION.md`
 - ❌ `.env.local` (contained Supabase credentials - security risk)

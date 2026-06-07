@@ -1,4 +1,4 @@
-# EduScan - Complete Project Summary & Action Plan
+# PhotoSync - Complete Project Summary & Action Plan
 
 **Project**: PhotoSync - Test Paper Scanner & Student Management System  
 **Date**: May 23, 2026  
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-EduScan is a full-stack application designed to automate test paper scanning, grade management, and GPA calculation for educational institutions. This document summarizes all work completed and provides clear next steps.
+PhotoSync is a full-stack application designed to automate test paper scanning, grade management, and GPA calculation for educational institutions. This document summarizes all work completed and provides clear next steps.
 
 ### What Has Been Done ✅
 
@@ -175,7 +175,7 @@ RESEND_API_KEY=                 # Email service (optional)
 ## Project Architecture Overview
 
 ```
-EduScan Application
+PhotoSync Application
 ├── Frontend (Next.js 15)
 │   ├── Auth Pages (Supabase)
 │   ├── Dashboard

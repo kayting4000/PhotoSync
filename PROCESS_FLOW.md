@@ -1,6 +1,6 @@
-# EduScan Process Flow Documentation
+# PhotoSync Process Flow Documentation
 
-This document maps out the complete flow of the EduScan application - from user authentication through grade reporting.
+This document maps out the complete flow of the PhotoSync application - from user authentication through grade reporting.
 
 ## 1. Authentication Flow
 

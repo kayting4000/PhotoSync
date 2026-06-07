@@ -26,7 +26,7 @@ class AcademicTermProvider extends ChangeNotifier {
       notifyListeners();
 
       final data = await api.get('/academic-terms/');
-      _terms = (data as List).map((item) => AcademicTerm.fromJson(item)).toList();
+      _terms = data.map((item) => AcademicTerm.fromJson(item)).toList();
 
       _isLoading = false;
       notifyListeners();

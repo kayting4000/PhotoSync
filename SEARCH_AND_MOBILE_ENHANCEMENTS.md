@@ -2,7 +2,7 @@
 
 ## Overview
 
-Added two major feature sets to EduScan:
+Added two major feature sets to PhotoSync:
 
 1. **Search & Filter System** - Comprehensive search across students, grades, and subjects
 2. **Mobile Offline Mode + Push Notifications** - View grades offline and receive notifications

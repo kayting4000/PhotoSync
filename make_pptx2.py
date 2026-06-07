@@ -55,7 +55,7 @@ def method_badge(slide, x, y, method):
 s = prs.slides.add_slide(BLANK); bg(s, DARK)
 rect(s,0,3.0,13.33,0.07,ACCENT)
 rect(s,0,3.07,13.33,0.04,CYAN)
-box(s,1,0.7,11,1.3,"EduScan",size=72,bold=True,color=WHITE,align=PP_ALIGN.CENTER)
+box(s,1,0.7,11,1.3,"PhotoSync",size=72,bold=True,color=WHITE,align=PP_ALIGN.CENTER)
 box(s,1,2.0,11,0.7,"Backend API — Milestone 2",size=26,color=CYAN,align=PP_ALIGN.CENTER)
 box(s,1,3.3,11,0.55,"FastAPI  ·  MVC Architecture  ·  Supabase PostgreSQL  ·  MSU-Tawi-Tawi",
     size=15,color=GRAY,align=PP_ALIGN.CENTER,italic=True)
@@ -339,8 +339,8 @@ header(s,"Setup, Run & Testing")
 # setup steps
 box(s,0.4,1.28,5.5,0.38,"Quick Setup",size=14,bold=True,color=CYAN)
 steps = [
-    ("1","git clone  https://github.com/kayting4000/EduScan.git"),
-    ("2","cd EduScan/backend"),
+    ("1","git clone  https://github.com/kayting4000/PhotoSync.git"),
+    ("2","cd PhotoSync/backend"),
     ("3","pip install -r requirements.txt"),
     ("4","Create .env  ->  SUPABASE_URL + SUPABASE_KEY"),
     ("5","python -m uvicorn main:app --reload"),
@@ -405,10 +405,10 @@ for i,(label,val,desc) in enumerate(items):
 
 box(s,1,6.1,11,0.45,"Thank you! Questions?",size=24,bold=True,
     color=WHITE,align=PP_ALIGN.CENTER)
-box(s,1,6.6,11,0.38,"github.com/kayting4000/EduScan",size=13,
+box(s,1,6.6,11,0.38,"github.com/kayting4000/PhotoSync",size=13,
     color=CYAN,align=PP_ALIGN.CENTER,italic=True)
 
 # ── save ──────────────────────────────────────────────────
-out = r"d:\CCC151\test paper\EduScan_Milestone2_Final.pptx"
+out = r"d:\CCC151\test paper\PhotoSync_Milestone2_Final.pptx"
 prs.save(out)
 print("Saved: " + out)

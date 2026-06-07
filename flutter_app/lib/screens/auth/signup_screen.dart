@@ -24,7 +24,7 @@ class _SignupScreenState extends State<SignupScreen> {
     final success = await auth.signup(
       emailCtrl.text.trim(),
       passwordCtrl.text.trim(),
-      nameCtrl.text.trim(),
+      name: nameCtrl.text.trim(),
     );
 
     setState(() => loading = false);

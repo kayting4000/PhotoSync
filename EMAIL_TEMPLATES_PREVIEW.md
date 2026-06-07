@@ -2,7 +2,7 @@
 
 ## Summary
 
-Your EduScan system now has **professional report card-style email templates** that look modern and polished. The old plain text emails have been replaced with:
+Your PhotoSync system now has **professional report card-style email templates** that look modern and polished. The old plain text emails have been replaced with:
 
 ✅ **Grade Report Email** - Individual exam results with color-coded grades
 ✅ **Official Transcript Email** - Complete academic record with GPA calculation
@@ -23,7 +23,7 @@ When a student receives a grade report, they see:
 │  [PURPLE GRADIENT BACKGROUND]                                │
 │                                                               │
 │                    📊 Grade Report                            │
-│              EduScan Academic System                          │
+│              PhotoSync Academic System                          │
 │                                                               │
 └─────────────────────────────────────────────────────────────┘
 
@@ -64,12 +64,12 @@ is now available. Please review your performance details below.
 └─────────────────────────────────────────────────────────────┘
 
 If you have any questions about your grade, please contact 
-your instructor or visit the EduScan portal to view more 
+your instructor or visit the PhotoSync portal to view more 
 details about your academic performance.
 
 ─────────────────────────────────────────────────────────────
 
-This is an automated message from EduScan Academic System
+This is an automated message from PhotoSync Academic System
 Generated on December 19, 2024 at 02:30 PM
 ```
 
@@ -96,7 +96,7 @@ When a student receives their transcript, they see:
 │  [PURPLE GRADIENT BACKGROUND]                                │
 │                                                               │
 │              📜 Official Grade Transcript                     │
-│              EduScan Academic System                          │
+│              PhotoSync Academic System                          │
 │                                                               │
 └─────────────────────────────────────────────────────────────┘
 
@@ -139,14 +139,14 @@ When a student receives their transcript, they see:
 │  [AMBER/YELLOW BACKGROUND]                                   │
 └─────────────────────────────────────────────────────────────┘
 
-This is your official academic transcript from EduScan. It 
+This is your official academic transcript from PhotoSync. It 
 contains a complete record of your grades and academic 
 performance. For inquiries or clarifications, please contact 
 your academic advisor.
 
 ─────────────────────────────────────────────────────────────
 
-📋 Official Document - EduScan Academic System
+📋 Official Document - PhotoSync Academic System
 Generated on December 19, 2024 at 02:30 PM
 ```
 

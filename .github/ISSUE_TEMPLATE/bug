@@ -1,6 +1,6 @@
 ---
 name: 🐛 Bug Report
-about: Report a bug to help us improve EduScan
+about: Report a bug to help us improve PhotoSync
 title: "[BUG] "
 labels: bug
 assignees: ''
@@ -43,6 +43,6 @@ Add any other context about the problem here (API endpoint, error logs, etc.).
 
 ## 📝 Checklist
 
-- [ ] I have searched the [existing issues](https://github.com/kayting4000/EduScan/issues) to make sure this bug has not already been reported.
+- [ ] I have searched the [existing issues](https://github.com/kayting4000/PhotoSync/issues) to make sure this bug has not already been reported.
 - [ ] I am using the latest version of the application.
 - [ ] I have included all relevant information above.

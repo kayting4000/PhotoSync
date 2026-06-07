@@ -1,4 +1,4 @@
-# 🎨 EduScan Mobile App - UI Enhancements (v2024.12.19)
+# 🎨 PhotoSync Mobile App - UI Enhancements (v2024.12.19)
 
 ## Version Update
 **Current Version:** `2024.12.19+1`

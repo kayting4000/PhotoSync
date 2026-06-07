@@ -1,4 +1,4 @@
-# 🎉 EduScan Update Summary - December 19, 2024
+# 🎉 PhotoSync Update Summary - December 19, 2024
 
 ## ✅ What Was Done
 

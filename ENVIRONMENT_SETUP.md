@@ -1,6 +1,6 @@
 # Environment Configuration Guide
 
-This guide will help you set up the required environment variables to run EduScan locally and on network.
+This guide will help you set up the required environment variables to run PhotoSync locally and on network.
 
 ## Quick Start
 
@@ -87,7 +87,7 @@ NEXT_PUBLIC_API_URL=https://your-domain.com/api
 
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
-| `DATABASE_URL` | ✅ Yes | PostgreSQL connection string | `postgresql://user:pass@localhost/eduscan` |
+| `DATABASE_URL` | ✅ Yes | PostgreSQL connection string | `postgresql://user:pass@localhost/photosync` |
 | `JWT_SECRET` | ✅ Yes | Secret key for JWT signing | `your-random-secret-key` |
 | `ROBOFLOW_API_KEY` | ✅ Yes | Roboflow API key for scanner | `abc123...` |
 | `ROBOFLOW_WORKSPACE` | ✅ Yes | Roboflow workspace ID | `workspace-name` |

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'config.dart';
-import 'services/api_service.dart';
 import 'providers/auth_provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/auth/login_screen.dart';
@@ -10,18 +8,13 @@ import 'screens/auth/signup_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // create ApiService with configured base URL
-  final api = ApiService(baseUrl: Config.apiBase);
-
-  // create auth provider and restore token BEFORE runApp
-  final authProvider = AuthProvider(api: api);
-  await authProvider.init();
+  // create auth provider — session is restored asynchronously in constructor
+  final authProvider = AuthProvider();
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
-        // add other providers here if needed, e.g. StudentProvider(api: api)...
       ],
       child: const MyApp(),
     ),

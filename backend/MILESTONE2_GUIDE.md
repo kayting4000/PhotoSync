@@ -1,7 +1,7 @@
 # PhotoSync — Milestone 2 Submission Guide
 
 **Course:** CCC151 | **Project:** PhotoSync — Test Paper Scanner & Grade Management
-**Repository:** https://github.com/kayting4000/EduScan  
+**Repository:** https://github.com/kayting4000/PhotoSync  
 **Developer:** Habibun-najal K. Kayting
 
 ---
@@ -82,8 +82,8 @@ backend/
 ### Step 1 — Clone the repository
 
 ```bash
-git clone https://github.com/kayting4000/EduScan.git
-cd EduScan/backend
+git clone https://github.com/kayting4000/PhotoSync.git
+cd PhotoSync/backend
 ```
 
 ---
@@ -226,7 +226,7 @@ The test script verifies all endpoints are functional by running a full **Create
 Open a **second terminal**, then:
 
 ```bash
-cd EduScan/backend
+cd PhotoSync/backend
 python test_api.py
 ```
 

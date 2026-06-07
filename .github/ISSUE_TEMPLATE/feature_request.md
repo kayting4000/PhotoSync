@@ -1,6 +1,6 @@
 ---
 name: "\U0001F4A1 Feature Request"
-about: Suggest an idea for EduScan
+about: Suggest an idea for PhotoSync
 title: "[FEATURE] "
 labels: enhancement
 assignees: ''
@@ -26,7 +26,7 @@ A clear and concise description of any alternative solutions or features you've 
 
 ## Component
 
-Which part of EduScan does this relate to?
+Which part of PhotoSync does this relate to?
 
 - [ ] Web Frontend (Next.js)
 - [ ] Mobile App (Flutter)

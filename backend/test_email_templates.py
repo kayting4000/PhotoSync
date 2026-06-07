@@ -125,7 +125,7 @@ if __name__ == "__main__":
     recipient_email = "kayting4k@gmail.com"
     
     print("=" * 60)
-    print("[EMAIL] EduScan Email Template Test")
+    print("[EMAIL] PhotoSync Email Template Test")
     print("=" * 60)
     print(f"\nSending test emails to: {recipient_email}")
     

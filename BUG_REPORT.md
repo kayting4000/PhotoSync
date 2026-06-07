@@ -1,4 +1,4 @@
-# Bug Report and Issues Found in EduScan
+# Bug Report and Issues Found in PhotoSync
 
 ## Status: SUPABASE REMOVED ✅
 

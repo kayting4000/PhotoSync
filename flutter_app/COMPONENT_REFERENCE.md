@@ -1,4 +1,4 @@
-# 🎨 EduScan UI Components - Quick Reference
+# 🎨 PhotoSync UI Components - Quick Reference
 
 ## Version: 2024.12.19+1
 

@@ -1,6 +1,6 @@
-# 🤝 Contributing to EduScan
+# 🤝 Contributing to PhotoSync
 
-Thank you for your interest in contributing to EduScan! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to PhotoSync! This document provides guidelines and information for contributors.
 
 ---
 
@@ -27,12 +27,12 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md). We are committ
 1. **Fork** the repository on GitHub
 2. **Clone** your fork locally:
    ```bash
-   git clone https://github.com/your-username/EduScan.git
-   cd EduScan
+   git clone https://github.com/your-username/PhotoSync.git
+   cd PhotoSync
    ```
 3. **Add upstream remote**:
    ```bash
-   git remote add upstream https://github.com/kayting4000/EduScan.git
+   git remote add upstream https://github.com/kayting4000/PhotoSync.git
    ```
 4. **Create a branch** for your feature/fix:
    ```bash
@@ -79,7 +79,7 @@ flutter run
 
 ### 🐛 Bug Reports
 
-1. Check existing [Issues](https://github.com/kayting4000/EduScan/issues) first
+1. Check existing [Issues](https://github.com/kayting4000/PhotoSync/issues) first
 2. If not found, create a new issue with the **Bug Report** template
 3. Include:
    - Steps to reproduce
@@ -90,7 +90,7 @@ flutter run
 
 ### 💡 Feature Requests
 
-1. Check existing [Issues](https://github.com/kayting4000/EduScan/issues) first
+1. Check existing [Issues](https://github.com/kayting4000/PhotoSync/issues) first
 2. Create a new issue with the **Feature Request** template
 3. Describe the problem and proposed solution
 
@@ -219,8 +219,8 @@ refactor(backend): simplify grade calculation logic
 ## ❓ Questions?
 
 If you have questions about contributing, feel free to:
-- Open a [Discussion](https://github.com/kayting4000/EduScan/discussions)
+- Open a [Discussion](https://github.com/kayting4000/PhotoSync/discussions)
 - Check existing documentation
 - Review the codebase for patterns
 
-Thank you for contributing to EduScan! 🎓
+Thank you for contributing to PhotoSync! 🎓

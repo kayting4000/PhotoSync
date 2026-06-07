@@ -1,6 +1,6 @@
 # Cross-Device Access Setup Guide
 
-This guide explains how to access the EduScan application from other devices on your network.
+This guide explains how to access the PhotoSync application from other devices on your network.
 
 ## Prerequisites
 

@@ -52,8 +52,8 @@ backend/
 ### Step 1 — Clone the repository
 
 ```bash
-git clone https://github.com/kayting4000/EduScan.git
-cd EduScan/backend
+git clone https://github.com/kayting4000/PhotoSync.git
+cd PhotoSync/backend
 ```
 
 ---
@@ -122,7 +122,7 @@ python -m uvicorn main:app --reload
 Make sure the server is **already running**, then in a second terminal:
 
 ```bash
-cd EduScan/backend
+cd PhotoSync/backend
 python test_api.py
 ```
 

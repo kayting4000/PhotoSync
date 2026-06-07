@@ -1,4 +1,4 @@
-# EduScan Grades & Email Features
+# PhotoSync Grades & Email Features
 
 ## 📊 Hierarchical Grade Viewing (MSU-TCTO)
 

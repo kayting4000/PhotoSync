@@ -25,8 +25,8 @@ DIR: .amazonq
   DIR: refs
 FILE: .gitignore
 DIR: .venv
-FILE: EduScan_Backend_Milestone2.pptx
-FILE: EduScan_Milestone2_Final.pptx
+FILE: PhotoSync_Backend_Milestone2.pptx
+FILE: PhotoSync_Milestone2_Final.pptx
 FILE: README.md
 DIR: app
   DIR: api

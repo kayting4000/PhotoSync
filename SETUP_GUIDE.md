@@ -1,4 +1,4 @@
-# Quick Setup Guide for EduScan
+# Quick Setup Guide for PhotoSync
 
 ## 1. Environment Configuration (CRITICAL)
 

@@ -1,6 +1,6 @@
-# 📱 EduScan - Complete Project
+# 📱 PhotoSync - Complete Project
 
-Welcome to EduScan! This is a complete, production-ready application with both **Next.js Web**, **Python/FastAPI Backend**, and **Flutter Mobile** versions sharing the same Supabase backend.
+Welcome to PhotoSync! This is a complete, production-ready application with both **Next.js Web**, **Python/FastAPI Backend**, and **Flutter Mobile** versions sharing the same Supabase backend.
 
 ## 🚀 Quick Start
 
@@ -93,7 +93,7 @@ flutter run
 ## 🎯 Project Structure
 
 ```
-EduScan/
+PhotoSync/
 ├── 📁 app/                           # Next.js Web Application
 │   ├── 📁 dashboard/                 # Dashboard pages
 │   ├── 📁 api/                       # API routes

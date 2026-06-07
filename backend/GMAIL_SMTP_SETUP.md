@@ -1,8 +1,8 @@
-# 📧 Gmail SMTP Setup Guide for EduScan
+# 📧 Gmail SMTP Setup Guide for PhotoSync
 
 ## Overview
 
-EduScan uses Gmail SMTP to send grade reports and transcripts to students. This guide walks you through the setup process.
+PhotoSync uses Gmail SMTP to send grade reports and transcripts to students. This guide walks you through the setup process.
 
 ---
 

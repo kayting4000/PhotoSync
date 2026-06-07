@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    container_name: eduscan-backend
+    container_name: photosync-backend
     ports:
       - "8000:8000"
     env_file:
@@ -26,9 +26,9 @@ services:
   # Uncomment below to use PostgreSQL locally instead of Supabase
   # db:
   #   image: postgres:15-alpine
-  #   container_name: eduscan-db
+  #   container_name: photosync-db
   #   environment:
-  #     POSTGRES_DB: eduscan
+  #     POSTGRES_DB: photosync
   #     POSTGRES_USER: postgres
   #     POSTGRES_PASSWORD: postgres
   #   ports:

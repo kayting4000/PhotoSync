@@ -63,7 +63,7 @@ rect(s, 0, 0, 13.33, 7.5, RGBColor(0x0A, 0x0F, 0x1E))   # deeper bg
 rect(s, 0, 2.8, 13.33, 0.06, ACCENT)                      # mid bar
 rect(s, 0, 2.86, 13.33, 0.03, ACCENT2)
 
-box(s, 1, 0.9, 11, 1.2, "EduScan", size=72, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
+box(s, 1, 0.9, 11, 1.2, "PhotoSync", size=72, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
 box(s, 1, 2.0, 11, 0.7, "Backend API — Milestone 2", size=26, color=ACCENT2, align=PP_ALIGN.CENTER)
 box(s, 1, 3.1, 11, 0.6, "FastAPI  ·  MVC Architecture  ·  Supabase PostgreSQL",
     size=16, color=GRAY, align=PP_ALIGN.CENTER, italic=True)
@@ -316,6 +316,6 @@ box(s, 1, 5.1, 11, 0.5, "Thank you!", size=28, bold=True,
 box(s, 1, 5.65, 11, 0.4, "Questions?", size=18, color=GRAY, align=PP_ALIGN.CENTER)
 
 # ── save ─────────────────────────────────────────────────
-out = r"d:\CCC151\test paper\EduScan_Backend_Milestone2.pptx"
+out = r"d:\CCC151\test paper\PhotoSync_Backend_Milestone2.pptx"
 prs.save(out)
 print(f"Saved: {out}")

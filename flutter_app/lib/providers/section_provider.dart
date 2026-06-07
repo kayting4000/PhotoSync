@@ -18,17 +18,7 @@ class SectionProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      final data = await api.get('/sections/');
-
-      // normalize dynamic response to List
-      List items;
-      if (data is List) {
-        items = data;
-      } else if (data is Map && data['items'] is List) {
-        items = data['items'] as List;
-      } else {
-        items = [];
-      }
+      final items = await api.get('/sections/');
 
       _sections = items.map((item) => Section.fromJson(item as Map<String, dynamic>)).toList();
 
