@@ -258,21 +258,27 @@ class GlassCard extends StatefulWidget {
 }
 
 class _GlassCardState extends State<GlassCard> with SingleTickerProviderStateMixin {
-  late AnimationController _hoverController;
-  late Animation<double> _hoverAnim;
+  late AnimationController? _hoverController;
+  late Animation<double>? _hoverAnim;
 
   @override
   void initState() {
     super.initState();
-    _hoverController = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-    _hoverAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _hoverController, curve: Curves.easeOutCubic),
-    );
+    // Only create animation controller if onTap is provided (interactive cards)
+    if (widget.onTap != null) {
+      _hoverController = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+      _hoverAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _hoverController!, curve: Curves.easeOutCubic),
+      );
+    } else {
+      _hoverController = null;
+      _hoverAnim = null;
+    }
   }
 
   @override
   void dispose() {
-    _hoverController.dispose();
+    _hoverController?.dispose();
     super.dispose();
   }
 
@@ -280,57 +286,63 @@ class _GlassCardState extends State<GlassCard> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     final bgColor = widget.color ?? kGlassBg;
     const borderColor = kGlassBorder;
+    final isInteractive = widget.onTap != null;
 
-    Widget card = AnimatedBuilder(
-      animation: _hoverAnim,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: 1.0 + (_hoverAnim.value * 0.02),
-          child: ClipRRect(
+    Widget card = ClipRRect(
+      borderRadius: BorderRadius.circular(widget.borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: widget.blurIntensity, sigmaY: widget.blurIntensity),
+        child: Container(
+          padding: widget.padding ?? const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            gradient: widget.gradientColors != null
+                ? LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: widget.gradientColors!)
+                : LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [bgColor, bgColor.withValues(alpha: 0.3)],
+                  ),
             borderRadius: BorderRadius.circular(widget.borderRadius),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: widget.blurIntensity, sigmaY: widget.blurIntensity),
-              child: Container(
-                padding: widget.padding ?? const EdgeInsets.all(22),
-                decoration: BoxDecoration(
-                  gradient: widget.gradientColors != null
-                      ? LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: widget.gradientColors!)
-                      : LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [bgColor, bgColor.withValues(alpha: 0.3)],
-                        ),
-                  borderRadius: BorderRadius.circular(widget.borderRadius),
-                  border: Border.all(color: borderColor.withValues(alpha: 0.5 + _hoverAnim.value * 0.5), width: 1.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2 * widget.elevation),
-                      blurRadius: 20 * widget.elevation,
-                      offset: Offset(0, 5 * widget.elevation),
-                    ),
-                    BoxShadow(
-                      color: kAccentVivid.withValues(alpha: 0.1 * _hoverAnim.value),
-                      blurRadius: 30 * _hoverAnim.value,
-                      offset: Offset(0, 10 * _hoverAnim.value),
-                    ),
-                  ],
-                ),
-                child: widget.child,
+            border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2 * widget.elevation),
+                blurRadius: 20 * widget.elevation,
+                offset: Offset(0, 5 * widget.elevation),
               ),
-            ),
+            ],
           ),
-        );
-      },
+          child: widget.child,
+        ),
+      ),
     );
 
-    if (widget.onTap != null) {
+    if (isInteractive) {
+      card = AnimatedBuilder(
+        animation: _hoverAnim!,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: 1.0 + (_hoverAnim!.value * 0.02),
+            child: Container(
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: kAccentVivid.withValues(alpha: 0.1 * _hoverAnim!.value),
+                    blurRadius: 30 * _hoverAnim!.value,
+                    offset: Offset(0, 10 * _hoverAnim!.value),
+                  ),
+                ],
+              ),
+              child: child,
+            ),
+          );
+        },
+        child: card,
+      );
+
       card = MouseRegion(
-        onEnter: (_) {
-          _hoverController.forward();
-        },
-        onExit: (_) {
-          _hoverController.reverse();
-        },
+        onEnter: (_) => _hoverController?.forward(),
+        onExit: (_) => _hoverController?.reverse(),
         child: Material(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(widget.borderRadius),

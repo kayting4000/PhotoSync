@@ -7,7 +7,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from database import get_db
-from controllers.auth import get_current_user
+from controllers.auth import get_current_user, require_role
 from models import Section, Subject
 from models.user import User
 from schemas import SectionCreate, SectionUpdate
@@ -54,7 +54,7 @@ def get_sections(
 def create_section(
     body: SectionCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin", "teacher")),
 ):
     section = Section(
         user_id=current_user.id,
@@ -73,7 +73,7 @@ def update_section(
     section_id: str,
     body: SectionUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin", "teacher")),
 ):
     section = db.query(Section).filter(
         Section.id == section_id, Section.user_id == current_user.id
@@ -92,7 +92,7 @@ def update_section(
 def delete_section(
     section_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin", "teacher")),
 ):
     section = db.query(Section).filter(
         Section.id == section_id, Section.user_id == current_user.id

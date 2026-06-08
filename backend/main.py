@@ -12,7 +12,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from database import engine, Base
+from database import engine, Base, init_db_indexes
 from models import User, Student, Subject, Exam, ExamResult, StudentSubject, ScoringRule, Section, AcademicTerm, Attendance, GpaConfig  # noqa: F401
 
 from controllers import (
@@ -28,12 +28,15 @@ from controllers import (
     academic_terms_router,
     attendance_router,
     gpa_config_router,
+    student_portal_router,
+    feedback_router,
 )
 from controllers.subjects import router as subjects_router
 from controllers.sections import router as sections_router
 from controllers.students import router as students_router
 
 # load backend/.env (explicit path ensures it's found when starting uvicorn from the backend folder)
+# Note: database.py already loads .env, but we keep this as a fallback for other env vars
 load_dotenv(Path(__file__).parent / ".env")
 
 
@@ -42,6 +45,11 @@ async def lifespan(app: FastAPI):
     """Create tables on startup (safe — uses IF NOT EXISTS)."""
     try:
         Base.metadata.create_all(bind=engine)
+        # Create performance indexes for frequently queried columns
+        try:
+            init_db_indexes()
+        except Exception as idx_err:
+            logging.warning("Index creation failed (non-fatal): %s", idx_err)
     except Exception as e:
         logging.error("Database init failed at startup (continuing): %s", e)
     yield
@@ -76,6 +84,8 @@ app.include_router(scoring_rules_router)
 app.include_router(academic_terms_router)
 app.include_router(attendance_router)
 app.include_router(gpa_config_router)
+app.include_router(student_portal_router)
+app.include_router(feedback_router)
 app.include_router(subjects_router)
 app.include_router(sections_router)
 app.include_router(students_router)

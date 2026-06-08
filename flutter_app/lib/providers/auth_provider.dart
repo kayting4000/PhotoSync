@@ -27,20 +27,43 @@ bool _isTokenValid(String token) {
   }
 }
 
+/// Decode JWT and extract role
+String? _extractRoleFromToken(String token) {
+  try {
+    final parts = token.split('.');
+    if (parts.length != 3) return null;
+    
+    String payload = parts[1];
+    while (payload.length % 4 != 0) {
+      payload += '=';
+    }
+    final decoded = utf8.decode(base64Url.decode(payload));
+    final Map<String, dynamic> claims = jsonDecode(decoded);
+    return claims['role'] as String?;
+  } catch (e) {
+    return null;
+  }
+}
+
 class AuthProvider extends ChangeNotifier {
   final api = ApiService();
   String? _userId;
   String? _userEmail;
+  String? _userRole;
   String? _errorMessage;
   bool _isLoading = false;
   bool _initialized = false;
 
   String? get userId => _userId;
   String? get userEmail => _userEmail;
+  String? get userRole => _userRole;
   String? get errorMessage => _errorMessage;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _userId != null;
   bool get initialized => _initialized;
+  bool get isStudent => _userRole == 'student';
+  bool get isTeacher => _userRole == 'teacher' || _userRole == 'admin';
+  bool get isAdmin => _userRole == 'admin';
 
   AuthProvider() {
     _restoreSession();
@@ -51,6 +74,7 @@ class AuthProvider extends ChangeNotifier {
     final token = prefs.getString('auth_token');
     final userId = prefs.getString('auth_user_id');
     final email = prefs.getString('auth_email');
+    final role = prefs.getString('auth_role');
     
     if (token != null && userId != null && email != null) {
       // Validate token before restoring session
@@ -58,11 +82,13 @@ class AuthProvider extends ChangeNotifier {
         api.setAuth(token, userId, email);
         _userId = userId;
         _userEmail = email;
+        _userRole = role ?? _extractRoleFromToken(token);
       } else {
         // Token expired - clear stored auth data
         await prefs.remove('auth_token');
         await prefs.remove('auth_user_id');
         await prefs.remove('auth_email');
+        await prefs.remove('auth_role');
       }
     }
     _initialized = true;
@@ -82,11 +108,15 @@ class AuthProvider extends ChangeNotifier {
       api.setAuth(token, user['id'], user['email']);
       _userId = user['id'];
       _userEmail = user['email'];
+      _userRole = user['role'] as String? ?? _extractRoleFromToken(token);
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_token', token);
       await prefs.setString('auth_user_id', user['id']);
       await prefs.setString('auth_email', user['email']);
+      if (_userRole != null) {
+        await prefs.setString('auth_role', _userRole!);
+      }
 
       _isLoading = false;
       notifyListeners();
@@ -99,24 +129,26 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> signup(String email, String password, {String? name}) async {
+  Future<bool> signup(String email, String password, {String? name, String role = 'admin'}) async {
     try {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
 
-      final data = await api.signup(email, password);
+      final data = await api.signup(email, password, role: role);
       final user = data['user'] as Map<String, dynamic>;
       final token = data['access_token'] as String;
 
       api.setAuth(token, user['id'], user['email']);
       _userId = user['id'];
       _userEmail = user['email'];
+      _userRole = user['role'] as String? ?? role;
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_token', token);
       await prefs.setString('auth_user_id', user['id']);
       await prefs.setString('auth_email', user['email']);
+      await prefs.setString('auth_role', _userRole!);
 
       _isLoading = false;
       notifyListeners();
@@ -133,10 +165,12 @@ class AuthProvider extends ChangeNotifier {
     api.clearAuth();
     _userId = null;
     _userEmail = null;
+    _userRole = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
     await prefs.remove('auth_user_id');
     await prefs.remove('auth_email');
+    await prefs.remove('auth_role');
     notifyListeners();
   }
 }

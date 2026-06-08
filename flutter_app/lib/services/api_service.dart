@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../config.dart';
 
+// Re-export AppConfig for convenience
+export '../config.dart' show AppConfig;
+
 /// Singleton API service that handles all backend HTTP calls
 /// with JWT Bearer auth headers.
 class ApiService {
@@ -13,6 +16,9 @@ class ApiService {
 
   /// Backend API base URL — uses AppConfig to toggle between local/production
   String get _baseUrl => AppConfig.baseUrl;
+  
+  /// Connection timeout
+  Duration get _timeout => AppConfig.connectionTimeout;
 
   String? _jwtToken;
   String? _userId;
@@ -55,7 +61,7 @@ class ApiService {
               headers: {'Content-Type': 'application/json'},
               body: jsonEncode({'email': email, 'password': password}),
             )
-            .timeout(connectionTimeout);
+            .timeout(_timeout);
         if (res.statusCode == 200) {
           try {
             return jsonDecode(res.body) as Map<String, dynamic>;
@@ -81,7 +87,7 @@ class ApiService {
         attempt++;
         if (attempt >= maxRetries) {
           throw Exception(
-              'Connection timed out after ${connectionTimeout.inSeconds}s. The backend server is not responding. Please check if the server is running at $_baseUrl and accessible from this device.');
+              'Connection timed out after ${_timeout.inSeconds}s. The backend server is not responding. Please check if the server is running at $_baseUrl and accessible from this device.');
         }
         // Wait before retry
         await Future.delayed(Duration(seconds: attempt * 2));
@@ -97,7 +103,7 @@ class ApiService {
     throw Exception('Login failed after $maxRetries attempts');
   }
 
-  Future<Map<String, dynamic>> signup(String email, String password) async {
+  Future<Map<String, dynamic>> signup(String email, String password, {String role = 'admin'}) async {
     // Retry mechanism for transient network issues
     const int maxRetries = 3;
     int attempt = 0;
@@ -108,9 +114,9 @@ class ApiService {
             .post(
               Uri.parse('$_baseUrl/auth/signup'),
               headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({'email': email, 'password': password}),
+              body: jsonEncode({'email': email, 'password': password, 'role': role}),
             )
-            .timeout(connectionTimeout);
+            .timeout(_timeout);
         if (res.statusCode == 200) {
           try {
             return jsonDecode(res.body) as Map<String, dynamic>;
@@ -135,7 +141,7 @@ class ApiService {
         attempt++;
         if (attempt >= maxRetries) {
           throw Exception(
-              'Connection timed out after ${connectionTimeout.inSeconds}s. The backend server is not responding. Please check if the server is running at $_baseUrl and accessible from this device.');
+              'Connection timed out after ${_timeout.inSeconds}s. The backend server is not responding. Please check if the server is running at $_baseUrl and accessible from this device.');
         }
         await Future.delayed(Duration(seconds: attempt * 2));
       } on http.ClientException {
@@ -280,6 +286,49 @@ class ApiService {
     String examId,
   ) async {
     return getMap('/scan-uploads/results/$studentId/$examId');
+  }
+
+  // ─── Feedback ───────────────────────────────────────────────────────────
+
+  /// Send feedback with optional screenshot to the development team.
+  Future<Map<String, dynamic>> sendFeedback({
+    required String message,
+    dynamic screenshotFile,
+  }) async {
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$_baseUrl/feedback/'),
+    );
+    request.headers['Authorization'] = 'Bearer $_jwtToken';
+    request.fields['message'] = message;
+
+    if (screenshotFile != null) {
+      try {
+        if (screenshotFile is http.MultipartFile) {
+          request.files.add(screenshotFile);
+        } else if (screenshotFile is String) {
+          request.files.add(
+            await http.MultipartFile.fromPath('screenshot', screenshotFile),
+          );
+        } else {
+          // XFile or other
+          final path = screenshotFile.path;
+          request.files.add(
+            await http.MultipartFile.fromPath('screenshot', path),
+          );
+        }
+      } catch (_) {
+        // If we can't read the file, send without screenshot
+      }
+    }
+
+    final streamed = await request.send();
+    final res = await http.Response.fromStream(streamed);
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body) as Map<String, dynamic>;
+    }
+    final data = jsonDecode(res.body);
+    throw Exception(data['detail'] ?? 'Failed to send feedback');
   }
 
 }

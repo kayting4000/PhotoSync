@@ -84,6 +84,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [38.0.0] - 2026-06-08
+
+### Added
+
+#### Mobile App
+- **Role-Based Access Control (RBAC)** — Admin, Teacher, and Student roles with permissions
+- **Student Mobile Portal** — Read-only dashboard for students to view grades, attendance, exams, and profile
+- **Feedback System** — Users can send feedback with optional screenshots directly to the development team
+- **Offline Mode Enhancement (Beta)** — Local SQLite database with pending sync queue for offline CRUD operations
+- **Connectivity Service** — Real-time online/offline status indicator in student dashboard
+- **Sync Service** — Background sync of pending operations when connectivity is restored
+
+#### Backend (Python/FastAPI)
+- `/portal/*` endpoint group for student read-only access
+- `/feedback/` endpoint for submitting feedback with screenshot attachments via email
+- `require_role()` dependency factory for granular permission checks
+- Role field in JWT tokens and User model
+- `StudentSubject` enrollment model for proper student-subject associations
+
+### Changed
+- Version bumped to 38.0.0+38
+- All `withOpacity()` calls migrated to `withValues(alpha:)` for Flutter deprecation compliance
+- Moved global service instances to `service_locator.dart` to avoid circular imports
+- Updated login/signup API responses to include user role
+- Improved error handling in student portal endpoints
+
+### Fixed
+- Removed unnecessary `config.dart` import from scanner_screen.dart
+- Fixed dangling library doc comment warning in connectivity_service.dart
+- Fixed email.py docstring with stray single-quote characters
+- Removed unused imports across multiple backend controllers and schemas
+- Resolved circular dependency between main.dart and screen files
+
+---
+
 ## [Unreleased]
 
 ### Planned

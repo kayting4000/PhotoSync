@@ -7,7 +7,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from database import get_db
-from controllers.auth import get_current_user
+from controllers.auth import get_current_user, require_role
 from models.exam import Exam
 from models.user import User
 from schemas import ExamCreate, ExamUpdate
@@ -58,7 +58,7 @@ def get_exams(
 def create_exam(
     body: ExamCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin", "teacher")),
 ):
     exam = Exam(
         user_id=current_user.id,
@@ -81,7 +81,7 @@ def update_exam(
     exam_id: str,
     body: ExamUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin", "teacher")),
 ):
     exam = db.query(Exam).filter(
         Exam.id == exam_id, Exam.user_id == current_user.id
@@ -100,7 +100,7 @@ def update_exam(
 def delete_exam(
     exam_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin", "teacher")),
 ):
     exam = db.query(Exam).filter(
         Exam.id == exam_id, Exam.user_id == current_user.id

@@ -1,163 +1,135 @@
+/// Sync service that processes pending offline operations
+/// when connectivity is restored.
+///
+/// Watches connectivity and replays queued API calls in order.
 import 'dart:async';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
-import 'api_service.dart';
-import 'local_database_service.dart';
+import 'dart:convert';
+import '../services/local_database.dart';
+import '../services/connectivity_service.dart';
+import '../services/api_service.dart';
 
-/// Handles offline detection, caching, and background sync.
-/// When online: all requests go directly to API and cache responses.
-/// When offline: serves from cache for reads, queues writes for later sync.
-class SyncService extends ChangeNotifier {
-  final ApiService api = ApiService();
-  final LocalDatabaseService db = LocalDatabaseService();
-  final Connectivity _connectivity = Connectivity();
+class SyncService {
+  static final SyncService _instance = SyncService._internal();
+  factory SyncService() => _instance;
+  SyncService._internal();
 
-  bool _isOnline = true;
+  final LocalDatabase _localDb = LocalDatabase();
+  final ConnectivityService _connectivity = ConnectivityService();
+  final ApiService _api = ApiService();
+
   bool _isSyncing = false;
-  StreamSubscription? _connectivitySubscription;
+  StreamSubscription? _connectivitySub;
+  Timer? _periodicTimer;
 
-  bool get isOnline => _isOnline;
-  bool get isSyncing => _isSyncing;
+  /// Stream that emits sync status updates
+  final StreamController<SyncStatus> _statusController =
+      StreamController<SyncStatus>.broadcast();
+  Stream<SyncStatus> get onSyncStatusChanged => _statusController.stream;
 
-  SyncService() {
-    _init();
-  }
+  /// Current sync status
+  SyncStatus _status = SyncStatus.idle;
+  SyncStatus get status => _status;
 
-  void _init() {
-    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((result) {
-      final wasOffline = !_isOnline;
-      _isOnline = result != ConnectivityResult.none;
-
-      if (_isOnline && wasOffline) {
-        // Came back online — sync pending mutations
-        syncPendingMutations();
+  /// Initialize: start listening for connectivity changes
+  Future<void> init() async {
+    // Listen for connectivity changes
+    _connectivitySub = _connectivity.onConnectivityChanged.listen((isOnline) {
+      if (isOnline) {
+        _sync();
       }
-
-      notifyListeners();
     });
 
-    // Check initial connectivity
-    _connectivity.checkConnectivity().then((result) {
-      _isOnline = result != ConnectivityResult.none;
-      notifyListeners();
+    // Periodic sync every 5 minutes as a fallback
+    _periodicTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+      if (_connectivity.isOnline) {
+        _sync();
+      }
     });
-  }
 
-  /// Fetch with offline fallback: try API, fall back to cache.
-  Future<dynamic> fetch(String endpoint,
-      {Duration cacheMaxAge = const Duration(hours: 1)}) async {
-    // Try network first
-    if (_isOnline) {
-      try {
-        final data = await api.get(endpoint);
-        // Cache the response
-        await db.cachePut(endpoint, data);
-        return data;
-      } catch (e) {
-        // Network failed — try cache
-        final cached = await db.cacheGet(endpoint, maxAge: cacheMaxAge);
-        if (cached != null) return cached;
-        rethrow;
-      }
-    }
-
-    // Offline — serve from cache
-    final cached = await db.cacheGet(endpoint, maxAge: cacheMaxAge);
-    if (cached != null) return cached;
-
-    throw Exception('No internet connection and no cached data available');
-  }
-
-  /// Mutate with offline support: write online, queue when offline.
-  Future<dynamic> mutate(
-      String method, String endpoint, dynamic body) async {
-    if (_isOnline) {
-      try {
-        final result = await _apiCall(method, endpoint, body);
-        // Invalidate cache for this endpoint
-        await db.cachePut(endpoint, result);
-        return result;
-      } catch (e) {
-        // Queue on failure (server error, timeout, etc.)
-        await db.enqueueMutation(method, endpoint, body);
-        rethrow;
-      }
-    }
-
-    // Offline — queue the mutation
-    await db.enqueueMutation(method, endpoint, body);
-    throw Exception('Queued for sync when online');
-  }
-
-  Future<dynamic> _apiCall(String method, String endpoint, dynamic body) async {
-    switch (method.toUpperCase()) {
-      case 'POST':
-        return api.post(endpoint, body);
-      case 'PUT':
-        return api.put(endpoint, body);
-      case 'DELETE':
-        return api.delete(endpoint);
-      default:
-        throw Exception('Unsupported method: $method');
+    // Initial sync attempt
+    if (_connectivity.isOnline) {
+      await _sync();
     }
   }
 
-  /// Sync all pending mutations to the server using batch processing.
-  /// Processes up to 50 mutations per batch with parallel writes and
-  /// deferred cleanup to minimize DB round-trips.
-  Future<void> syncPendingMutations() async {
-    if (_isSyncing || !_isOnline) return;
-
+  /// Process all pending sync operations
+  Future<void> _sync() async {
+    if (_isSyncing) return;
     _isSyncing = true;
-    notifyListeners();
+    _status = SyncStatus.syncing;
+    _statusController.add(_status);
 
     try {
-      final pending = await db.getPendingMutations();
-      final idsToRemove = <int>[];
+      final pendingItems = await _localDb.getPendingSyncs();
 
-      for (final mutation in pending) {
+      for (final item in pendingItems) {
+        if (!_connectivity.isOnline) break; // Stop if offline
+
         try {
-          await _apiCall(
-            mutation['method'] as String,
-            mutation['endpoint'] as String,
-            mutation['body'] != null
-                ? mutation['body'] as String
-                : null,
-          );
-          idsToRemove.add(mutation['id'] as int);
+          final id = item['id'] as int;
+          final operation = item['operation'] as String;
+          final endpoint = item['endpoint'] as String;
+          final payloadStr = item['payload'] as String?;
+
+          Map<String, dynamic>? payload;
+          if (payloadStr != null) {
+            try {
+              payload = jsonDecode(payloadStr) as Map<String, dynamic>;
+            } catch (_) {
+              // If we can't decode, try simple parsing
+              payload = {};
+            }
+          }
+
+          // Replay the operation
+          switch (operation) {
+            case 'POST':
+              await _api.post(endpoint, payload ?? {});
+              break;
+            case 'PUT':
+              await _api.put(endpoint, payload ?? {});
+              break;
+            case 'DELETE':
+              await _api.delete(endpoint);
+              break;
+          }
+
+          // Remove successful sync
+          await _localDb.removePendingSync(id);
         } catch (e) {
-          debugPrint('Sync failed for mutation ${mutation['id']}: $e');
+          // Increment retry count and continue with next
+          await _localDb.incrementRetry(item['id'] as int);
         }
       }
 
-      // Batch-remove all successfully synced mutations in one DB call
-      if (idsToRemove.isNotEmpty) {
-        final dbRef = await db.database;
-        final placeholders = idsToRemove.map((_) => '?').join(',');
-        await dbRef.rawDelete(
-          'DELETE FROM sync_queue WHERE id IN ($placeholders)',
-          idsToRemove,
-        );
-      }
-    } finally {
-      _isSyncing = false;
-      notifyListeners();
+      _status = SyncStatus.idle;
+    } catch (e) {
+      _status = SyncStatus.error;
+    }
+
+    _statusController.add(_status);
+    _isSyncing = false;
+  }
+
+  /// Manually trigger a sync
+  Future<void> triggerSync() async {
+    if (_connectivity.isOnline) {
+      await _sync();
     }
   }
 
-  /// Flush all pending mutations without syncing (e.g., on logout).
-  Future<void> clearPendingMutations() async {
-    await db.clearSyncQueue();
-    notifyListeners();
+  /// Get the count of pending sync operations
+  Future<int> getPendingCount() async {
+    return await _localDb.pendingSyncCount();
   }
 
-  Future<int> pendingCount() async {
-    return db.pendingMutationCount();
-  }
-
-  @override
+  /// Clean up
   void dispose() {
-    _connectivitySubscription?.cancel();
-    super.dispose();
+    _connectivitySub?.cancel();
+    _periodicTimer?.cancel();
+    _statusController.close();
   }
 }
+
+/// Possible sync statuses
+enum SyncStatus { idle, syncing, error }

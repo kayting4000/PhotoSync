@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/student.dart';
 import '../services/api_service.dart';
 
+/// Provider for managing students with optimistic local updates.
 class StudentProvider extends ChangeNotifier {
   final api = ApiService();
   List<Student> _students = [];
@@ -35,8 +36,22 @@ class StudentProvider extends ChangeNotifier {
   }
 
   Future<bool> addStudent(Student student) async {
+    final optimisticStudent = Student(
+      id: '__new__',
+      studentId: student.studentId,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      email: student.email,
+      course: student.course,
+      yearLevel: student.yearLevel,
+      sectionId: student.sectionId,
+    );
+
+    _students.insert(0, optimisticStudent);
+    notifyListeners();
+
     try {
-      await api.post('/students/', {
+      final result = await api.post('/students/', {
         'student_id': student.studentId,
         'first_name': student.firstName,
         'last_name': student.lastName,
@@ -45,9 +60,18 @@ class StudentProvider extends ChangeNotifier {
         'year_level': student.yearLevel,
         if (student.sectionId != null) 'section_id': student.sectionId,
       });
-      await fetchStudents();
+
+      final realStudent = Student.fromJson(result);
+      final index = _students.indexOf(optimisticStudent);
+      if (index >= 0) {
+        _students[index] = realStudent;
+      } else {
+        _students.insert(0, realStudent);
+      }
+      notifyListeners();
       return true;
     } catch (e) {
+      _students.remove(optimisticStudent);
       _errorMessage = e.toString();
       notifyListeners();
       return false;
@@ -55,8 +79,26 @@ class StudentProvider extends ChangeNotifier {
   }
 
   Future<bool> updateStudent(String id, Student student) async {
+    final oldIndex = _students.indexWhere((s) => s.id == id);
+    if (oldIndex < 0) return false;
+
+    final oldStudent = _students[oldIndex];
+    final updatedStudent = Student(
+      id: id,
+      studentId: student.studentId,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      email: student.email,
+      course: student.course,
+      yearLevel: student.yearLevel,
+      sectionId: student.sectionId,
+    );
+
+    _students[oldIndex] = updatedStudent;
+    notifyListeners();
+
     try {
-      final body = <String, dynamic>{
+      final result = await api.put('/students/$id', {
         'student_id': student.studentId,
         'first_name': student.firstName,
         'last_name': student.lastName,
@@ -64,11 +106,13 @@ class StudentProvider extends ChangeNotifier {
         'course': student.course,
         'year_level': student.yearLevel,
         if (student.sectionId != null) 'section_id': student.sectionId,
-      };
-      await api.put('/students/$id', body);
-      await fetchStudents();
+      });
+
+      _students[oldIndex] = Student.fromJson(result);
+      notifyListeners();
       return true;
     } catch (e) {
+      _students[oldIndex] = oldStudent;
       _errorMessage = e.toString();
       notifyListeners();
       return false;
@@ -76,11 +120,17 @@ class StudentProvider extends ChangeNotifier {
   }
 
   Future<bool> deleteStudent(String id) async {
+    final oldIndex = _students.indexWhere((s) => s.id == id);
+    if (oldIndex < 0) return false;
+
+    final removedItem = _students.removeAt(oldIndex);
+    notifyListeners();
+
     try {
       await api.delete('/students/$id');
-      await fetchStudents();
       return true;
     } catch (e) {
+      _students.insert(oldIndex, removedItem);
       _errorMessage = e.toString();
       notifyListeners();
       return false;

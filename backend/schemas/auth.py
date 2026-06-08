@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, EmailStr
 
 
@@ -17,6 +18,7 @@ class AuthLogin(BaseModel):
 class AuthSignup(BaseModel):
     email: EmailStr
     password: str
+    role: Optional[str] = 'admin'  # 'admin', 'teacher', or 'student'
 
     model_config = {
         "json_schema_extra": {
@@ -25,3 +27,10 @@ class AuthSignup(BaseModel):
             ]
         }
     }
+
+
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    role: str
+    is_active: bool

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/exam.dart';
 import '../services/api_service.dart';
 
+/// Provider for managing exams with optimistic local updates.
 class ExamProvider extends ChangeNotifier {
   final api = ApiService();
   List<Exam> _exams = [];
@@ -22,7 +23,9 @@ class ExamProvider extends ChangeNotifier {
       if (subjectId != null) path = '/exams/?subject_id=$subjectId';
       final data = await api.get(path);
 
-      _exams = data.map((item) => Exam.fromJson(item as Map<String, dynamic>)).toList();
+      _exams = data
+          .map((item) => Exam.fromJson(item as Map<String, dynamic>))
+          .toList();
 
       _isLoading = false;
       notifyListeners();
@@ -34,11 +37,33 @@ class ExamProvider extends ChangeNotifier {
   }
 
   Future<bool> addExam(Exam exam) async {
+    final optimisticExam = Exam(
+      id: '__new__',
+      subjectId: exam.subjectId,
+      name: exam.name,
+      componentType: exam.componentType,
+      totalItems: exam.totalItems,
+      pointsPerItem: exam.pointsPerItem,
+      passingScore: exam.passingScore,
+      termId: exam.termId,
+    );
+
+    _exams.insert(0, optimisticExam);
+    notifyListeners();
+
     try {
-      await api.post('/exams/', exam.toJson());
-      await fetchExams();
+      final result = await api.post('/exams/', exam.toJson());
+      final realExam = Exam.fromJson(result);
+      final index = _exams.indexOf(optimisticExam);
+      if (index >= 0) {
+        _exams[index] = realExam;
+      } else {
+        _exams.insert(0, realExam);
+      }
+      notifyListeners();
       return true;
     } catch (e) {
+      _exams.remove(optimisticExam);
       _errorMessage = e.toString();
       notifyListeners();
       return false;
@@ -46,11 +71,31 @@ class ExamProvider extends ChangeNotifier {
   }
 
   Future<bool> updateExam(String id, Exam exam) async {
+    final oldIndex = _exams.indexWhere((e) => e.id == id);
+    if (oldIndex < 0) return false;
+
+    final oldExam = _exams[oldIndex];
+    final updatedExam = Exam(
+      id: id,
+      subjectId: exam.subjectId,
+      name: exam.name,
+      componentType: exam.componentType,
+      totalItems: exam.totalItems,
+      pointsPerItem: exam.pointsPerItem,
+      passingScore: exam.passingScore,
+      termId: exam.termId,
+    );
+
+    _exams[oldIndex] = updatedExam;
+    notifyListeners();
+
     try {
-      await api.put('/exams/$id', exam.toJson());
-      await fetchExams();
+      final result = await api.put('/exams/$id', exam.toJson());
+      _exams[oldIndex] = Exam.fromJson(result);
+      notifyListeners();
       return true;
     } catch (e) {
+      _exams[oldIndex] = oldExam;
       _errorMessage = e.toString();
       notifyListeners();
       return false;
@@ -58,11 +103,17 @@ class ExamProvider extends ChangeNotifier {
   }
 
   Future<bool> deleteExam(String id) async {
+    final oldIndex = _exams.indexWhere((e) => e.id == id);
+    if (oldIndex < 0) return false;
+
+    final removedItem = _exams.removeAt(oldIndex);
+    notifyListeners();
+
     try {
       await api.delete('/exams/$id');
-      await fetchExams();
       return true;
     } catch (e) {
+      _exams.insert(oldIndex, removedItem);
       _errorMessage = e.toString();
       notifyListeners();
       return false;

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from database import get_db
-from controllers.auth import get_current_user
+from controllers.auth import get_current_user, require_role
 from models import Student, Section
 from models.user import User
 from schemas import StudentCreate, StudentUpdate
@@ -72,7 +72,7 @@ def get_students(
 def create_student(
     body: StudentCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin", "teacher")),
 ):
     student = Student(
         user_id=current_user.id,
@@ -95,7 +95,7 @@ def update_student(
     student_id: str,
     body: StudentUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin", "teacher")),
 ):
     try:
         student_uuid = uuid.UUID(student_id)
@@ -125,7 +125,7 @@ def update_student(
 def delete_student(
     student_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin", "teacher")),
 ):
     try:
         student_uuid = uuid.UUID(student_id)

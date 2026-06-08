@@ -11,9 +11,10 @@ from datetime import datetime
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Load backend/.env explicitly
+# Load backend/.env explicitly (only if DATABASE_URL not already set)
 dotenv_path = Path(__file__).parent / ".env"
-load_dotenv(dotenv_path=dotenv_path)
+if not os.getenv("DATABASE_URL"):
+    load_dotenv(dotenv_path=dotenv_path)
 
 DATABASE_URL = os.getenv("DATABASE_URL") or "sqlite:///./photosync.db"
 
@@ -62,3 +63,34 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def init_db_indexes():
+    """
+    Create performance indexes for frequently queried columns.
+    Called on startup after tables are created.
+    """
+    if DATABASE_URL.startswith("sqlite"):
+        # SQLite indexes
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_students_user_id ON students (user_id)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_students_section_id ON students (section_id)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_students_created_at ON students (created_at)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_subjects_user_id ON subjects (user_id)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_subjects_created_at ON subjects (created_at)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_sections_user_id ON sections (user_id)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_sections_subject_id ON sections (subject_id)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_exams_subject_id ON exams (subject_id)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_exam_results_student_id ON exam_results (student_id)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_exam_results_exam_id ON exam_results (exam_id)")
+    else:
+        # PostgreSQL indexes
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_students_user_id ON students (user_id)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_students_section_id ON students (section_id)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_students_created_at ON students (created_at)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_subjects_user_id ON subjects (user_id)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_subjects_created_at ON subjects (created_at)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_sections_user_id ON sections (user_id)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_sections_subject_id ON sections (subject_id)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_exams_subject_id ON exams (subject_id)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_exam_results_student_id ON exam_results (student_id)")
+        engine.execute("CREATE INDEX IF NOT EXISTS idx_exam_results_exam_id ON exam_results (exam_id)")

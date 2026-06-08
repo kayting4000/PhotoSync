@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from sqlalchemy.orm import Session
 
 from database import get_db
-from controllers.auth import get_current_user
+from controllers.auth import get_current_user, require_role
 from models.subject import Subject
 from models.user import User
 from schemas import SubjectCreate, SubjectUpdate
@@ -46,7 +46,7 @@ def get_subjects(
 def create_subject(
     body: SubjectCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin", "teacher")),
 ):
     if not body.name:
         raise HTTPException(status_code=400, detail="name is required")
@@ -71,7 +71,7 @@ def update_subject(
     subject_id: str,
     body: SubjectUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin", "teacher")),
 ):
     subject = db.query(Subject).filter(
         Subject.id == subject_id, Subject.user_id == current_user.id
@@ -90,7 +90,7 @@ def update_subject(
 def delete_subject(
     subject_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin", "teacher")),
 ):
     subject = db.query(Subject).filter(
         Subject.id == subject_id, Subject.user_id == current_user.id

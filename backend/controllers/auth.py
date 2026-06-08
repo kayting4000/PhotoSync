@@ -1,6 +1,10 @@
 """
 Auth controller — JWT-based authentication for Neon PostgreSQL.
 Replaces the Supabase Auth REST API calls with local bcrypt + python-jose.
+Now includes role-based access control (RBAC):
+  - admin   : full access
+  - teacher : manage students, subjects, exams, grades
+  - student : read-only access to own data
 """
 import os
 from datetime import datetime, timedelta, timezone
@@ -28,6 +32,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
 
+VALID_ROLES = {"admin", "teacher", "student"}
+
+
 def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
@@ -36,20 +43,17 @@ def hash_password(password: str) -> str:
     return pwd_context.hash(password[:72])
 
 
-def create_access_token(user_id: str) -> str:
+def create_access_token(user_id: str, role: str = "admin") -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRE_MINUTES)
-    to_encode = {"sub": user_id, "exp": expire}
+    to_encode = {"sub": user_id, "role": role, "exp": expire}
     return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
-def decode_token(token: str) -> str:
-    """Returns user_id from valid JWT. Raises HTTPException if invalid."""
+def decode_token(token: str) -> dict:
+    """Returns payload dict from valid JWT. Raises HTTPException if invalid."""
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        user_id = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid token: missing sub")
-        return user_id
+        return payload
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
@@ -106,23 +110,61 @@ def get_current_user(
     return user
 
 
+def require_role(*allowed_roles: str):
+    """
+    Dependency factory: returns a FastAPI dependency that asserts the
+    authenticated user has one of the given roles.
+
+    Usage:
+        @router.get("/secret")
+        def secret(user: User = Depends(require_role("admin", "teacher"))):
+            ...
+    """
+    allowed = set(allowed_roles)
+
+    def role_checker(current_user: User = Depends(get_current_user)):
+        if current_user.role not in allowed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Requires one of these roles: {', '.join(sorted(allowed))}",
+            )
+        return current_user
+
+    return role_checker
+
+
+# ─── Endpoints ──────────────────────────────────────────────────────────────
+
+
 @router.post("/signup")
 def signup(body: AuthSignup, db: Session = Depends(get_db)):
     try:
+        role = body.role or "admin"
+        if role not in VALID_ROLES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid role '{role}'. Must be one of: {', '.join(sorted(VALID_ROLES))}",
+            )
+
         existing = db.query(User).filter(User.email == body.email).first()
         if existing:
             raise HTTPException(status_code=409, detail="Email already registered")
         user = User(
             email=body.email,
             password_hash=hash_password(body.password),
+            role=role,
         )
         db.add(user)
         db.commit()
         db.refresh(user)
-        token = create_access_token(str(user.id))
+        token = create_access_token(str(user.id), role=user.role)
         return {
             "access_token": token,
-            "user": {"id": str(user.id), "email": user.email},
+            "user": {
+                "id": str(user.id),
+                "email": user.email,
+                "role": user.role,
+            },
         }
     except HTTPException:
         raise
@@ -138,8 +180,12 @@ def login(body: AuthLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == body.email).first()
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = create_access_token(str(user.id))
+    token = create_access_token(str(user.id), role=user.role)
     return {
         "access_token": token,
-        "user": {"id": str(user.id), "email": user.email},
+        "user": {
+            "id": str(user.id),
+            "email": user.email,
+            "role": user.role,
+        },
     }

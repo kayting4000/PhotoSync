@@ -17,16 +17,6 @@
 /// IMPORTANT: The backend server must be running with `--host 0.0.0.0`
 ///   so it accepts connections from other devices on your network.
 ///   Run: `cd backend && uvicorn main:app --host 0.0.0.0 --port 8000 --reload`
-// Quick top-level config values used by the app and by api.dart
-const bool useLocalBackend = true; // set to false to use production backend
-const String localHost = '192.168.1.67'; // use 127.0.0.1 for web/desktop; replace with your PC IPv4 when using a phone
-const String prodHost = 'https://photosync-4pj7.onrender.com';
-
-String get apiBase => useLocalBackend ? 'http://$localHost:8000' : prodHost;
-
-/// Connection timeout configuration
-const Duration connectionTimeout = Duration(seconds: 30); // Increased from 15s for slower networks
-
 class AppConfig {
   /// Set to `true` to use the local backend, `false` for production (Render)
   static const bool useLocalBackend = true;
@@ -46,4 +36,13 @@ class AppConfig {
     }
     return productionUrl;
   }
+
+  /// Connection timeout for HTTP requests
+  static const Duration connectionTimeout = Duration(seconds: 30);
 }
+
+// Backward-compatible getter for code that still references `apiBase`
+String get apiBase => AppConfig.baseUrl;
+
+/// Connection timeout configuration (backward-compatible)
+const Duration connectionTimeout = AppConfig.connectionTimeout;

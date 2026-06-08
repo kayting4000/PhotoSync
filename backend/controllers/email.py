@@ -1,4 +1,4 @@
-''''''''''''"""
+"""
 Email controller — sends grade report emails (results only, no attachments).
 Uses Gmail SMTP for email delivery.
 """
@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
 from database import get_db
-from controllers.auth import get_current_user
+from controllers.auth import get_current_user, require_role
 from models.user import User
 from models.student import Student
 
@@ -74,7 +74,7 @@ def send_email_smtp(to_email: str, subject: str, html_content: str):
 async def send_grade_report(
     body: GradeReportEmailRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin", "teacher")),
 ):
     """Send a grade report email to a student (results only, no attachments)."""
     # Get student info (convert string IDs to UUID for PostgreSQL compatibility)
@@ -137,7 +137,7 @@ async def send_grade_report(
 async def send_bulk_reports(
     body: list[GradeReportEmailRequest],
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role("admin", "teacher")),
 ):
     """Send grade report emails to multiple students at once."""
     results = []

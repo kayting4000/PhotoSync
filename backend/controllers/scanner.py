@@ -3,7 +3,9 @@ import os
 import json
 import hashlib
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from controllers.auth import get_current_user, require_role
+from models.user import User
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -157,7 +159,10 @@ def _extract_visualization(data: dict) -> str | None:
 
 
 @router.post("/scan")
-async def scan_image(body: ScanRequest):
+async def scan_image(
+    body: ScanRequest,
+    current_user: User = Depends(require_role("admin", "teacher")),
+):
     if not all([ROBOFLOW_API_KEY, ROBOFLOW_WORKSPACE, ROBOFLOW_WORKFLOW_ID]):
         raise HTTPException(status_code=500, detail="Roboflow credentials not configured")
 

@@ -220,11 +220,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     route: '/email',
                   ),
                 ),
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 600),
+                  child: const _ActionTile(
+                    label: 'Send Feedback',
+                    subtitle: 'Report problems & suggestions',
+                    icon: Icons.feedback_rounded,
+                    gradient: [Color(0xFFE040FB), Color(0xFF9D4EDD)],
+                    route: '/feedback',
+                  ),
+                ),
                 const SizedBox(height: 20),
 
                 // Compact Team info
                 FadeSlideIn(
-                  delay: const Duration(milliseconds: 600),
+                  delay: const Duration(milliseconds: 650),
                   child: GlassCard(
                     padding: const EdgeInsets.all(14),
                     blurIntensity: 3,

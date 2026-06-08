@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import '../config.dart';
 import '../services/api_service.dart';
 import '../providers/student_provider.dart';
 import '../providers/exam_provider.dart';
