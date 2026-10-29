@@ -1,259 +1,118 @@
-# 📱 PhotoSync - Complete Project
+# PhotoSync
 
-Welcome to PhotoSync! This is a complete, production-ready application with both **Next.js Web**, **Python/FastAPI Backend**, and **Flutter Mobile** versions sharing the same Supabase backend.
+A full-stack academic management system for scanning test papers, tracking grades, managing students, and distributing results via email.
 
-## 🚀 Quick Start
+## Architecture
 
-### For Web (Next.js)
+| Layer | Technology |
+|-------|-----------|
+| Web frontend | Next.js 15 + TypeScript + Tailwind CSS |
+| Backend API | Python FastAPI + SQLAlchemy |
+| Mobile app | Flutter 3 (iOS, Android, Web, Desktop) |
+| Database | PostgreSQL (or SQLite for local dev) |
+| Auth | JWT |
+| Scanner | Roboflow computer vision |
+| Email | Gmail SMTP |
+
+## Features
+
+- **Authentication** — JWT-based login/signup for professors and students
+- **Student management** — Add, edit, and organise students by subject and section
+- **Test paper scanner** — Upload images; automatic check-mark detection via Roboflow
+- **Grades & GPA** — Weighted grade calculation, distribution view, export
+- **Email reports** — Batch-send grade reports to students via Gmail SMTP
+- **Student portal** — Students view their own grades, attendance, and exams
+- **Offline support** (Flutter) — Local SQLite cache with background sync
+
+## Project Structure
+
+```
+PhotoSync/
+├── app/                  # Next.js pages and API routes
+├── components/           # React UI components
+├── lib/                  # Shared utilities and types
+├── backend/              # FastAPI application
+│   ├── controllers/      # Route handlers
+│   ├── models/           # SQLAlchemy ORM models
+│   ├── schemas/          # Pydantic request/response schemas
+│   └── main.py           # App entry point
+├── flutter_app/          # Flutter mobile/desktop app
+│   └── lib/
+│       ├── screens/      # UI screens
+│       ├── providers/    # State management
+│       ├── services/     # API, sync, local DB
+│       └── models/       # Dart data models
+└── scripts/              # Database migration SQL files
+```
+
+## Quick Start
+
+### Backend
+
 ```bash
+cd backend
+pip install -r requirements.txt
+cp .env.example .env          # fill in your values
+uvicorn main:app --reload
+# API docs at http://localhost:8000/docs
+```
+
+### Web
+
+```bash
+cp .env.local.example .env.local   # fill in NEXT_PUBLIC_API_URL
 pnpm install
 pnpm dev
 # Open http://localhost:3000
 ```
 
-### For Backend (Python/FastAPI)
-```bash
-cd backend
-pip install -r requirements.txt
-python -m uvicorn main:app --reload
-# Open http://localhost:8000/docs
-```
+### Flutter
 
-### For Mobile (Flutter)
 ```bash
 cd flutter_app
 flutter pub get
-# Update credentials in lib/main.dart
+# Edit lib/config.dart — set productionUrl or localHost
 flutter run
 ```
 
-**First time? Read [SETUP_GUIDE.md](./SETUP_GUIDE.md) →**
+## Environment Variables
 
----
+### Backend (`backend/.env`)
 
-## 📚 Documentation
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string (defaults to SQLite) |
+| `JWT_SECRET` | Secret key for signing tokens |
+| `ROBOFLOW_API_KEY` | Roboflow API key for scanner |
+| `ROBOFLOW_WORKSPACE` | Roboflow workspace name |
+| `ROBOFLOW_WORKFLOW_ID` | Roboflow workflow ID |
+| `GMAIL_USER` | Gmail address for sending emails |
+| `GMAIL_PASSWORD` | Gmail App Password |
 
-| Document | Purpose |
-|----------|---------|
-| **SETUP_GUIDE.md** | 👈 **START HERE** - How to download and set up |
-| **QUICK_START_GUIDE.md** | Quick start guide |
-| **ENVIRONMENT_SETUP.md** | Environment configuration |
-| **CROSS_DEVICE_SETUP.md** | Cross-device setup instructions |
-| **FIREBASE_SETUP_GUIDE.md** | Firebase configuration |
-| **flutter_app/README.md** | Flutter app technical details |
-| **flutter_app/DEPLOYMENT.md** | Build and publish guide |
-| **backend/BACKEND_GUIDE.md** | Backend API documentation |
+### Web (`.env.local`)
 
----
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_API_URL` | Backend base URL |
 
-## ✨ Features
+> **Never commit `.env` files.** Use the provided `.env.example` templates.
 
-### 🔐 Authentication
-- Secure login/signup
-- Email-based authentication
-- Session management
+## Database Migrations
 
-### 👥 Student Management
-- Add, edit, delete students
-- Track student ID, name, course, year level
-- Email management
+SQL migration scripts are in `scripts/`. Run them in order against your PostgreSQL instance:
 
-### 📚 Subject Management
-- Create subjects with codes
-- Configure units/credits
-- Link subjects to students
-
-### 📸 Test Paper Scanner
-- Upload test paper images
-- Automatic check mark detection
-- Canvas-based image processing
-- Manual score override
-- Configurable scoring rules
-
-### 📊 Grades & GPA
-- Track all exam results
-- Calculate weighted GPA
-- View grade distributions
-- Filter by subject
-- Export grade reports
-
-### 📧 Email Reports
-- Send grades to students
-- Customizable messages
-- Batch email functionality
-- Email preview
-
-### 📈 Dashboard
-- Statistics overview
-- Quick action buttons
-- Real-time data sync
-
----
-
-## 🎯 Project Structure
-
-```
-PhotoSync/
-├── 📁 app/                           # Next.js Web Application
-│   ├── 📁 dashboard/                 # Dashboard pages
-│   ├── 📁 api/                       # API routes
-│   └── 📁 auth/                      # Authentication pages
-├── 📁 components/                    # React components
-├── 📁 lib/                          # Web utilities
-├── 📁 flutter_app/                  # Flutter Mobile App
-│   ├── 📁 lib/
-│   │   ├── models/                  # Data models
-│   │   ├── providers/               # State management
-│   │   ├── screens/                 # UI screens
-│   │   └── main.dart                # Entry point
-│   ├── 📁 android/                  # Android config
-│   ├── 📁 ios/                      # iOS config
-│   ├── 📁 web/                      # Web config
-│   └── pubspec.yaml                 # Dependencies
-├── 📁 scripts/                      # Database scripts
-└── 📚 Documentation files
+```bash
+psql $DATABASE_URL -f scripts/001_create_tables.sql
+psql $DATABASE_URL -f scripts/002_add_user_isolation.sql
+# ... and so on
 ```
 
----
+## Deployment
 
-## 🛠 Technology Stack
+- **Backend** — Render, Railway, or any Docker host (`backend/Dockerfile` included)
+- **Web** — Vercel (zero-config with Next.js)
+- **Mobile** — Standard `flutter build apk` / `flutter build ios`
 
-### Web Version
-- **Framework**: Next.js 15 (React)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Components**: shadcn/ui
-- **Hosting**: Vercel
+## License
 
-### Backend
-- **Framework**: Python FastAPI
-- **ORM**: SQLAlchemy
-- **Authentication**: JWT + Supabase Auth
-- **Email**: Gmail SMTP
-- **API Docs**: Swagger UI at `/docs`
-
-### Mobile Version
-- **Framework**: Flutter 3.0+
-- **Language**: Dart
-- **State Management**: Provider
-- **Navigation**: GoRouter
-- **Platforms**: iOS, Android, Web, Desktop
-
-### Database
-- **Primary**: PostgreSQL (Supabase / Neon)
-- **Auth**: Supabase Auth
-- **API**: REST + Realtime subscriptions
-- **Storage**: Supabase Storage
-
----
-
-## 📦 What's Included
-
-✅ **Complete Source Code**
-- Next.js web app with all features
-- Flutter mobile app with all features
-- Shared Supabase backend configuration
-
-✅ **Database Schema**
-- Pre-configured tables
-- Indexes for performance
-- Row Level Security policies
-
-✅ **Documentation**
-- Setup guides
-- Deployment guides
-- API documentation
-- Troubleshooting guides
-
-✅ **Ready to Deploy**
-- Web: Deploy to Vercel in 1 click
-- Mobile: Build scripts included
-- Database: Migrations provided
-
----
-
-## 🔒 Security Features
-
-- ✅ Supabase Authentication
-- ✅ Row Level Security (RLS)
-- ✅ Environment variables for credentials
-- ✅ Password hashing
-- ✅ Secure session management
-- ✅ HTTPS enforcement
-
----
-
-## 📱 Platform Support
-
-| Platform | Status | Notes |
-|----------|--------|-------|
-| 🍎 iOS | ✅ Ready | Build for App Store |
-| 🤖 Android | ✅ Ready | Build for Google Play |
-| 💻 Web | ✅ Ready | Deploy to Vercel |
-| 🖥️ Windows | ✅ Ready | Desktop app |
-| 🍎 macOS | ✅ Ready | Desktop app |
-| 🐧 Linux | ✅ Ready | Desktop app |
-
----
-
-## 🚀 Getting Started Steps
-
-1. **Read**: [SETUP_GUIDE.md](./SETUP_GUIDE.md)
-2. **Get Supabase credentials**: 2-5 minutes
-3. **Configure web app**: 1 minute
-4. **Configure mobile app**: 1 minute
-5. **Run web**: `pnpm dev`
-6. **Run mobile**: `flutter run`
-7. **Test features**: 5-10 minutes
-
-**Total setup time: ~15 minutes**
-
----
-
-## 📖 Learn More
-
-- [Flutter Documentation](https://flutter.dev/docs)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Supabase Documentation](https://supabase.com/docs)
-- [Tailwind CSS Guide](https://tailwindcss.com/docs)
-- [Material Design](https://material.io/design)
-
----
-
-## 🐛 Need Help?
-
-1. **Check documentation** - Most answers are in the guides
-2. **Run `flutter doctor`** - Diagnose Flutter issues
-3. **Check browser console** - Web app errors
-4. **Verify credentials** - Supabase URL and keys
-5. **Check Supabase dashboard** - Database and API status
-
----
-
-## 📜 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) first.
-
----
-
-## ✅ Next Step
-
-👉 **Start here**: [SETUP_GUIDE.md](./SETUP_GUIDE.md)
-
-The document will guide you through:
-- Downloading the project
-- Setting up Supabase
-- Running both versions
-- Building for production
-
----
-
-**Ready to build something amazing?** Let's go! 🚀
-
-*Created with ❤️ using Next.js, FastAPI, Flutter, and Supabase*
+MIT — see [LICENSE](LICENSE).

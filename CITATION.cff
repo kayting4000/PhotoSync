@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+title: PhotoSync
+message: "If you use this software, please cite it using the metadata below."
+type: software
+authors:
+  - family-names: Kayting
+    given-names: Habibun-najal K.
+repository-code: https://github.com/kayting4000/PhotoSync
+abstract: >
+  PhotoSync is a full-stack academic management system for scanning test papers,
+  tracking student grades, and distributing results via email. It includes a
+  Next.js web frontend, a Python FastAPI backend, and a Flutter mobile app.
+keywords:
+  - education
+  - grade management
+  - computer vision
+  - flutter
+  - fastapi
+  - nextjs
+license: MIT
