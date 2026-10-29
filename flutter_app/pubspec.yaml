@@ -2,10 +2,11 @@ name: photosync
 description: "PhotoSync - Photo Management & Grade Management System"
 publish_to: 'none'
 
-version: 38.0.0+38
+version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.24.0'
 
 dependencies:
   flutter:

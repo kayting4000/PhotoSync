@@ -8,74 +8,59 @@ on:
 
 jobs:
   lint-web:
-    name: Lint Web Frontend
+    name: Lint & Build Web
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-          cache: "pnpm"
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v3
         with:
           version: 8
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
 
-      - name: Run ESLint
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
         run: pnpm lint
         continue-on-error: true
 
-      - name: Build web frontend
+      - name: Build
         run: pnpm build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-key"
+          NEXT_PUBLIC_API_URL: "http://localhost:8000"
 
   lint-backend:
     name: Lint Backend
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        run: |
-          cd backend
-          pip install -r requirements.txt
-          pip install flake8
+      - name: Install deps
+        run: pip install -r backend/requirements.txt flake8
 
-      - name: Run flake8
-        run: cd backend && flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+      - name: Flake8
+        run: flake8 backend --count --select=E9,F63,F7,F82 --show-source --statistics
         continue-on-error: true
 
   test-backend:
     name: Test Backend
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        run: |
-          cd backend
-          pip install -r requirements.txt
+      - run: pip install -r backend/requirements.txt
 
       - name: Verify imports
         run: cd backend && python -c "import main; print('Backend imports OK')"
@@ -84,27 +69,23 @@ jobs:
     name: Build Flutter APK
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.16.0"
+          flutter-version: "3.24.0"
           channel: stable
 
-      - name: Install dependencies
-        run: cd flutter_app && flutter pub get
+      - run: cd flutter_app && flutter pub get
 
-      - name: Analyze Flutter code
+      - name: Analyze
         run: cd flutter_app && flutter analyze --no-fatal-infos
         continue-on-error: true
 
       - name: Build APK
         run: cd flutter_app && flutter build apk --release
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: photosync-apk
           path: flutter_app/build/app/outputs/flutter-apk/app-release.apk

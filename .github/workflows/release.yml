@@ -1,0 +1,105 @@
+name: PhotoSync Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build Flutter APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.24.0"
+          channel: stable
+
+      - run: cd flutter_app && flutter pub get
+
+      - name: Build APK
+        run: cd flutter_app && flutter build apk --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: flutter_app/build/app/outputs/flutter-apk/app-release.apk
+
+  build-web:
+    name: Build Next.js Web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_API_URL: "http://localhost:8000"
+
+      - name: Zip web output
+        run: zip -r photosync-web.zip .next public package.json pnpm-lock.yaml
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web
+          path: photosync-web.zip
+
+  release:
+    name: Publish GitHub Release
+    needs: [build-apk, build-web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: apk
+          path: artifacts/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: web
+          path: artifacts/
+
+      - name: Rename APK with version tag
+        run: mv artifacts/app-release.apk artifacts/photosync-${{ github.ref_name }}.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "PhotoSync ${{ github.ref_name }}"
+          body: |
+            ## PhotoSync ${{ github.ref_name }}
+
+            ### Downloads
+            | Asset | Description |
+            |-------|-------------|
+            | `photosync-${{ github.ref_name }}.apk` | Android APK (sideload) |
+            | `photosync-web.zip` | Next.js web build |
+
+            ### Setup
+            See [README.md](https://github.com/${{ github.repository }}/blob/main/README.md) for environment configuration.
+
+            ### Changelog
+            See commit history for changes since the last release.
+          files: |
+            artifacts/photosync-${{ github.ref_name }}.apk
+            artifacts/photosync-web.zip
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
